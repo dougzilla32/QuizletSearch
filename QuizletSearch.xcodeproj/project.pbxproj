@@ -7,12 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		910722F61B35FE200066DC87 /* QuizletSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910722F51B35FE200066DC87 /* QuizletSet.swift */; };
+		910722F81B3608AE0066DC87 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910722F71B3608AE0066DC87 /* Filter.swift */; };
+		910722FA1B360DC20066DC87 /* Boyer-Moore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910722F91B360DC20066DC87 /* Boyer-Moore.swift */; };
+		911A0D021B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 911A0D001B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld */; };
+		911A0D351B3CF69E00B219D7 /* QuizletSearchModel.strings in Resources */ = {isa = PBXBuildFile; fileRef = 911A0D341B3CF69E00B219D7 /* QuizletSearchModel.strings */; };
 		9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */; };
 		9126FDBE1B1D0E1000642E56 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDBD1B1D0E1000642E56 /* ViewController.swift */; };
 		9126FDC11B1D0E1000642E56 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDBF1B1D0E1000642E56 /* Main.storyboard */; };
 		9126FDC31B1D0E1000642E56 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDC21B1D0E1000642E56 /* Images.xcassets */; };
 		9126FDC61B1D0E1000642E56 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDC41B1D0E1000642E56 /* LaunchScreen.xib */; };
 		9126FDD21B1D0E1100642E56 /* QuizletSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDD11B1D0E1100642E56 /* QuizletSearchTests.swift */; };
+		91EDA1461B3161A600E1152D /* QuizletSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EDA1451B3161A600E1152D /* QuizletSession.swift */; };
+		91EDA14A1B3161D300E1152D /* DropboxSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EDA1491B3161D300E1152D /* DropboxSession.swift */; };
+		91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91EDA17E1B334CDF00E1152D /* UserAccount.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -26,6 +34,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		910722F51B35FE200066DC87 /* QuizletSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QuizletSet.swift; sourceTree = "<group>"; };
+		910722F71B3608AE0066DC87 /* Filter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Filter.swift; sourceTree = "<group>"; };
+		910722F91B360DC20066DC87 /* Boyer-Moore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Boyer-Moore.swift"; sourceTree = "<group>"; };
+		911A0D011B3CEDC100B219D7 /* QuizletSearch.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = QuizletSearch.xcdatamodel; sourceTree = "<group>"; };
+		911A0D341B3CF69E00B219D7 /* QuizletSearchModel.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = QuizletSearchModel.strings; sourceTree = "<group>"; };
 		9126FDB61B1D0E1000642E56 /* QuizletSearch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuizletSearch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9126FDBA1B1D0E1000642E56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -36,6 +49,9 @@
 		9126FDCB1B1D0E1100642E56 /* QuizletSearchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuizletSearchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9126FDD01B1D0E1100642E56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9126FDD11B1D0E1100642E56 /* QuizletSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizletSearchTests.swift; sourceTree = "<group>"; };
+		91EDA1451B3161A600E1152D /* QuizletSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QuizletSession.swift; sourceTree = "<group>"; };
+		91EDA1491B3161D300E1152D /* DropboxSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DropboxSession.swift; sourceTree = "<group>"; };
+		91EDA17E1B334CDF00E1152D /* UserAccount.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserAccount.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -79,7 +95,15 @@
 			children = (
 				9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */,
 				9126FDBD1B1D0E1000642E56 /* ViewController.swift */,
+				91EDA1491B3161D300E1152D /* DropboxSession.swift */,
+				91EDA1451B3161A600E1152D /* QuizletSession.swift */,
+				910722F91B360DC20066DC87 /* Boyer-Moore.swift */,
+				910722F71B3608AE0066DC87 /* Filter.swift */,
+				91EDA17E1B334CDF00E1152D /* UserAccount.swift */,
 				9126FDBF1B1D0E1000642E56 /* Main.storyboard */,
+				910722F51B35FE200066DC87 /* QuizletSet.swift */,
+				911A0D001B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld */,
+				911A0D341B3CF69E00B219D7 /* QuizletSearchModel.strings */,
 				9126FDC21B1D0E1000642E56 /* Images.xcassets */,
 				9126FDC41B1D0E1000642E56 /* LaunchScreen.xib */,
 				9126FDB91B1D0E1000642E56 /* Supporting Files */,
@@ -156,6 +180,7 @@
 		9126FDAE1B1D0E1000642E56 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
+				LastSwiftUpdateCheck = 0700;
 				LastUpgradeCheck = 0630;
 				ORGANIZATIONNAME = "Doug Stein";
 				TargetAttributes = {
@@ -195,6 +220,7 @@
 				9126FDC11B1D0E1000642E56 /* Main.storyboard in Resources */,
 				9126FDC61B1D0E1000642E56 /* LaunchScreen.xib in Resources */,
 				9126FDC31B1D0E1000642E56 /* Images.xcassets in Resources */,
+				911A0D351B3CF69E00B219D7 /* QuizletSearchModel.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -212,8 +238,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				910722F81B3608AE0066DC87 /* Filter.swift in Sources */,
+				91EDA1461B3161A600E1152D /* QuizletSession.swift in Sources */,
 				9126FDBE1B1D0E1000642E56 /* ViewController.swift in Sources */,
+				91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */,
+				910722FA1B360DC20066DC87 /* Boyer-Moore.swift in Sources */,
+				911A0D021B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld in Sources */,
 				9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */,
+				91EDA14A1B3161D300E1152D /* DropboxSession.swift in Sources */,
+				910722F61B35FE200066DC87 /* QuizletSet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -411,6 +444,7 @@
 				9126FDD71B1D0E1100642E56 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		9126FDD81B1D0E1100642E56 /* Build configuration list for PBXNativeTarget "QuizletSearchTests" */ = {
 			isa = XCConfigurationList;
@@ -419,8 +453,22 @@
 				9126FDDA1B1D0E1100642E56 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		911A0D001B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				911A0D011B3CEDC100B219D7 /* QuizletSearch.xcdatamodel */,
+			);
+			currentVersion = 911A0D011B3CEDC100B219D7 /* QuizletSearch.xcdatamodel */;
+			path = QuizletSearch.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = 9126FDAE1B1D0E1000642E56 /* Project object */;
 }
