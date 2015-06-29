@@ -8,20 +8,16 @@
 
 import UIKit
 import Foundation
+import CoreData
 
-let accessToken = "accessToken"
-let accessTokenSecret = "accessTokenSecret"
-
-
-class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
+class PickerViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDelegate {
 
     struct Query {
         var name: String
         var queryString: String
     }
     
-    let dropboxSession = DropboxSession()
-    let quizletSession = QuizletSession()
+    var users = [User]()
     
     var apisToCall = [
         Query(name: "London Weather", queryString: "http://api.openweathermap.org/data/2.5/weather?q=London,uk"),
@@ -35,8 +31,13 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
     @IBAction func buttonClicked(sender: UIButton) {
         println("Button pressed: \(apisToCall[currentRow].name)")
         
-        var appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        println("\(appDelegate.managedObjectModel)")
+        fetchUsers()
+        createUserWithName("doug", id: 123)
+        createUserWithName("jun", id: 456)
+        createUserWithName("marla", id: 789)
+        createUserWithName("david", id: 1234)
+        createUserWithName("karen", id: 5678)
+        
         // UIApplication.sharedApplication().openURL(quizletSession.authorizeURL())
         
         // var client = QuizletRestClient(session: quizletSession)
@@ -47,6 +48,37 @@ class ViewController: UIViewController, UIPickerViewDataSource, UIPickerViewDele
         // oauth2.googleTextToSpeech("hello")
 
         // UIApplication.sharedApplication().openURL(dropboxSession.authorizeURL())
+    }
+    
+    func fetchUsers() {
+        let moc = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext!
+        let fetchRequest = NSFetchRequest(entityName: "User")
+        
+        var error: NSError?
+        let users = moc.executeFetchRequest(fetchRequest, error: &error) as? [User]
+        if (users == nil) {
+            NSLog("An error occurred while fetching the list of users: \(error), \(error?.userInfo)")
+        }
+        
+        self.users = users!
+    }
+    
+    func createUserWithName(name: String, id: Int32) {
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let moc = appDelegate.managedObjectContext!
+        
+        let entity =  NSEntityDescription.entityForName("User", inManagedObjectContext: moc)!
+        let user = User(entity: entity, insertIntoManagedObjectContext: moc)
+        user.name = name
+        user.id = id
+        
+        var error: NSError?
+        if !moc.save(&error) {
+            NSLog("An error occurred while saving the data model: \(error), \(error?.userInfo)")
+            return
+        }  
+
+        users.append(user)
     }
     
     // returns the number of 'columns' to display.

@@ -160,7 +160,7 @@ class QuizletSession {
                 
                 println("Get my sets:")
                 self.getAllSetsForUser(self.currentUser!.userId,
-                    completionHandler: { (quizletSets: [QuizletSet]?) in
+                    completionHandler: { (quizletSets: [QSet]?) in
                     println("RESULT: \(quizletSets)")
                 })
                 
@@ -243,10 +243,10 @@ class QuizletSession {
         })
     }
     
-    func getAllSetsForUser(user: String, completionHandler: ([QuizletSet]?) -> Void) {
+    func getAllSetsForUser(user: String, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuizletCall("/2.0/users/\(user)/sets", queryItems: nil, jsonCallback: { (AnyObject data) in
             if let json = data as? Array<NSDictionary> {
-                var qsets = QuizletSet.setsFromJSON(json)
+                var qsets = QSet.setsFromJSON(json)
                 if (qsets == nil) {
                     NSLog("Invalid Quizlet Set in getAllSetsForUser")
                     completionHandler(nil)

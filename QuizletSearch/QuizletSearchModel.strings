@@ -5,3 +5,27 @@
   Created by Doug Stein on 6/25/15.
   Copyright (c) 2015 Doug Stein. All rights reserved.
 */
+
+"Entity/User" = "User";
+"Property/name" = "Name";
+"Property/id" = "ID";
+"Property/filters" = "Filters";
+
+"Entity/Filter" = "Filter";
+"Property/query" = "Query";
+"Property/title" = "Title";
+"Property/user" = "User";
+"Property/sets" = "Quizlet Sets";
+
+"Entity/QuizletSet" = "Quizlet Set";
+"Property/createdBy" = "Created By";
+"Property/creatorId" = "Creator ID";
+"Property/id" = "ID";
+"Property/title" = "Title";
+"Property/url" = "URL";
+"Property/filters" = "Filters";
+
+"Entity/QuizletTerm" = "Quizlet Term";
+"Property/definition" = "Definition";
+"Property/term" = "Term";
+"Property/set" = "Quizlet Set";

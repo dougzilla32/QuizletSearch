@@ -12,19 +12,14 @@ import CoreData
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    let quizletSession = QuizletSession()
+    
     var window: UIWindow?
     
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject?) -> Bool {
-        var viewController = application.delegate!.window!!.rootViewController as! ViewController
-        
-        if (url.scheme == "byteclub") {
-            println("Dropbox callback: \(url)")
-            viewController.dropboxSession.acquireAccessToken(url)
-            return true
-        }
+
         if (url.scheme == "quizletsearch") {
-            println("Quizlet callback: \(url)")
-            viewController.quizletSession.acquireAccessToken(url)
+            quizletSession.acquireAccessToken(url)
             return true
         }
         
