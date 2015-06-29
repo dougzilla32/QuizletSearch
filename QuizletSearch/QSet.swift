@@ -1,5 +1,5 @@
 //
-//  QuizletSets.swift
+//  QSet.swift
 //  QuizletSearch
 //
 //  Created by Doug Stein on 6/20/15.

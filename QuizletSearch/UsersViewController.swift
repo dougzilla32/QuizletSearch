@@ -1,5 +1,5 @@
 //
-//  LoginViewController.swift
+//  UsersViewController.swift
 //  QuizletSearch
 //
 //  Created by Doug Stein on 6/29/15.
@@ -9,13 +9,11 @@
 import UIKit
 import Foundation
 
-class LoginViewController: UIViewController {
+class UsersViewController: UIViewController {
     
-    @IBAction func loginAction(sender: UIButton) {
-        var appDelegate = (UIApplication.sharedApplication().delegate as! AppDelegate)
-        UIApplication.sharedApplication().openURL(appDelegate.quizletSession.authorizeURL())
+    @IBAction func unwindToList(segue: UIStoryboardSegue) {
     }
-
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.

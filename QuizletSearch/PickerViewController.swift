@@ -1,5 +1,5 @@
 //
-//  ViewController.swift
+//  PickerViewController.swift
 //  QuizletSearch
 //
 //  Created by Doug Stein on 6/1/15.
