@@ -4,10 +4,10 @@
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7701"/>
     </dependencies>
     <scenes>
-        <!--Splash Screen View Controller-->
+        <!--Login View Controller-->
         <scene sceneID="ILb-mF-HFc">
             <objects>
-                <viewController id="nwM-di-8tA" customClass="SplashScreenViewController" customModule="QuizletSearch" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="nwM-di-8tA" userLabel="Login View Controller" customClass="LoginViewController" customModule="QuizletSearch" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="DsA-Gx-47a"/>
                         <viewControllerLayoutGuide type="bottom" id="jKb-uk-QnZ"/>

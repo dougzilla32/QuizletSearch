@@ -9,7 +9,7 @@
 import UIKit
 import Foundation
 
-class SplashScreenViewController: UIViewController {
+class LoginViewController: UIViewController {
     
     @IBAction func loginAction(sender: UIButton) {
         var appDelegate = (UIApplication.sharedApplication().delegate as! AppDelegate)
