@@ -17,6 +17,7 @@
 		911A0D411B3F1FE600B219D7 /* Filter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911A0D401B3F1FE600B219D7 /* Filter.swift */; };
 		911A0D4B1B3F2AE900B219D7 /* DataModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911A0D4A1B3F2AE900B219D7 /* DataModel.swift */; };
 		911A0D4D1B41264200B219D7 /* LoginViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911A0D4C1B41264200B219D7 /* LoginViewController.swift */; };
+		911A0D511B41772C00B219D7 /* SearchViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911A0D501B41772C00B219D7 /* SearchViewController.swift */; };
 		9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */; };
 		9126FDBE1B1D0E1000642E56 /* PickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDBD1B1D0E1000642E56 /* PickerViewController.swift */; };
 		9126FDC11B1D0E1000642E56 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDBF1B1D0E1000642E56 /* Main.storyboard */; };
@@ -49,6 +50,7 @@
 		911A0D401B3F1FE600B219D7 /* Filter.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Filter.swift; path = ../Filter.swift; sourceTree = "<group>"; };
 		911A0D4A1B3F2AE900B219D7 /* DataModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DataModel.swift; sourceTree = "<group>"; };
 		911A0D4C1B41264200B219D7 /* LoginViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LoginViewController.swift; sourceTree = "<group>"; };
+		911A0D501B41772C00B219D7 /* SearchViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchViewController.swift; sourceTree = "<group>"; };
 		9126FDB61B1D0E1000642E56 /* QuizletSearch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuizletSearch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9126FDBA1B1D0E1000642E56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -133,6 +135,7 @@
 				9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */,
 				9126FDBD1B1D0E1000642E56 /* PickerViewController.swift */,
 				911A0D4C1B41264200B219D7 /* LoginViewController.swift */,
+				911A0D501B41772C00B219D7 /* SearchViewController.swift */,
 				910722F91B360DC20066DC87 /* Boyer-Moore.swift */,
 				911A0D4F1B41751E00B219D7 /* Model */,
 				911A0D4E1B4174EC00B219D7 /* Session */,
@@ -269,6 +272,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				911A0D511B41772C00B219D7 /* SearchViewController.swift in Sources */,
 				911A0D3D1B3F1FE600B219D7 /* User.swift in Sources */,
 				911A0D411B3F1FE600B219D7 /* Filter.swift in Sources */,
 				911A0D3B1B3F1FE500B219D7 /* QuizletSet.swift in Sources */,
