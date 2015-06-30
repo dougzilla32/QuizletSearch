@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7702" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="nwM-di-8tA">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7702" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="bQl-lE-mnK">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7701"/>
     </dependencies>
@@ -209,7 +209,7 @@
                         </connections>
                     </tableView>
                     <navigationItem key="navigationItem" id="kFP-7Y-YTa" userLabel="Show Users">
-                        <barButtonItem key="leftBarButtonItem" systemItem="done" id="p3Y-Cz-LOA">
+                        <barButtonItem key="leftBarButtonItem" title="&lt; Search" id="p3Y-Cz-LOA">
                             <connections>
                                 <segue destination="XQr-0l-roT" kind="unwind" unwindAction="unwindToList:" id="LDX-la-ghm"/>
                             </connections>
@@ -249,6 +249,9 @@
                                             <state key="normal" title="Button" image="User">
                                                 <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
                                             </state>
+                                            <connections>
+                                                <segue destination="9AA-5U-TvR" kind="show" id="DgX-pS-z06"/>
+                                            </connections>
                                         </button>
                                     </barButtonItem>
                                     <barButtonItem width="6" style="plain" systemItem="fixedSpace" id="J3c-CL-n2U"/>
@@ -331,7 +334,7 @@
                     </view>
                     <connections>
                         <outlet property="searchDisplayController" destination="8Z3-b9-rjV" id="f6O-oI-aae"/>
-                        <segue destination="9AA-5U-TvR" kind="show" id="u5X-YB-nFz"/>
+                        <outlet property="tableView" destination="8IP-x1-ERJ" id="Psi-b0-rLO"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="5Co-Ox-AjM" userLabel="First Responder" sceneMemberID="firstResponder"/>

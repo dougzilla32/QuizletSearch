@@ -11,6 +11,8 @@ import Foundation
 
 class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     
+    @IBOutlet weak var tableView: UITableView!
+
     @IBAction func unwindToList(segue: UIStoryboardSegue) {
     }
     
@@ -24,6 +26,23 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
     }
     
+    // UITableViewController functionality
+    override func viewWillAppear(animated: Bool) {
+        if let path = tableView.indexPathForSelectedRow() {
+            tableView.deselectRowAtIndexPath(path, animated: true)
+        }
+    }
+    
+    // UITableViewController functionality
+    override func viewDidAppear(animated: Bool) {
+        tableView.flashScrollIndicators()
+    }
+    
+    // UITableViewController functionality, used for "Edit/Done" button
+    func startEditing() {
+        setEditing(true, animated: true)
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -33,23 +52,39 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
-        return 0
+        return 1
     }
     
     func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
-        return 0
+        return 20
     }
 
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
     let cell = tableView.dequeueReusableCellWithIdentifier("termAndDefinition", forIndexPath: indexPath) as! UITableViewCell
     
-        // Configure the cell...
+        cell.textLabel!.text = "Item \(indexPath.row)"
     
         return cell
     }
     
+    /*
+    Basically, to add sections and an index list in the UITableView, you need to deal with these methods as defined in UITableViewDataSource protocol:
+
+    numberOfSectionsInTableView: method – returns the total number of sections in the table view. Usually we set the number of section to 1. If you want to have multiple sections, set this value to a larger number.
+    
+    titleForHeaderInSection: method – returns the header titles for different sections. This method is optional if you do not assign titles for the section.
+    
+    numberOfRowsInSection: method – returns the total number of rows in a specific section
+    
+    cellForRowAtIndexPath: method – this method shouldn’t be new to you if you know how to display data in UITableView. It returns the table data for a particular section.
+    
+    sectionIndexTitlesForTableView: method – returns the indexed titles that appear in the index list on the right side of the table view. For example, you can return an array of strings containing “A” to “Z”.
+    
+    sectionForSectionIndexTitle: method – returns the section index that the table view should jump to when user taps a particular index.
+    */
+
     /*
     // Override to support conditional editing of the table view.
     override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
