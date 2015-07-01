@@ -32,11 +32,11 @@ class PickerViewController: UIViewController, UIPickerViewDataSource, UIPickerVi
         println("Button pressed: \(apisToCall[currentRow].name)")
         
         fetchUsers()
-        createUserWithName("doug", id: 123)
-        createUserWithName("jun", id: 456)
-        createUserWithName("marla", id: 789)
-        createUserWithName("david", id: 1234)
-        createUserWithName("karen", id: 5678)
+        createUserWithName("doug", id: "123")
+        createUserWithName("jun", id: "456")
+        createUserWithName("marla", id: "789")
+        createUserWithName("david", id: "1234")
+        createUserWithName("karen", id: "5678")
         
         // UIApplication.sharedApplication().openURL(quizletSession.authorizeURL())
         
@@ -63,7 +63,7 @@ class PickerViewController: UIViewController, UIPickerViewDataSource, UIPickerVi
         self.users = users!
     }
     
-    func createUserWithName(name: String, id: Int32) {
+    func createUserWithName(name: String, id: String) {
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
         let moc = appDelegate.managedObjectContext!
         

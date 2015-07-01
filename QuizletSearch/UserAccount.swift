@@ -11,13 +11,13 @@ import Foundation
 class UserAccount {
     let accessToken: String
     let expiresIn: Int
+    let userName: String
     let userId: String
-    let creationDate: NSDate
 
-    init(accessToken: String, expiresIn: Int, userId: String) {
+    init(accessToken: String, expiresIn: Int, userName: String, userId: String) {
         self.accessToken = accessToken
         self.expiresIn = expiresIn
+        self.userName = userName
         self.userId = userId
-        self.creationDate = NSDate()
     }
 }

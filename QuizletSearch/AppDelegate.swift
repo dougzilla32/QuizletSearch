@@ -12,14 +12,53 @@ import CoreData
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
+    private var dataModel: DataModel?
+    
     let quizletSession = QuizletSession()
     
     var window: UIWindow?
     
+    func getDataModel() -> DataModel {
+        if (dataModel == nil) {
+            dataModel = DataModel(managedObjectContext: managedObjectContext!)
+        }
+        return dataModel!
+    }
+    
+    func application(application: UIApplication,
+        willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
+    
+        getDataModel()
+        setRootViewController((dataModel!.currentUser == nil) ? "LoginViewController" : "SearchViewController")
+        return true
+    }
+
+    func setRootViewController(rootViewControllerIdentifier: String) {
+        var storyboard = self.window!.rootViewController!.storyboard!
+        self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(rootViewControllerIdentifier) as? UIViewController
+    }
+    
+    func application(application: UIApplication,
+        didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
+        // Tells the delegate that the launch process is almost done and the app is almost ready to run.
+        return true
+    }
+    
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject?) -> Bool {
 
         if (url.scheme == "quizletsearch") {
-            quizletSession.acquireAccessToken(url)
+            quizletSession.acquireAccessToken(url,
+                completionHandler: { (userAccount: UserAccount?, error: NSError?) -> Void in
+                    if let err = error {
+                        var alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
+                        alert.show()
+                    } else {
+                        self.dataModel!.addOrUpdateUser(userAccount!)
+                        // refreshModel(), must do first time, should probably do every time (in background)
+                    }
+                }
+            )
+            
             return true
         }
         

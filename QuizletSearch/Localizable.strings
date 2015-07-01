@@ -1,0 +1,9 @@
+/* 
+  Localizable.strings
+  QuizletSearch
+
+  Created by Doug Stein on 6/30/15.
+  Copyright (c) 2015 Doug Stein. All rights reserved.
+*/
+
+"access_denied" = "Access Denied";

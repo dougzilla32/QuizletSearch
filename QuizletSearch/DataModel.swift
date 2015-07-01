@@ -12,8 +12,6 @@ import CoreData
 class DataModel {
     var moc: NSManagedObjectContext
 
-    var users: [User]?
-
     var currentUser: User? {
         didSet {
             // if set to different user then clear the current filter (if any)
@@ -23,6 +21,7 @@ class DataModel {
         }
     }
 
+    /*
     var filters: [Filter]?
     
     var currentFilter: Filter? {
@@ -37,24 +36,68 @@ class DataModel {
             // clear the existing filter, if any
         }
     }
+    */
     
     init(managedObjectContext: NSManagedObjectContext) {
         self.moc = managedObjectContext
+        if let userId = NSUserDefaults.standardUserDefaults().stringForKey("currentUser") {
+            currentUser = fetchUserWithId(userId)
+        }
+    }
+    
+    func save() {
+        var error: NSError?
+        var users = moc.save(&error)
+        if (error != nil) {
+            NSLog("An error occurred while saving: \(error), \(error?.userInfo)")
+        }
     }
     
     func fetchUsers() -> [User]? {
         let fetchRequest = NSFetchRequest(entityName: "User")
         
         var error: NSError?
-        let users = moc.executeFetchRequest(fetchRequest, error: &error) as? [User]
+        var users = moc.executeFetchRequest(fetchRequest, error: &error) as? [User]
         if (users == nil) {
             NSLog("An error occurred while fetching the list of users: \(error), \(error?.userInfo)")
+            users = nil
         }
         
-        self.users = users
         return users
     }
     
+    func fetchUserWithId(userId: String) -> User? {
+        let fetchRequest = NSFetchRequest(entityName: "User")
+        fetchRequest.predicate = NSPredicate(format: "id == %@", userId)
+        
+        var error: NSError?
+        var users = moc.executeFetchRequest(fetchRequest, error: &error) as? [User]
+        if (users == nil) {
+            NSLog("An error occurred while fetching the list of users: \(error), \(error?.userInfo)")
+            return nil
+        }
+        if (users!.count == 0) {
+            return nil
+        }
+
+        return users![0]
+    }
+    
+    func addOrUpdateUser(userAccount: UserAccount) {
+        var newUser = fetchUserWithId(userAccount.userId)
+        if (newUser == nil) {
+            newUser = NSEntityDescription.insertNewObjectForEntityForName("User",
+                inManagedObjectContext: moc) as? User
+        }
+        newUser!.copyFrom(userAccount)
+        save()
+        
+        if (currentUser != newUser) {
+            currentUser = newUser
+            NSUserDefaults.standardUserDefaults().setObject(newUser!.id, forKey: "currentUser")
+        }
+    }
+        
     /*
     func fetchFilters() -> [Filter]? {
         if (currentUser == nil) {

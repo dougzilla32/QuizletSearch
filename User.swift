@@ -14,7 +14,13 @@ class User: NSManagedObject {
     @NSManaged var accessToken: String
     @NSManaged var accessTokenExpiration: Int64
     @NSManaged var name: String
-    @NSManaged var id: Int32
+    @NSManaged var id: String
     @NSManaged var filters: NSOrderedSet
 
+    func copyFrom(userAccount: UserAccount) {
+        self.accessToken = userAccount.accessToken
+        self.accessTokenExpiration = Int64(userAccount.expiresIn + Int(NSDate().timeIntervalSince1970))
+        self.name = userAccount.userName
+        self.id = userAccount.userId
+    }
 }

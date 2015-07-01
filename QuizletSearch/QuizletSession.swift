@@ -64,7 +64,9 @@ class QuizletSession {
     //
     // Include HTTP basic authorization containing the client ID and secret
     //
-    func acquireAccessToken(url: NSURL) {
+    func acquireAccessToken(url: NSURL,
+        completionHandler: (userAccount: UserAccount?, error: NSError?) -> Void) {
+            
         // The URL query contains the "/oauth/authorize" response parameters
         if (url.query == nil) {
             NSLog("Query is missing from authorize response: \(url)")
@@ -93,14 +95,22 @@ class QuizletSession {
         // Check if the response contains an error message
         var responseError = responseParams["error"]
         if (responseError != nil) {
-            NSLog("Error: \(responseError!)")
             var responseErrorDescription = responseParams["error_description"]
             if (responseErrorDescription != nil) {
-                NSLog(responseErrorDescription!.stringByReplacingOccurrencesOfString("+", withString: " "))
+                responseErrorDescription = responseErrorDescription!.stringByReplacingOccurrencesOfString("+", withString: " ")
+            } else {
+                responseErrorDescription = "Unable to complete login"
             }
+
+            var error = NSError(domain: responseError!, code: 0,
+                userInfo: [
+                    NSLocalizedDescriptionKey: NSLocalizedString(responseError!, comment: ""),
+                    NSLocalizedFailureReasonErrorKey: responseErrorDescription!
+                ])
+            completionHandler(userAccount: nil, error: error)
             return
         }
-        
+    
         // Sanity check the response parameters
         var code = responseParams["code"]
         if (code == nil) {
@@ -151,19 +161,12 @@ class QuizletSession {
                     let accessToken = json["access_token"] as? String,
                     let expiresIn = json["expires_in"] as? Int,
                     let userId = json["user_id"] as? String {
-                        println("We have the access token!  Success! \(accessToken)")
-                        self.currentUser = UserAccount(accessToken: accessToken, expiresIn: expiresIn, userId: userId)
+                        self.currentUser = UserAccount(accessToken: accessToken, expiresIn: expiresIn, userName: userId, userId: userId)
+                        completionHandler(userAccount: self.currentUser!, error: nil)
                 } else {
                     NSLog("Unexpected JSON response: \(jsonAny)")
                     return
                 }
-                
-                println("Get my sets:")
-                self.getAllSetsForUser(self.currentUser!.userId,
-                    completionHandler: { (quizletSets: [QSet]?) in
-                    println("RESULT: \(quizletSets)")
-                })
-                
         })
         
         currentTaskDescription = toString(url.URL)
@@ -290,9 +293,6 @@ class QuizletSession {
         var session = NSURLSession(configuration: config)
         var request = NSMutableURLRequest(URL: url.URL!)
         request.HTTPMethod = "GET"
-        
-//        println(url)
-//        println(config.HTTPAdditionalHeaders!)
         
         if (currentTask != nil) {
             NSLog("Task already running: \(currentTaskDescription)")
