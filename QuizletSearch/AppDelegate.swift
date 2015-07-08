@@ -10,7 +10,7 @@ import UIKit
 import CoreData
 
 @UIApplicationMain
-class AppDelegate: UIResponder, UIApplicationDelegate {
+class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
 
     private var dataModel: DataModel?
     
@@ -25,17 +25,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return dataModel!
     }
     
-    func application(application: UIApplication,
-        willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
-    
-        getDataModel()
-        setRootViewController((dataModel!.currentUser == nil) ? "LoginViewController" : "SearchViewController")
-        return true
-    }
+    func application(application: UIApplication, willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
 
-    func setRootViewController(rootViewControllerIdentifier: String) {
+        var id: String
+        if (managedObjectContext != nil) {
+            id = (getDataModel().currentUser == nil) ? "LoginViewController" : "SearchViewController"
+        } else {
+            id = "ErrorViewController"
+        }
+
         var storyboard = self.window!.rootViewController!.storyboard!
-        self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(rootViewControllerIdentifier) as? UIViewController
+        self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController
+        return true
     }
     
     func application(application: UIApplication,
@@ -107,23 +108,31 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
         let url = self.applicationDocumentsDirectory.URLByAppendingPathComponent("Temp.sqlite")
         var error: NSError? = nil
-        var failureReason = "There was an error creating or loading the application's saved data."
+        // var failureReason = "There was an error creating or loading the application's saved data."
         if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
             coordinator = nil
             // Report any error we got.
-            var dict = [String: AnyObject]()
-            dict[NSLocalizedDescriptionKey] = "Failed to initialize the application's saved data"
-            dict[NSLocalizedFailureReasonErrorKey] = failureReason
-            dict[NSUnderlyingErrorKey] = error
-            error = NSError(domain: "YOUR_ERROR_DOMAIN", code: 9999, userInfo: dict)
+            // var dict = [String: AnyObject]()
+            // dict[NSLocalizedDescriptionKey] = "Failed to initialize the application's saved data"
+            // dict[NSLocalizedFailureReasonErrorKey] = failureReason
+            // dict[NSUnderlyingErrorKey] = error
+            // error = NSError(domain: "YOUR_ERROR_DOMAIN", code: 9999, userInfo: dict)
             // Replace this with code to handle the error appropriately.
             // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-            NSLog("Unresolved error \(error), \(error!.userInfo)")
-            abort()
+            NSLog("Unresolved error \(error!), \(error!.userInfo)")
+            
+            var reason = (error!.userInfo!["reason"] as! String)
+            var alert = UIAlertView(title: "Initialization Error", message: reason, delegate: self, cancelButtonTitle: "Exit")
+            alert.show()
+            return nil
         }
         
         return coordinator
         }()
+    
+    func alertView(alertView: UIAlertView, clickedButtonAtIndex buttonIndex: Int) {
+        exit(0)
+    }
     
     lazy var managedObjectContext: NSManagedObjectContext? = {
         // Returns the managed object context for the application (which is already bound to the persistent store coordinator for the application.) This property is optional since there are legitimate error conditions that could cause the creation of the context to fail.

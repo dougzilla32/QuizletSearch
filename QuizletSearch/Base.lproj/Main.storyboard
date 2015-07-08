@@ -138,6 +138,75 @@
             </objects>
             <point key="canvasLocation" x="-437" y="-217"/>
         </scene>
+        <!--Error View Controller-->
+        <scene sceneID="ZKL-Xv-mj6">
+            <objects>
+                <viewController storyboardIdentifier="ErrorViewController" id="OLU-kZ-Zv3" userLabel="Error View Controller" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="0r0-m0-vLC"/>
+                        <viewControllerLayoutGuide type="bottom" id="z49-Fi-Gr6"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="ELF-L8-w1f">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" highlighted="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="7Qd-JD-zka">
+                                <rect key="frame" x="241" y="157" width="119" height="64"/>
+                                <attributedString key="attributedText">
+                                    <fragment content="Quizlet">
+                                        <attributes>
+                                            <color key="NSBackgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
+                                            <color key="NSColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                            <font key="NSFont" size="40" name="Noteworthy-Bold"/>
+                                            <font key="NSOriginalFont" size="36" name="Noteworthy-Bold"/>
+                                            <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
+                                        </attributes>
+                                    </fragment>
+                                </attributedString>
+                                <color key="highlightedColor" red="0.098039215690000001" green="0.33725490200000002" blue="0.80000000000000004" alpha="1" colorSpace="calibratedRGB"/>
+                                <size key="shadowOffset" width="0.0" height="0.0"/>
+                            </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="5M6-VA-rhA" userLabel="spacer">
+                                <rect key="frame" x="280" y="285" width="40" height="30"/>
+                                <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <color key="tintColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="U6u-Qq-VhX"/>
+                                    <constraint firstAttribute="width" constant="40" id="XvA-VP-D3p"/>
+                                </constraints>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" highlighted="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gjw-sb-Mu0">
+                                <rect key="frame" x="240" y="211" width="120" height="64"/>
+                                <attributedString key="attributedText">
+                                    <fragment content="Search">
+                                        <attributes>
+                                            <color key="NSBackgroundColor" red="1" green="1" blue="1" alpha="0.0" colorSpace="calibratedRGB"/>
+                                            <color key="NSColor" red="1" green="1" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                            <font key="NSFont" size="40" name="Noteworthy-Bold"/>
+                                            <font key="NSOriginalFont" size="36" name="Noteworthy-Bold"/>
+                                            <paragraphStyle key="NSParagraphStyle" alignment="center" lineBreakMode="wordWrapping" baseWritingDirection="natural"/>
+                                        </attributes>
+                                    </fragment>
+                                </attributedString>
+                                <color key="highlightedColor" red="0.098039215690000001" green="0.33725490200000002" blue="0.80000000000000004" alpha="1" colorSpace="calibratedRGB"/>
+                                <size key="shadowOffset" width="0.0" height="0.0"/>
+                            </label>
+                        </subviews>
+                        <color key="backgroundColor" red="0.098039215690000001" green="0.33725490200000002" blue="0.80000000000000004" alpha="1" colorSpace="calibratedRGB"/>
+                        <constraints>
+                            <constraint firstItem="5M6-VA-rhA" firstAttribute="top" secondItem="gjw-sb-Mu0" secondAttribute="bottom" constant="10" id="5Va-hd-c8d"/>
+                            <constraint firstAttribute="centerX" secondItem="5M6-VA-rhA" secondAttribute="centerX" id="9kF-jj-vae"/>
+                            <constraint firstAttribute="centerY" secondItem="5M6-VA-rhA" secondAttribute="centerY" id="Lyu-Uf-IiZ"/>
+                            <constraint firstAttribute="centerX" secondItem="gjw-sb-Mu0" secondAttribute="centerX" id="aFV-S6-ITj"/>
+                            <constraint firstAttribute="centerX" secondItem="7Qd-JD-zka" secondAttribute="centerX" id="hc3-nU-1z6"/>
+                            <constraint firstItem="gjw-sb-Mu0" firstAttribute="top" secondItem="7Qd-JD-zka" secondAttribute="bottom" constant="-10" id="qOb-eq-GAe"/>
+                        </constraints>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="ZNl-4B-dJc" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="-443" y="467"/>
+        </scene>
         <!--Users Table View Controller-->
         <scene sceneID="L1b-HT-cIQ">
             <objects>

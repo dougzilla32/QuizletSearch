@@ -84,17 +84,26 @@ class DataModel {
     }
     
     func addOrUpdateUser(userAccount: UserAccount) {
-        var newUser = fetchUserWithId(userAccount.userId)
-        if (newUser == nil) {
-            newUser = NSEntityDescription.insertNewObjectForEntityForName("User",
-                inManagedObjectContext: moc) as? User
+        var user = fetchUserWithId(userAccount.userId)
+        if (user == nil) {
+            var newUser = NSEntityDescription.insertNewObjectForEntityForName("User",
+                inManagedObjectContext: moc) as! User
+            var newFilter = NSEntityDescription.insertNewObjectForEntityForName("Filter",
+                inManagedObjectContext: moc) as! Filter
+            // title, query, user, sets
+            newFilter.title = "My Sets"
+            newFilter.query = "*"
+            newFilter.user = newUser
+            newUser.filters = NSOrderedSet(array: [newFilter])
+
+            user = newUser
         }
-        newUser!.copyFrom(userAccount)
+        user!.copyFrom(userAccount)
         save()
         
-        if (currentUser != newUser) {
-            currentUser = newUser
-            NSUserDefaults.standardUserDefaults().setObject(newUser!.id, forKey: "currentUser")
+        if (currentUser != user) {
+            currentUser = user
+            NSUserDefaults.standardUserDefaults().setObject(user!.id, forKey: "currentUser")
         }
     }
         

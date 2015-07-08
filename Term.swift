@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-class QuizletTerm: NSManagedObject {
+class Term: NSManagedObject {
 
     @NSManaged var term: String
     @NSManaged var definition: String
