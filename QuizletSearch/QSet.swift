@@ -9,15 +9,15 @@
 import Foundation
 
 class QSet {
-    var id: Int
+    var id: Int64
     var url: String
     var title: String
     var createdBy: String
-    var creatorId: Int
+    var creatorId: Int64
     
     var terms: [QTerm]
     
-    init(id: Int, url: String, title: String, createdBy: String, creatorId: Int) {
+    init(id: Int64, url: String, title: String, createdBy: String, creatorId: Int64) {
         self.id = id
         self.url = url
         self.title = title
@@ -28,11 +28,11 @@ class QSet {
     
     class func setFromJSON(jsonSet: NSDictionary) -> QSet? {
         var qset: QSet? = nil
-        if  let id = jsonSet["id"] as? Int,
+        if  let id = (jsonSet["id"] as? NSNumber)?.longLongValue,
             let url = jsonSet["url"] as? String,
             let title = jsonSet["title"] as? String,
             let createdBy = jsonSet["created_by"] as? String,
-            let creatorId = jsonSet["creator_id"] as? Int {
+            let creatorId = (jsonSet["creator_id"] as? NSNumber)?.longLongValue {
                 qset = QSet(id: id, url: url, title: title, createdBy: createdBy, creatorId: creatorId)
         }
         return qset

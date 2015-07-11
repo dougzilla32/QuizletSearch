@@ -20,8 +20,9 @@ class QuizletSession {
     let quizletState = "qW3Ecv34asdf4/aseErBw34gs="
     
     var currentUser: UserAccount?
-    var currentTask: NSURLSessionDataTask?
-    var currentTaskDescription: String?
+
+    private var currentTask: NSURLSessionDataTask?
+    private var currentTaskDescription: String?
     
     func close() {
         if let task = currentTask {

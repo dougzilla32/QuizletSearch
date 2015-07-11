@@ -12,53 +12,65 @@ import CoreData
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
 
-    private var dataModel: DataModel?
-    
     let quizletSession = QuizletSession()
     
     var window: UIWindow?
     
-    func getDataModel() -> DataModel {
-        if (dataModel == nil) {
-            dataModel = DataModel(managedObjectContext: managedObjectContext!)
-        }
-        return dataModel!
-    }
+    lazy var dataModel: DataModel = {
+        return DataModel(managedObjectContext: self.managedObjectContext!, quizletSession: self.quizletSession)
+    }()
     
     func application(application: UIApplication, willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
 
         var id: String
         if (managedObjectContext != nil) {
-            id = (getDataModel().currentUser == nil) ? "LoginViewController" : "SearchViewController"
+            id = (dataModel.currentUser == nil) ? "LoginViewController" : "SearchViewController"
         } else {
             id = "ErrorViewController"
         }
+        
+        setRootViewControllerWithIdentifier(id)
 
+        return true
+    }
+    
+    func setRootViewControllerWithIdentifier(id: String) {
         var storyboard = self.window!.rootViewController!.storyboard!
         self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController
-        return true
     }
     
     func application(application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
         // Tells the delegate that the launch process is almost done and the app is almost ready to run.
+            
+        if (managedObjectContext != nil && dataModel.currentUser != nil) {
+            dataModel.refreshModelForCurrentFilter()
+        }
+
         return true
     }
     
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject?) -> Bool {
 
         if (url.scheme == "quizletsearch") {
+            self.setRootViewControllerWithIdentifier("SearchViewController")
+            
             quizletSession.acquireAccessToken(url,
-                completionHandler: { (userAccount: UserAccount?, error: NSError?) -> Void in
+                completionHandler: { (userAccount: UserAccount?, error: NSError?) in
                     if let err = error {
                         var alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
                         alert.show()
+                        // TODO: should switch to either top-level login window or login list view here
                     } else {
-                        self.dataModel!.addOrUpdateUser(userAccount!)
-                        // refreshModel(), must do first time, should probably do every time (in background)
+                        self.dataModel.addOrUpdateUser(userAccount!)
+                        self.saveContext()
+
+                        self.dataModel.refreshModelForCurrentFilter()
+
+                        // self.setNeedsDisplay()
+                        // self.view.removeFromSuperview()
                     }
-                }
-            )
+                })
             
             return true
         }
@@ -108,21 +120,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
         let url = self.applicationDocumentsDirectory.URLByAppendingPathComponent("Temp.sqlite")
         var error: NSError? = nil
-        // var failureReason = "There was an error creating or loading the application's saved data."
         if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
             coordinator = nil
-            // Report any error we got.
-            // var dict = [String: AnyObject]()
-            // dict[NSLocalizedDescriptionKey] = "Failed to initialize the application's saved data"
-            // dict[NSLocalizedFailureReasonErrorKey] = failureReason
-            // dict[NSUnderlyingErrorKey] = error
-            // error = NSError(domain: "YOUR_ERROR_DOMAIN", code: 9999, userInfo: dict)
-            // Replace this with code to handle the error appropriately.
-            // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-            NSLog("Unresolved error \(error!), \(error!.userInfo)")
+            NSLog("Initialization error \(error!), \(error!.userInfo)")
             
-            var reason = (error!.userInfo!["reason"] as! String)
-            var alert = UIAlertView(title: "Initialization Error", message: reason, delegate: self, cancelButtonTitle: "Exit")
+            var reason = String(format: NSLocalizedString("Model load error", comment: ""),
+                (error!.userInfo!["reason"] as! String))
+            var alert = UIAlertView(
+                title: NSLocalizedString("Initialization error", comment: ""),
+                message: reason,
+                delegate: self,
+                cancelButtonTitle: NSLocalizedString("Exit", comment: ""))
             alert.show()
             return nil
         }
@@ -147,17 +155,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     
     // MARK: - Core Data Saving support
     
-    func saveContext () {
-        if let moc = self.managedObjectContext {
-            var error: NSError? = nil
-            if moc.hasChanges && !moc.save(&error) {
-                // Replace this implementation with code to handle the error appropriately.
-                // abort() causes the application to generate a crash log and terminate. You should not use this function in a shipping application, although it may be useful during development.
-                NSLog("Unresolved error \(error), \(error!.userInfo)")
-                abort()
-            }
+    func saveContext() {
+        var error: NSError? = nil
+        if (!dataModel.saveContext(&error)) {
+            NSLog("Save error \(error!), \(error!.userInfo)")
+            var alert = UIAlertView(
+                title: NSLocalizedString("Save error", comment: ""),
+                message: dataModel.validationMessages(error!),
+                delegate: nil,
+                cancelButtonTitle: NSLocalizedString("Dismiss", comment: ""))
+            alert.show()
         }
     }
-
 }
 

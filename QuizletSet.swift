@@ -11,11 +11,11 @@ import CoreData
 
 class QuizletSet: NSManagedObject {
 
-    @NSManaged var id: Int32
+    @NSManaged var id: Int64
     @NSManaged var title: String
     @NSManaged var url: String
     @NSManaged var createdBy: String
-    @NSManaged var creatorId: Int32
+    @NSManaged var creatorId: Int64
     @NSManaged var terms: NSOrderedSet
     @NSManaged var filters: NSSet
 
