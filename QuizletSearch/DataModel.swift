@@ -199,46 +199,99 @@ class DataModel {
         }
     }
     
+    // TODO: possibly track if there are changes to avoid calling save when there are no changes, if save is expensive in this case (measure it, probably ok)
     func updateSetsForFilter(filter: Filter, qsets: [QSet]?) {
-        if (qsets == nil) {
+        if (qsets == nil || qsets!.count == 0) {
             return
         }
         
-        var oldSetMap = [Int64: QuizletSet]()
+        // TODO: move 'save' to defer block in Swift 2.0
+        // defer {
+        //     save()
+        // }
+        
+        // Put all of the filter's sets into a dictionary
+        var existingSetsMap = [Int64: QuizletSet]()
         for set in filter.sets {
-            var qset = set as! QuizletSet
-            oldSetMap[qset.id] = qset
+            var quizletSet = set as! QuizletSet
+            existingSetsMap[quizletSet.id] = quizletSet
         }
         
-        var setsToUpdate = [QSet]()
+        // UPDATE: Update sets that are already members of the filter and make a list of the sets that are not, to be fetched from other filters if they exist elsewhere in the cache or else created
         var setsToFetch = [QSet]()
+        var idsToFetch = [NSNumber]()
 
         for qset in qsets! {
-            var existingSet = oldSetMap.removeValueForKey(qset.id)
+            var existingSet = existingSetsMap.removeValueForKey(qset.id)
             if (existingSet != nil) {
-                setsToUpdate.append(qset)
+                existingSet!.copyFrom(qset, moc: moc)
             } else {
                 setsToFetch.append(qset)
+                idsToFetch.append(NSNumber(longLong: qset.id))
             }
         }
         
-        // The sets remaining in 'oldSetMap' are to be deleted if the are not referenced by any other filter
-        
-        
-        // The 'setsToUpdate' are to have their list of terms updated
-        
-        // The 'setsToFetch' are to be fetched -- if a set already exists, update its terms and add  'filter' to its list of filters.
-        
-        
-        println("Update sets for filter: \(filter.title)")
-        for qset in qsets! {
-            println("  \(qset.title)")
+        if (existingSetsMap.count == 0 && setsToFetch.count == 0) {
+            // Unnecessary to update the 'filter.sets' relationships where there are no sets to add and no sets to delete
+            // TODO: move 'save' to defer block in Swift 2.0
+            save()
+            return
         }
         
-    }
-    
-    private func updateTermsFromSet(fromSet: QSet, toSet: QuizletSet) {
-        // HINT: use NSMutableOrderedSet replaceObjectsInRange()
+        var mutableFilterSets = filter.sets.mutableCopy() as! NSMutableSet
+
+        // DELETE: Remove the filter reference from the sets remaining in 'existingSetsMap' (that have either been deleted from quizlet.com or no longer match this filter) and delete them from the cache if they are not referenced by any other filter
+        for set in existingSetsMap.values {
+            var mutableSet = set.filters.mutableCopy() as! NSMutableSet
+            mutableSet.removeObject(filter)
+            set.filters = mutableSet.copy() as! NSSet
+            if (set.filters.count == 0) {
+                moc.deleteObject(set)
+            }
+
+            mutableFilterSets.removeObject(set)
+        }
+        
+        // ADD: The 'setsToFetch' are to be fetched -- if a set already exists because it has been cached by a different filter, then update its terms and add  'filter' to its list of filters.  Otherwise create a new set.
+        if (setsToFetch.count > 0) {
+            let updateSetsRequest = NSFetchRequest(entityName: "QuizletSet")
+            updateSetsRequest.predicate = NSPredicate(format: "id IN %@", idsToFetch)
+            
+            var updateSetsError: NSError?
+            var updateSetsResult = self.moc.executeFetchRequest(updateSetsRequest, error: &updateSetsError) as? [QuizletSet]
+            if (updateSetsResult == nil) {
+                NSLog("An error occurred while fetching sets: \(updateSetsError), \(updateSetsError?.userInfo)")
+                abort()
+            }
+            
+            var updateSetsMap = [Int64: QuizletSet]()
+            for set in updateSetsResult! {
+                updateSetsMap[set.id] = set
+            }
+            
+            for qset in setsToFetch {
+                if let quizletSet = updateSetsMap[qset.id] {
+                    quizletSet.copyFrom(qset, moc: moc)
+                    
+                    var mutableSet = quizletSet.filters.mutableCopy() as! NSMutableSet
+                    mutableSet.addObject(filter)
+                    quizletSet.filters = mutableSet.copy() as! NSSet
+                    
+                    mutableFilterSets.addObject(quizletSet)
+                } else {
+                    var quizletSet = NSEntityDescription.insertNewObjectForEntityForName("QuizletSet", inManagedObjectContext: moc) as! QuizletSet
+                    quizletSet.initFrom(qset, moc: moc)
+                    quizletSet.filters = NSSet(object: filter)
+                    
+                    mutableFilterSets.addObject(quizletSet)
+                }
+            }
+        }
+        
+        filter.sets = mutableFilterSets.copy() as! NSSet
+        
+        // TODO: move 'save' to defer block in Swift 2.0
+        save()
     }
     
     /*
@@ -261,8 +314,15 @@ class DataModel {
         return filters
     }
     */
+    
+    func save() {
+        var error: NSError? = nil
+        if (moc.hasChanges && !moc.save(&error)) {
+            NSLog("Save error \(error!), \(error!.userInfo)")
+        }
+    }
 
-    func saveContext(error: NSErrorPointer) -> Bool {
+    func save(error: NSErrorPointer) -> Bool {
         if (moc.hasChanges) {
             return moc.save(error);
         } else {

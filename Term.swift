@@ -11,6 +11,7 @@ import CoreData
 
 class Term: NSManagedObject {
 
+    @NSManaged var id: Int64
     @NSManaged var term: String
     @NSManaged var definition: String
     @NSManaged var set: QuizletSet

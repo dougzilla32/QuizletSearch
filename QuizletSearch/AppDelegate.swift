@@ -157,7 +157,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     
     func saveContext() {
         var error: NSError? = nil
-        if (!dataModel.saveContext(&error)) {
+        if (!dataModel.save(&error)) {
             NSLog("Save error \(error!), \(error!.userInfo)")
             var alert = UIAlertView(
                 title: NSLocalizedString("Save error", comment: ""),
