@@ -21,7 +21,6 @@
 		911A0D551B41EEF500B219D7 /* UsersTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911A0D541B41EEF500B219D7 /* UsersTableViewController.swift */; };
 		911C7D481B4F62210054FDA3 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911C7D471B4F62210054FDA3 /* Root.swift */; };
 		9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */; };
-		9126FDBE1B1D0E1000642E56 /* PickerViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDBD1B1D0E1000642E56 /* PickerViewController.swift */; };
 		9126FDC11B1D0E1000642E56 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDBF1B1D0E1000642E56 /* Main.storyboard */; };
 		9126FDC31B1D0E1000642E56 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDC21B1D0E1000642E56 /* Images.xcassets */; };
 		9126FDC61B1D0E1000642E56 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDC41B1D0E1000642E56 /* LaunchScreen.xib */; };
@@ -59,7 +58,6 @@
 		9126FDB61B1D0E1000642E56 /* QuizletSearch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuizletSearch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9126FDBA1B1D0E1000642E56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		9126FDBD1B1D0E1000642E56 /* PickerViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PickerViewController.swift; sourceTree = "<group>"; };
 		9126FDC01B1D0E1000642E56 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		9126FDC21B1D0E1000642E56 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		9126FDC51B1D0E1000642E56 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/LaunchScreen.xib; sourceTree = "<group>"; };
@@ -140,7 +138,6 @@
 				9126FDC41B1D0E1000642E56 /* LaunchScreen.xib */,
 				9126FDBF1B1D0E1000642E56 /* Main.storyboard */,
 				9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */,
-				9126FDBD1B1D0E1000642E56 /* PickerViewController.swift */,
 				911A0D4C1B41264200B219D7 /* LoginViewController.swift */,
 				911A0D501B41772C00B219D7 /* SearchViewController.swift */,
 				911A0D541B41EEF500B219D7 /* UsersTableViewController.swift */,
@@ -289,7 +286,6 @@
 				91EDA1461B3161A600E1152D /* QuizletSession.swift in Sources */,
 				911C7D481B4F62210054FDA3 /* Root.swift in Sources */,
 				911A0D551B41EEF500B219D7 /* UsersTableViewController.swift in Sources */,
-				9126FDBE1B1D0E1000642E56 /* PickerViewController.swift in Sources */,
 				91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */,
 				911A0D4B1B3F2AE900B219D7 /* DataModel.swift in Sources */,
 				911A0D4D1B41264200B219D7 /* LoginViewController.swift in Sources */,

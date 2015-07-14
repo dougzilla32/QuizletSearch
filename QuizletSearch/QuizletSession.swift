@@ -277,12 +277,12 @@ class QuizletSession {
         url.host = "api.quizlet.com"
         url.path = path
         
-        var whitespace = NSURLQueryItem(name: "whitespace", value: "1")
-        if (queryItems != nil) {
-            queryItems!.append(whitespace)
-        } else {
-            queryItems = [whitespace]
-        }
+        // var whitespace = NSURLQueryItem(name: "whitespace", value: "1")
+        // if (queryItems != nil) {
+        //     queryItems!.append(whitespace)
+        // } else {
+        //     queryItems = [whitespace]
+        // }
         url.queryItems = queryItems
         
         var config = NSURLSessionConfiguration.defaultSessionConfiguration()
@@ -318,10 +318,64 @@ class QuizletSession {
     }
 }
 
-class GoogleTextToSpeech {
-    var player: AVAudioPlayer?
+class InvokeWebService {
+    class func samples() {
+        // Sample call to fetch dougzilla's sets from the Quizlet
+        InvokeWebService.get(scheme: "https",
+            host: "api.quizlet.com",
+            path: "/2.0/search/sets",
+            queryItems: [
+                NSURLQueryItem(name: "creator", value: "dougzilla32"),
+                NSURLQueryItem(name: "client_id", value: "ZwGccNSqZJ"),
+                NSURLQueryItem(name: "whitespace", value: "1")
+            ],
+            jsonCallback: { (results: AnyObject) -> Void in
+                println("dougzilla32's sets: \(results)")
+        })
+        
+        // Sample call to fetch the weather for London
+        InvokeWebService.get(scheme: "http",
+            host: "api.openweathermap.org",
+            path: "/data/2.5/weather",
+            queryItems: [ NSURLQueryItem(name: "q", value: "London,uk") ],
+            jsonCallback: { (results: AnyObject) -> Void in
+                println("Weather in London: \(results)")
+        })
+    }
     
-    func speechFromText(text: String) {
+    class func get(#scheme: String, host: String, path: String, var queryItems: [NSURLQueryItem]?, jsonCallback: ((AnyObject) -> Void)) {
+
+        var url = NSURLComponents()
+        url.scheme = scheme
+        url.host = host
+        url.path = path
+        url.queryItems = queryItems
+        
+        var config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        // config.allowsCellularAccess = false
+        config.HTTPAdditionalHeaders = [
+            "Accept": "application/json",
+            // "Authorization": "Bearer \(accessToken!)"
+        ]
+        var session = NSURLSession(configuration: config)
+        var request = NSMutableURLRequest(URL: url.URL!)
+        request.HTTPMethod = "GET"
+        
+        session.dataTaskWithRequest(request,
+            completionHandler: { (data: NSData!, response: NSURLResponse!, error: NSError!) in
+                var jsonData: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)
+                if (jsonData == nil) {
+                    return
+                }
+                jsonCallback(jsonData!)
+        }).resume()
+    }
+}
+
+class GoogleTextToSpeech {
+    static var player: AVAudioPlayer?
+    
+    class func speechFromText(text: String) {
         var url = NSURLComponents()
         url.scheme = "http"
         url.host = "translate.google.com"
@@ -366,10 +420,10 @@ class GoogleTextToSpeech {
 }
 
 class MicrosoftTranslateSession {
-    var microsoftTranslatorClientId = "QuizletSearch"
-    var microsoftTranslatorClientSecret = "E3iu5Ludn2SAIdeiRMRkEnoQe3Dxro/QhKZmFz36gow="
+    static let microsoftTranslatorClientId = "QuizletSearch"
+    static let microsoftTranslatorClientSecret = "E3iu5Ludn2SAIdeiRMRkEnoQe3Dxro/QhKZmFz36gow="
     
-    func getMicrosoftToken() {
+    class func getMicrosoftToken() {
         var url = NSURLComponents()
         url.scheme = "https"
         url.host = "datamarket.accesscontrol.windows.net"
@@ -416,7 +470,7 @@ class MicrosoftTranslateSession {
         }).resume()
     }
     
-    func translateText(text: String, from: String, to: String, accessToken: String) {
+    class func translateText(text: String, from: String, to: String, accessToken: String) {
         var url = NSURLComponents()
         url.scheme = "http"
         url.host = "api.microsofttranslator.com"

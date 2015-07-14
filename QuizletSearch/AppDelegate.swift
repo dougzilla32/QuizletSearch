@@ -66,9 +66,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                         self.saveContext()
 
                         self.dataModel.refreshModelForCurrentFilter()
-
-                        // self.setNeedsDisplay()
-                        // self.view.removeFromSuperview()
                     }
                 })
             

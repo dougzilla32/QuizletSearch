@@ -133,10 +133,6 @@
                             <constraint firstAttribute="trailing" secondItem="kRy-Pi-7gy" secondAttribute="trailing" id="yl5-Nv-fud"/>
                         </constraints>
                     </view>
-                    <connections>
-                        <segue destination="OLU-kZ-Zv3" kind="show" identifier="LoginToErrorSegue" id="qqC-qe-PNE"/>
-                        <segue destination="bQl-lE-mnK" kind="show" identifier="LoginToSearchSegue" id="asp-OW-LBh"/>
-                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="3MX-F7-TVm" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
@@ -347,14 +343,21 @@
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="8IP-x1-ERJ">
                                 <rect key="frame" x="0.0" y="64" width="600" height="492"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <searchBar key="tableHeaderView" contentMode="redraw" id="BvV-eQ-aQh">
-                                    <rect key="frame" x="0.0" y="64" width="600" height="44"/>
-                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                <searchBar key="tableHeaderView" contentMode="redraw" text="" placeholder="Search for Terms and Definitions" id="6Ql-ol-eWP">
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
+                                    <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                     <textInputTraits key="textInputTraits"/>
                                     <connections>
-                                        <outlet property="delegate" destination="bQl-lE-mnK" id="0kv-Lw-trS"/>
+                                        <outlet property="delegate" destination="bQl-lE-mnK" id="AzS-Ud-QXK"/>
                                     </connections>
                                 </searchBar>
+                                <label key="tableFooterView" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="29N-zy-uiF">
+                                    <rect key="frame" x="0.0" y="-21" width="600" height="44"/>
+                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                    <nil key="highlightedColor"/>
+                                </label>
                                 <prototypes>
                                     <tableViewCell contentMode="scaleToFill" restorationIdentifier="TermAndDef" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="termAndDefinition" id="DmN-hC-UEP" userLabel="Term and Definition">
                                         <autoresizingMask key="autoresizingMask"/>
@@ -362,10 +365,24 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
-                                    <tableViewCell contentMode="scaleToFill" restorationIdentifier="TermAndDefWithImage" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="type2" id="ItE-ye-sgP" userLabel="Term and Def with Image">
+                                    <tableViewCell contentMode="scaleToFill" restorationIdentifier="TermAndDefWithImage" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="type2" textLabel="k4c-7Q-I4x" detailTextLabel="LbE-mv-epk" style="IBUITableViewCellStyleSubtitle" id="ItE-ye-sgP" userLabel="Term and Def with Image">
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ItE-ye-sgP" id="aa9-qa-lpF">
                                             <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="k4c-7Q-I4x">
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Detail" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="LbE-mv-epk">
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="type3" id="N4p-ec-snM">
@@ -390,6 +407,9 @@
                                     <segment title="A-Z"/>
                                     <segment title="Set"/>
                                 </segments>
+                                <connections>
+                                    <action selector="sortStyleChanged:" destination="bQl-lE-mnK" eventType="valueChanged" id="btd-EU-v8N"/>
+                                </connections>
                             </segmentedControl>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -406,7 +426,8 @@
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="searchDisplayController" destination="8Z3-b9-rjV" id="f6O-oI-aae"/>
+                        <outlet property="searchDisplayController" destination="ZyO-FB-Nhw" id="gca-uV-5gZ"/>
+                        <outlet property="sortStyle" destination="PYH-n9-IH5" id="5ZL-PH-ytE"/>
                         <outlet property="tableView" destination="8IP-x1-ERJ" id="Psi-b0-rLO"/>
                     </connections>
                 </viewController>
@@ -414,10 +435,17 @@
                 <searchDisplayController id="8Z3-b9-rjV">
                     <connections>
                         <outlet property="delegate" destination="bQl-lE-mnK" id="dcq-GV-5Ww"/>
-                        <outlet property="searchBar" destination="BvV-eQ-aQh" id="jgw-l1-gnX"/>
                         <outlet property="searchContentsController" destination="bQl-lE-mnK" id="uxb-Uj-YmC"/>
                         <outlet property="searchResultsDataSource" destination="bQl-lE-mnK" id="n52-a1-zFC"/>
                         <outlet property="searchResultsDelegate" destination="bQl-lE-mnK" id="qXS-07-rsc"/>
+                    </connections>
+                </searchDisplayController>
+                <searchDisplayController id="ZyO-FB-Nhw">
+                    <connections>
+                        <outlet property="delegate" destination="bQl-lE-mnK" id="Os9-YN-aKV"/>
+                        <outlet property="searchContentsController" destination="bQl-lE-mnK" id="O9d-XA-MEi"/>
+                        <outlet property="searchResultsDataSource" destination="bQl-lE-mnK" id="5fF-Rb-YFW"/>
+                        <outlet property="searchResultsDelegate" destination="bQl-lE-mnK" id="rB2-pa-YEV"/>
                     </connections>
                 </searchDisplayController>
             </objects>

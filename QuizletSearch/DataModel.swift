@@ -191,6 +191,7 @@ class DataModel {
             quizletSession.getAllSetsForUser(currentUser!.name,
                 completionHandler: { (qsets: [QSet]?) in
                     self.updateSetsForFilter(currentFilter, qsets: qsets)
+                    println("UPDATE SETS")
                 })
         case .CurrentUserFavorites:
             quizletSession.getFavoriteSetsForUser(currentUser!.name)
