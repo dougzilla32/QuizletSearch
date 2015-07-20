@@ -10,7 +10,6 @@ import UIKit
 import CoreData
 import Foundation
 
-// TODO: updates to termsAtoZ, termsBySet, searchTermsAtoZ, searchTermsBySet and searchTermsBySetAtoZ are not thread safe
 class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
     
     @IBOutlet weak var tableView: UITableView!
@@ -71,15 +70,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return SortSelection(rawValue: sortStyle.selectedSegmentIndex)!
     }
     
-    // TODO: fix this to work for Korean input -- the characters are combined after shouldChangeTextInRange is called
+    // TODO: fix this to work for Korean input -- the characters are not yet combined when shouldChangeTextInRange is called
     func searchBar(searchBar: UISearchBar, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool {
-
-        // var newText = (searchBar.text as NSString).stringByReplacingCharactersInRange(range, withString: text)
-
         // FIXME: this is a hack -- may need to switch to a textfield to get an "Editing Changed" notification when a key is pressed and after Korean character coalesce has happened (haven't tested yet, supposed to work: http://stackoverflow.com/questions/7010547/uitextfield-text-change-event )
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(10000000)), dispatch_get_main_queue(), {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC / 100)), dispatch_get_main_queue(), {
             self.updateSearchTermsForQuery(searchBar.text)
-            })
+        })
 
         return true
     }
@@ -324,14 +320,17 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return title
     }
 
+    // TODO: visually distinguish between the term and definition -- perhaps by font size, perhaps by color
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("termAndDefinition", forIndexPath: indexPath) as! UITableViewCell
         
         var term = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
 
-        cell.textLabel!.text = "\(term.term)\n\(term.definition)"
-        cell.textLabel!.lineBreakMode = .ByWordWrapping
-        cell.textLabel!.numberOfLines = 0
+        var termLabel = cell.viewWithTag(10) as! UILabel
+        termLabel.font = UIFont(name: "Arial", size: 18.0)
+        termLabel.text = "\(term.term)\n\(term.definition)"
+        termLabel.lineBreakMode = .ByWordWrapping
+        termLabel.numberOfLines = 0
         
         var hasImage = false || false
         if (hasImage) {
@@ -345,17 +344,16 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var term = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
 
         var text = "\(term.term)\n\(term.definition)"
-        // TODO: change to get proper width from table
-        var width = CGFloat(200)
-        var font = UIFont.boldSystemFontOfSize(14.0)
+        var width = tableView.frame.width - 16 // margin of 8 pixels on each side of the cell
+        var font = UIFont(name: "Arial", size: 18.0)
 
-        var attributedText = NSAttributedString(string: text, attributes: [NSFontAttributeName: font])
+        var attributedText = NSAttributedString(string: text, attributes: [NSFontAttributeName: font!])
         var rect = attributedText.boundingRectWithSize(CGSizeMake(width, CGFloat.max),
-            options: NSStringDrawingOptions.UsesLineFragmentOrigin,
+            options: NSStringDrawingOptions.UsesLineFragmentOrigin | NSStringDrawingOptions.UsesFontLeading,
             context: nil)
         var size = rect.size
         
-        return size.height + 10
+        return size.height + 6
     }
 
     /*

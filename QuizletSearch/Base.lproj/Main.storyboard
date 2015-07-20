@@ -2,6 +2,7 @@
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7702" systemVersion="14D136" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="nwM-di-8tA">
     <dependencies>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7701"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--Login View Controller-->
@@ -352,10 +353,24 @@
                                     </connections>
                                 </searchBar>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" restorationIdentifier="TermAndDef" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="termAndDefinition" id="DmN-hC-UEP" userLabel="Term and Definition">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="termAndDefinition" id="yvP-AG-coC" userLabel="Term and Definition Cell">
                                         <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="DmN-hC-UEP" id="3sZ-IC-GAD">
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="yvP-AG-coC" id="9nJ-Sf-aYc">
                                             <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" tag="10" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hNc-8s-gnT" userLabel="Term Label">
+                                                    <rect key="frame" x="8" y="0.0" width="584" height="43"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="hNc-8s-gnT" firstAttribute="top" secondItem="9nJ-Sf-aYc" secondAttribute="top" id="9By-jc-9ue"/>
+                                                <constraint firstAttribute="trailingMargin" secondItem="hNc-8s-gnT" secondAttribute="trailing" id="EhB-k3-G4q"/>
+                                                <constraint firstItem="hNc-8s-gnT" firstAttribute="leading" secondItem="9nJ-Sf-aYc" secondAttribute="leadingMargin" id="Wd3-Ol-aYa"/>
+                                                <constraint firstAttribute="bottom" secondItem="hNc-8s-gnT" secondAttribute="bottom" id="uPf-z3-YPV"/>
+                                            </constraints>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                 </prototypes>
