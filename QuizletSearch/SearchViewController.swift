@@ -109,6 +109,25 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 + " inserted: \((info[NSInsertedObjectsKey] as? NSSet)?.count)"
                 + " deleted: \((info[NSDeletedObjectsKey] as? NSSet)?.count)"
                 + " updated: \((info[NSUpdatedObjectsKey] as? NSSet)?.count)")
+            
+            if let inserted = info[NSInsertedObjectsKey] as? NSSet {
+                for obj in inserted {
+                    let managedObj = obj as! NSManagedObject
+                    println("insert: \(managedObj)")
+                }
+            }
+            if let deleted = info[NSDeletedObjectsKey] as? NSSet {
+                for obj in deleted {
+                    let managedObj = obj as! NSManagedObject
+                    println("delete: \(managedObj)")
+                }
+            }
+            if let updated = info[NSUpdatedObjectsKey] as? NSSet {
+                for obj in updated {
+                    let managedObj = obj as! NSManagedObject
+                    println("update: \(managedObj)")
+                }
+            }
             */
             
             var sortedTerms = SearchViewController.initSortedTerms()

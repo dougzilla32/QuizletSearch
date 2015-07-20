@@ -79,30 +79,32 @@ class QuizletSet: NSManagedObject {
         }
         
         if (updateFromHere < self.terms.count || updateFromHere < qset.terms.count) {
-            // Add, update, and delete terms as necessary
-            var mutableItems = self.terms.mutableCopy() as! NSMutableOrderedSet
-            
             // Update terms
             for i in updateFromHere ..< minCount {
-                var term = mutableItems[i] as! Term
+                var term = self.terms[i] as! Term
                 term.copyFrom(qset.terms[i])
             }
             
-            // Delete extra terms (if any)
-            for i in minCount ..< self.terms.count {
-                moc.deleteObject(mutableItems[i] as! Term)
-            }
-            
-            // Append new terms (if any)
-            for i in minCount ..< qset.terms.count {
-                var term = NSEntityDescription.insertNewObjectForEntityForName("Term",
-                    inManagedObjectContext: moc) as! Term
-                term.initFrom(qset.terms[i])
-                term.set = self
-                mutableItems.addObject(term)
-            }
+            if (self.terms.count > minCount || qset.terms.count > minCount) {
+                var mutableItems = self.terms.mutableCopy() as! NSMutableOrderedSet
 
-            self.terms = mutableItems.copy() as! NSOrderedSet
+                // Delete extra terms (if any)
+                for var i = self.terms.count - 1; i >= minCount; i-- {
+                    moc.deleteObject(mutableItems[i] as! Term)
+                    mutableItems.removeObjectAtIndex(i)
+                }
+                
+                // Append new terms (if any)
+                for i in minCount ..< qset.terms.count {
+                    var term = NSEntityDescription.insertNewObjectForEntityForName("Term",
+                        inManagedObjectContext: moc) as! Term
+                    term.initFrom(qset.terms[i])
+                    term.set = self
+                    mutableItems.addObject(term)
+                }
+                
+                self.terms = mutableItems.copy() as! NSOrderedSet
+            }
         }
     }
 }
