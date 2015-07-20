@@ -14,16 +14,18 @@ class QSet {
     var title: String
     var createdBy: String
     var creatorId: Int64
+    var createdDate: Int64
     var modifiedDate: Int64
     
     var terms: [QTerm]
     
-    init(id: Int64, url: String, title: String, createdBy: String, creatorId: Int64, modifiedDate: Int64) {
+    init(id: Int64, url: String, title: String, createdBy: String, creatorId: Int64, createdDate: Int64, modifiedDate: Int64) {
         self.id = id
         self.url = url
         self.title = title
         self.createdBy = createdBy
         self.creatorId = creatorId
+        self.createdDate = createdDate
         self.modifiedDate = modifiedDate
         self.terms = []
     }
@@ -35,8 +37,9 @@ class QSet {
             let title = jsonSet["title"] as? String,
             let createdBy = jsonSet["created_by"] as? String,
             let creatorId = (jsonSet["creator_id"] as? NSNumber)?.longLongValue,
+            let createdDate = (jsonSet["created_date"] as? NSNumber)?.longLongValue,
             let modifiedDate = (jsonSet["modified_date"] as? NSNumber)?.longLongValue {
-                qset = QSet(id: id, url: url, title: title, createdBy: createdBy, creatorId: creatorId, modifiedDate: modifiedDate)
+                qset = QSet(id: id, url: url, title: title, createdBy: createdBy, creatorId: creatorId, createdDate: createdDate, modifiedDate: modifiedDate)
                 if let terms = jsonSet["terms"] as? NSArray {
                     for termObject in terms {
                         if  let id = (termObject["id"] as? NSNumber)?.longLongValue,

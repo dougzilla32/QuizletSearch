@@ -12,6 +12,7 @@
     </entity>
     <entity name="QuizletSet" representedClassName="QuizletSearch.QuizletSet" syncable="YES">
         <attribute name="createdBy" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="createdDate" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="creatorId" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="id" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="modifiedDate" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
@@ -40,7 +41,7 @@
     </entity>
     <elements>
         <element name="Filter" positionX="0" positionY="81" width="128" height="165"/>
-        <element name="QuizletSet" positionX="-63" positionY="-18" width="128" height="165"/>
+        <element name="QuizletSet" positionX="-63" positionY="-18" width="128" height="180"/>
         <element name="Root" positionX="-27" positionY="72" width="128" height="60"/>
         <element name="Term" positionX="-54" positionY="27" width="128" height="105"/>
         <element name="User" positionX="-18" positionY="72" width="128" height="150"/>

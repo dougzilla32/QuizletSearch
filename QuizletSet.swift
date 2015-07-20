@@ -16,6 +16,7 @@ class QuizletSet: NSManagedObject {
     @NSManaged var url: String
     @NSManaged var createdBy: String
     @NSManaged var creatorId: Int64
+    @NSManaged var createdDate: Int64
     @NSManaged var modifiedDate: Int64
     @NSManaged var terms: NSOrderedSet
     @NSManaged var filters: NSSet
@@ -26,13 +27,14 @@ class QuizletSet: NSManagedObject {
         self.url = qset.url
         self.createdBy = qset.createdBy
         self.creatorId = qset.creatorId
+        self.createdDate = qset.createdDate
+        self.modifiedDate = qset.modifiedDate
         
         var newTerms = [Term]()
         for qterm in qset.terms {
             var term = NSEntityDescription.insertNewObjectForEntityForName("Term",
                 inManagedObjectContext: moc) as! Term
-            term.term = qterm.term
-            term.definition = qterm.definition
+            term.initFrom(qterm)
             term.set = self
             newTerms.append(term)
         }
@@ -44,36 +46,46 @@ class QuizletSet: NSManagedObject {
         if (self.id != qset.id) {
             NSLog("Mismatching ids when caching quizlet set: \(qset.title)")
         }
-        self.title = qset.title
-        self.url = qset.url
-        self.createdBy = qset.createdBy
-        self.creatorId = qset.creatorId
+        if (self.title != qset.title) {
+            self.title = qset.title
+        }
+        if (self.url != qset.url) {
+            self.url = qset.url
+        }
+        if (self.createdBy != qset.createdBy) {
+            self.createdBy = qset.createdBy
+        }
+        if (self.creatorId != qset.creatorId) {
+            self.creatorId = qset.creatorId
+        }
+        if (self.createdDate != qset.createdDate) {
+            self.createdDate = qset.createdDate
+        }
+        if (self.modifiedDate != qset.modifiedDate) {
+            self.modifiedDate = qset.modifiedDate
+        }
         
         // Update the terms
         var minCount = min(self.terms.count, qset.terms.count)
-        var replaceFromHere = minCount
+        var updateFromHere = minCount
         
         // Compare terms until we find the first mismatch
         for i in 0 ..< minCount {
             var term = self.terms[i] as! Term
-            // TODO: could possibly rely on the id for comparison rather than term and definition
-            // if (term.id != qset.terms[i].id)
-            if (term.term != qset.terms[i].term || term.definition != qset.terms[i].definition) {
-                replaceFromHere = i
+            if (term.id != qset.terms[i].id || term.term != qset.terms[i].term || term.definition != qset.terms[i].definition) {
+                updateFromHere = i
                 break
             }
         }
         
-        if (replaceFromHere < self.terms.count || replaceFromHere < qset.terms.count) {
+        if (updateFromHere < self.terms.count || updateFromHere < qset.terms.count) {
             // Add, update, and delete terms as necessary
             var mutableItems = self.terms.mutableCopy() as! NSMutableOrderedSet
             
             // Update terms
-            for i in replaceFromHere ..< minCount {
+            for i in updateFromHere ..< minCount {
                 var term = mutableItems[i] as! Term
-                term.id = qset.terms[i].id
-                term.term = qset.terms[i].term
-                term.definition = qset.terms[i].definition
+                term.copyFrom(qset.terms[i])
             }
             
             // Delete extra terms (if any)
@@ -85,9 +97,7 @@ class QuizletSet: NSManagedObject {
             for i in minCount ..< qset.terms.count {
                 var term = NSEntityDescription.insertNewObjectForEntityForName("Term",
                     inManagedObjectContext: moc) as! Term
-                term.id = qset.terms[i].id
-                term.term = qset.terms[i].term
-                term.definition = qset.terms[i].definition
+                term.initFrom(qset.terms[i])
                 term.set = self
                 mutableItems.addObject(term)
             }

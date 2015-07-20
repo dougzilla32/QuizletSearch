@@ -9,7 +9,7 @@
 import Foundation
 import CoreData
 
-class DataModel {
+class DataModel: NSObject {
     var moc: NSManagedObjectContext
     
     var quizletSession: QuizletSession
@@ -92,8 +92,10 @@ class DataModel {
     
     init(managedObjectContext: NSManagedObjectContext, quizletSession: QuizletSession) {
         moc = managedObjectContext
-        
+
         self.quizletSession = quizletSession
+        
+        super.init()
         
         // Set up current user
         if let userId = NSUserDefaults.standardUserDefaults().stringForKey("currentUser") {
@@ -190,18 +192,18 @@ class DataModel {
         case .CurrentUserAllSets:
             quizletSession.getAllSetsForUser(currentUser!.name,
                 completionHandler: { (qsets: [QSet]?) in
-                    self.updateSetsForFilter(currentFilter, qsets: qsets)
-                    println("UPDATE SETS")
+                    self.updateTermsForFilter(currentFilter, qsets: qsets)
                 })
         case .CurrentUserFavorites:
+            // TODO: implement CurrentUserFavorites filter
             quizletSession.getFavoriteSetsForUser(currentUser!.name)
         case .GeneralQuery:
+            // TODO: implement GeneralQuery filter
             println("General Query")
         }
     }
     
-    // TODO: possibly track if there are changes to avoid calling save when there are no changes, if save is expensive in this case (measure it, probably ok)
-    func updateSetsForFilter(filter: Filter, qsets: [QSet]?) {
+    func updateTermsForFilter(filter: Filter, qsets: [QSet]?) {
         if (qsets == nil || qsets!.count == 0) {
             return
         }
@@ -221,7 +223,6 @@ class DataModel {
         // UPDATE: Update sets that are already members of the filter and make a list of the sets that are not, to be fetched from other filters if they exist elsewhere in the cache or else created
         var setsToFetch = [QSet]()
         var idsToFetch = [NSNumber]()
-
         for qset in qsets! {
             var existingSet = existingSetsMap.removeValueForKey(qset.id)
             if (existingSet != nil) {
