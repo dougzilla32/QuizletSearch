@@ -101,8 +101,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     // call back function by saveContext, support multi-thread
     func contextDidSaveNotification(notification: NSNotification) {
-        // TODO: remove debugging println
-        // println("contextDidSaveNotification")
         let sender = notification.object as! NSManagedObjectContext
         let info = notification.userInfo! as [NSObject: AnyObject]
 
@@ -111,7 +109,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             || SearchViewController.containsTerms(info[NSUpdatedObjectsKey] as? NSSet)
 
         if (termsChanged) {
-            /* TODO: remove debugging println
+            /*
             println("termsChanged: contextDidSaveNotification --"
                 + " inserted: \((info[NSInsertedObjectsKey] as? NSSet)?.count)"
                 + " deleted: \((info[NSDeletedObjectsKey] as? NSSet)?.count)"
@@ -193,7 +191,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func updateSearchTermsForQuery(query: String) {
-        // TODO: put this on the QOS_CLASS_USER_INITIATED queue
+        // TODO: possibly put this on the QOS_CLASS_USER_INITIATED queue, test if there is noticable lag for a keystroke.  And try it with and without the queue, see if there is a discernable difference
         
         switch (currentSortSelection()) {
         case .AtoZ:
