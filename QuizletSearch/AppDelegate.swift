@@ -20,6 +20,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return DataModel(managedObjectContext: self.managedObjectContext!, quizletSession: self.quizletSession)
     }()
     
+    var refreshTimer: NSTimer?
+    
     func application(application: UIApplication, willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
 
         var id: String
@@ -44,13 +46,24 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         // Tells the delegate that the launch process is almost done and the app is almost ready to run.
             
         if (managedObjectContext != nil && dataModel.currentUser != nil) {
-            // TODO: possibly defer refreshing the model for a moment, for better user interactivity
-            // dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), {
-            self.dataModel.refreshModelForCurrentFilter()
-            // })
+            refreshAndRestartTimer()
         }
 
         return true
+    }
+    
+    func refreshAndRestartTimer() {
+        refresh()
+        if (refreshTimer != nil) {
+            refreshTimer!.invalidate()
+        }
+        refreshTimer = NSTimer.scheduledTimerWithTimeInterval(60, target: self, selector: "refresh", userInfo: nil, repeats: true)
+    }
+    
+    func refresh() {
+        self.dataModel.refreshModelForCurrentFilter(completionHandler: { (qsets: [QSet]?) in
+            // println("Refresh successful: \(qsets)")
+        })
     }
     
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject?) -> Bool {
@@ -67,7 +80,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                     } else {
                         self.dataModel.addOrUpdateUser(userAccount!)
                         self.saveContext()
-                        self.dataModel.refreshModelForCurrentFilter()
+                        self.refreshAndRestartTimer()
                     }
                 })
             

@@ -176,7 +176,7 @@ class DataModel: NSObject {
         return filter
     }
     
-    func refreshModelForCurrentFilter() {
+    func refreshModelForCurrentFilter(#completionHandler: ([QSet]?) -> Void) {
         if (currentUser == nil) {
             return
         }
@@ -193,7 +193,8 @@ class DataModel: NSObject {
             quizletSession.getAllSetsForUser(currentUser!.name,
                 completionHandler: { (qsets: [QSet]?) in
                     self.updateTermsForFilter(currentFilter, qsets: qsets)
-                })
+                    completionHandler(qsets)
+            })
         case .CurrentUserFavorites:
             // TODO: implement CurrentUserFavorites filter
             quizletSession.getFavoriteSetsForUser(currentUser!.name)
