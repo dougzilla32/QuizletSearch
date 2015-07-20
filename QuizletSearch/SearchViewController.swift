@@ -70,14 +70,9 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return SortSelection(rawValue: sortStyle.selectedSegmentIndex)!
     }
     
-    // TODO: fix this to work for Korean input -- the characters are not yet combined when shouldChangeTextInRange is called
-    func searchBar(searchBar: UISearchBar, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool {
-        // FIXME: this is a hack -- may need to switch to a textfield to get an "Editing Changed" notification when a key is pressed and after Korean character coalesce has happened (haven't tested yet, supposed to work: http://stackoverflow.com/questions/7010547/uitextfield-text-change-event )
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC / 100)), dispatch_get_main_queue(), {
-            self.updateSearchTermsForQuery(searchBar.text)
-        })
-
-        return true
+    // called when text changes (including clear)
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String)    {
+        updateSearchTermsForQuery(searchBar.text)
     }
 
     override func viewDidLoad() {
