@@ -11,6 +11,11 @@ import Foundation
 
 class UsersTableViewController: UITableViewController {
     
+    override func loadView() {
+        super.loadView()
+        (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         

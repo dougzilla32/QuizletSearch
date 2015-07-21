@@ -74,7 +74,16 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String)    {
         updateSearchTermsForQuery(searchBar.text)
     }
+    
+    override func loadView() {
+        super.loadView()
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer()
+    }
 
+    @IBAction func unwindToSearchView(segue: UIStoryboardSegue) {
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer()        
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         

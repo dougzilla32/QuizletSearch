@@ -44,20 +44,29 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     func application(application: UIApplication,
         didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
         // Tells the delegate that the launch process is almost done and the app is almost ready to run.
-            
-        if (managedObjectContext != nil && dataModel.currentUser != nil) {
-            refreshAndRestartTimer()
-        }
-
         return true
     }
     
     func refreshAndRestartTimer() {
+        println("refreshAndRestartTimer")
+        if (managedObjectContext == nil || dataModel.currentUser == nil) {
+            return
+        }
+
         refresh()
+        
         if (refreshTimer != nil) {
             refreshTimer!.invalidate()
         }
         refreshTimer = NSTimer.scheduledTimerWithTimeInterval(60, target: self, selector: "refresh", userInfo: nil, repeats: true)
+    }
+    
+    func cancelRefreshTimer() {
+        println("cancelRefreshTimer")
+        if (refreshTimer != nil) {
+            refreshTimer!.invalidate()
+            refreshTimer = nil
+        }
     }
     
     func refresh() {

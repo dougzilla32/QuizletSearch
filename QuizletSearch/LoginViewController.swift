@@ -16,6 +16,11 @@ class LoginViewController: UIViewController {
         UIApplication.sharedApplication().openURL(appDelegate.quizletSession.authorizeURL())
     }
 
+    override func loadView() {
+        super.loadView()
+        (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()
+    }
+
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.

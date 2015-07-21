@@ -247,8 +247,20 @@ class QuizletSession {
         })
     }
     
-    func getAllSetsForUser(user: String, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletCall("/2.0/users/\(user)/sets", queryItems: nil, jsonCallback: { (AnyObject data) in
+    func getAllSetsForUser(user: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
+
+        var queryItems: [NSURLQueryItem]? = nil
+        
+        /** The following code is commented out because the modified_since parameter does not work in all cases.  If the user has editing a term or moved a term, the modified_date for the set is not update.  If the user inserts or deletes a term then the modified_date is updated as expected.
+        if (modifiedSince != 0) {
+            queryItems = [
+                NSURLQueryItem(name: "modified_since", value: NSNumber(longLong: modifiedSince).stringValue)
+                // NSURLQueryItem(name: "whitespace", value: "1")
+            ]
+        }
+        */
+        
+        self.invokeQuizletCall("/2.0/users/\(user)/sets", queryItems: queryItems, jsonCallback: { (AnyObject data) in
             if let json = data as? Array<NSDictionary> {
                 var qsets = QSet.setsFromJSON(json)
                 if (qsets == nil) {
@@ -304,6 +316,11 @@ class QuizletSession {
             completionHandler: { (data: NSData!, response: NSURLResponse!, error: NSError!) in
                 self.currentTask = nil
                 self.currentTaskDescription = nil
+                
+                /** Print the result
+                println(path)
+                println("Response data: \(NSString(data: data, encoding: NSUTF8StringEncoding))")
+                */
                 
                 var jsonData: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)
                 if (jsonData == nil) {

@@ -1,12 +1,13 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="7549" systemVersion="14D136" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="7701" systemVersion="14E46" minimumToolsVersion="Xcode 4.3" macOSVersion="Automatic" iOSVersion="Automatic">
     <entity name="Filter" representedClassName="QuizletSearch.Filter" syncable="YES">
+        <attribute name="maxModifiedDate" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="query" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="queryCreator" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="queryTerm" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="type" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="currentUser" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="currentFilter" inverseEntity="User" syncable="YES"/>
+        <relationship name="currentFilter" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="currentFilter" inverseEntity="User" syncable="YES"/>
         <relationship name="sets" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="QuizletSet" inverseName="filters" inverseEntity="QuizletSet" syncable="YES"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="filters" inverseEntity="User" syncable="YES"/>
     </entity>
@@ -35,12 +36,12 @@
         <attribute name="accessTokenExpiration" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="id" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="name" optional="YES" attributeType="String" syncable="YES"/>
-        <relationship name="currentFilter" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Filter" inverseName="currentUser" inverseEntity="Filter" syncable="YES"/>
+        <relationship name="currentFilter" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Filter" inverseName="currentFilter" inverseEntity="Filter" syncable="YES"/>
         <relationship name="filters" optional="YES" toMany="YES" deletionRule="Nullify" ordered="YES" destinationEntity="Filter" inverseName="user" inverseEntity="Filter" syncable="YES"/>
         <relationship name="root" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Root" inverseName="users" inverseEntity="Root" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Filter" positionX="0" positionY="81" width="128" height="165"/>
+        <element name="Filter" positionX="0" positionY="81" width="128" height="180"/>
         <element name="QuizletSet" positionX="-63" positionY="-18" width="128" height="180"/>
         <element name="Root" positionX="-27" positionY="72" width="128" height="60"/>
         <element name="Term" positionX="-54" positionY="27" width="128" height="105"/>

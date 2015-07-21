@@ -144,7 +144,7 @@ class DataModel: NSObject {
                 inManagedObjectContext: moc) as! User
             newUser.root = self.root
             newUser.currentFilter = createDefaultFilterForUser(newUser)
-            newUser.currentFilter.currentUser = newUser
+            newUser.currentFilter.currentFilter = newUser
             newUser.filters = NSOrderedSet(object: newUser.currentFilter)
 
             var mutableUsers = root.users.mutableCopy() as! NSMutableOrderedSet
@@ -190,7 +190,7 @@ class DataModel: NSObject {
         
         switch (filterType!) {
         case .CurrentUserAllSets:
-            quizletSession.getAllSetsForUser(currentUser!.name,
+            quizletSession.getAllSetsForUser(currentUser!.name, modifiedSince: currentFilter.maxModifiedDate,
                 completionHandler: { (qsets: [QSet]?) in
                     self.updateTermsForFilter(currentFilter, qsets: qsets)
                     completionHandler(qsets)
@@ -224,6 +224,7 @@ class DataModel: NSObject {
         // UPDATE: Update sets that are already members of the filter and make a list of the sets that are not, to be fetched from other filters if they exist elsewhere in the cache or else created
         var setsToFetch = [QSet]()
         var idsToFetch = [NSNumber]()
+        var maxModifiedDate: Int64 = 0
         for qset in qsets! {
             var existingSet = existingSetsMap.removeValueForKey(qset.id)
             if (existingSet != nil) {
@@ -232,6 +233,10 @@ class DataModel: NSObject {
                 setsToFetch.append(qset)
                 idsToFetch.append(NSNumber(longLong: qset.id))
             }
+            maxModifiedDate = max(qset.modifiedDate, maxModifiedDate)
+        }
+        if (filter.maxModifiedDate != maxModifiedDate) {
+            filter.maxModifiedDate = maxModifiedDate
         }
         
         if (existingSetsMap.count == 0 && setsToFetch.count == 0) {

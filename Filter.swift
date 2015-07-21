@@ -22,8 +22,9 @@ class Filter: NSManagedObject {
     @NSManaged var query: String
     @NSManaged var queryTerm: String
     @NSManaged var queryCreator: String
+    @NSManaged var maxModifiedDate: Int64
     @NSManaged var user: User
-    @NSManaged var currentUser: User
+    @NSManaged var currentFilter: User
     @NSManaged var sets: NSSet
 
 }
