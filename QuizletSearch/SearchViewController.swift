@@ -217,7 +217,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             })
             
             sort(&bySetAtoZ, { (s1: SortSet, s2: SortSet) -> Bool in
-                return s1.title < s2.title
+                return s1.title.compare(s2.title, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch) != .OrderedDescending
             })
         }
         
@@ -225,13 +225,13 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     class func termComparator(t1: Term, t2: Term) -> Bool {
-        switch (t1.term.compare(t2.term)) {
+        switch (t1.term.compare(t2.term, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch)) {
         case .OrderedAscending:
             return true
         case .OrderedDescending:
             return false
         case .OrderedSame:
-            return t1.definition < t2.definition
+            return t1.definition.compare(t2.definition, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch) != .OrderedDescending
         }
     }
     
@@ -256,20 +256,20 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             searchTerms = terms
         } else {
             searchTerms = []
+            /*
             var bmp = BoyerMoorePattern(pattern: query)
             for term in terms {
                 if (term.term.findIndexOf(pattern: bmp) != nil || term.definition.findIndexOf(pattern: bmp) != nil) {
                     searchTerms.append(term)
                 }
             }
-            
-            /*
-            for term in termsAtoZ {
-            if (term.term.rangeOfString(text) != nil || term.definition.rangeOfString(text) != nil) {
-            searchTermsAtoZ.append(term)
-            }
-            }
             */
+            
+            for term in terms {
+                if (term.term.rangeOfString(query, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil || term.definition.rangeOfString(query, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil) {
+                    searchTerms.append(term)
+                }
+            }
         }
         return searchTerms
     }
@@ -280,14 +280,24 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             searchTermsBySet = termsBySet
         } else {
             searchTermsBySet = []
-            var bmp = BoyerMoorePattern(pattern: query)
+            // var bmp = BoyerMoorePattern(pattern: query)
             for quizletSet in termsBySet {
                 var termsForSet = [Term]()
+
+                /*
                 for term in quizletSet.terms {
                     if (term.term.findIndexOf(pattern: bmp) != nil || term.definition.findIndexOf(pattern: bmp) != nil) {
                         termsForSet.append(term)
                     }
                 }
+                */
+                
+                for term in quizletSet.terms {
+                    if (term.term.rangeOfString(query, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil || term.definition.rangeOfString(query, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil) {
+                        termsForSet.append(term)
+                    }
+                }
+                
                 if (termsForSet.count > 0) {
                     searchTermsBySet.append(SortSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
                 }
@@ -298,7 +308,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        // TODO: Dispose of any data model resources that can be refetched
     }
     
     // MARK: - Table view controller
