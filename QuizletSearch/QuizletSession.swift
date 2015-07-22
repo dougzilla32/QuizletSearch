@@ -32,17 +32,17 @@ class QuizletSession {
     }
     
     private var currentTokenTask: Task?
-    private var currentSetsTask: Task?
+    private var currentQueryTask: Task?
 
     func close() {
-        for task in [ currentTokenTask, currentSetsTask ] {
+        for task in [ currentTokenTask, currentQueryTask ] {
             if (task != nil) {
                 NSLog("Canceling task: \(task!.description)")
                 task!.task.cancel()
             }
         }
         currentTokenTask = nil
-        currentSetsTask = nil
+        currentQueryTask = nil
     }
     
     // Quizlet authorize parameters:
@@ -186,11 +186,7 @@ class QuizletSession {
     
     class func checkJSONResponseFromUrl(url: NSURL, data: NSData?, response: NSURLResponse? , error: NSError?) -> AnyObject? {
         if (error != nil) {
-            var errorMessage = "\(error!)"
-            if (error!.userInfo != nil) {
-                errorMessage += "\n\n\(error!.userInfo!)"
-            }
-            NSLog(errorMessage)
+            NSLog("\(url)\n\(error!)")
             return nil
         }
         
@@ -205,7 +201,7 @@ class QuizletSession {
         var jsonAny: AnyObject? = NSJSONSerialization.JSONObjectWithData(
             data!, options: NSJSONReadingOptions.AllowFragments, error: &jsonError)
         if (jsonError != nil) {
-            NSLog("\(jsonError!.userInfo)\n\(jsonError)")
+            NSLog("\(url)\n\(jsonError!)")
             return nil
         }
         
@@ -225,7 +221,7 @@ class QuizletSession {
     // Possible failures: not connected, session expired, others
     //
     func getSetsInClass(classId: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletSetsCall("/2.0/classes/\(classId)/sets", queryItems: nil, jsonCallback: { (data: AnyObject?) in
+        self.invokeQuery("/2.0/classes/\(classId)/sets", queryItems: nil, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
                 completionHandler(nil)
                 return
@@ -239,7 +235,7 @@ class QuizletSession {
     }
     
     func searchSetsWithQuery(query: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletSetsCall("/2.0/search/sets",
+        self.invokeQuery("/2.0/search/sets",
             queryItems: [NSURLQueryItem(name: "q", value: query)],
             jsonCallback: { (data: AnyObject?) in
                 if (data == nil) {
@@ -254,7 +250,7 @@ class QuizletSession {
     }
     
     func getFavoriteSetsForUser(user: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletSetsCall("/2.0/users/\(user)/favorites", queryItems: nil, jsonCallback: { (data: AnyObject?) in
+        self.invokeQuery("/2.0/users/\(user)/favorites", queryItems: nil, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
                 completionHandler(nil)
                 return
@@ -267,7 +263,7 @@ class QuizletSession {
     }
     
     func getStudiedSetsForUser(user: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletSetsCall("/2.0/users/\(user)/studied", queryItems: nil,
+        self.invokeQuery("/2.0/users/\(user)/studied", queryItems: nil,
             jsonCallback: { (data: AnyObject?) in
                 if (data == nil) {
                     completionHandler(nil)
@@ -293,7 +289,12 @@ class QuizletSession {
         }
         */
         
-        self.invokeQuizletSetsCall("/2.0/users/\(user)/sets", queryItems: queryItems, jsonCallback: { (data: AnyObject?) in
+        self.invokeQuery("/2.0/users/\(user)/sets", queryItems: queryItems, jsonCallback: { (data: AnyObject?) in
+            if (data == nil) {
+                completionHandler(nil)
+                return
+            }
+
             if let json = data as? Array<NSDictionary> {
                 var qsets = QSet.setsFromJSON(json)
                 if (qsets == nil) {
@@ -307,7 +308,7 @@ class QuizletSession {
         })
     }
     
-    func invokeQuizletSetsCall(path: String, var queryItems: [NSURLQueryItem]?, jsonCallback: ((AnyObject?) -> Void)) {
+    func invokeQuery(path: String, var queryItems: [NSURLQueryItem]?, jsonCallback: ((AnyObject?) -> Void)) {
         var accessToken = currentUser?.accessToken
         if (accessToken == nil) {
             NSLog("Access token is not set")
@@ -341,15 +342,16 @@ class QuizletSession {
         request.HTTPMethod = "GET"
         request.timeoutInterval = 15 // default is 60 seconds, timeout is the limit on a period of inactivity
         
-        if (currentSetsTask != nil) {
-            NSLog("Canceling task already running: \(currentSetsTask!.description)")
-            currentSetsTask!.task.cancel()
-            currentSetsTask = nil
+        if (currentQueryTask != nil) {
+            NSLog("Canceling task already running: \(currentQueryTask!.description)")
+            currentQueryTask!.task.cancel()
+            currentQueryTask = nil
         }
         
         let task = session.dataTaskWithRequest(request,
             completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
-                self.currentSetsTask = nil
+                sleep(10)
+                self.currentQueryTask = nil
                 
                 /** Print the result
                 println(path)
@@ -360,7 +362,7 @@ class QuizletSession {
                 jsonCallback(jsonData)
         })
         
-        currentSetsTask = Task(task: task, description: toString(url.URL!))
+        currentQueryTask = Task(task: task, description: toString(url.URL!))
         task.resume()
     }
 }
@@ -442,7 +444,7 @@ class GoogleTextToSpeech {
         session.dataTaskWithRequest(request,
             completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
                 if (error != nil) {
-                    NSLog("\(error!.userInfo!)\n\(error!)\n\(url.URL!)")
+                    NSLog("\(url.URL!)\n\(error!)")
                     return
                 }
                 
@@ -494,7 +496,7 @@ class MicrosoftTranslateSession {
         session.dataTaskWithRequest(request,
             completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
                 if (error != nil) {
-                    NSLog("\(error!.userInfo!)\n\(error!)\n\(url.URL!)")
+                    NSLog("\(url.URL!)\n\(error!)")
                     return
                 }
                 
@@ -541,7 +543,7 @@ class MicrosoftTranslateSession {
         session.dataTaskWithRequest(request,
             completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
                 if (error != nil) {
-                    NSLog("\(error!.userInfo!)\n\(error!)\n\(url.URL!)")
+                    NSLog("\(url.URL!)\n\(error!)")
                     return
                 }
                 
