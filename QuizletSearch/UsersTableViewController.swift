@@ -10,7 +10,15 @@ import UIKit
 import Foundation
 
 class UsersTableViewController: UITableViewController {
+
+    override func shouldAutorotate() -> Bool {
+        return true
+    }
     
+    override func supportedInterfaceOrientations() -> Int {
+        return Int(UIInterfaceOrientationMask.All.rawValue)
+    }
+
     override func loadView() {
         super.loadView()
         (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()

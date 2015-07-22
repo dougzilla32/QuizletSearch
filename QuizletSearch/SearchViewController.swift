@@ -76,7 +76,15 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String)    {
         updateSearchTermsForQuery(searchBar.text)
     }
+        
+    override func shouldAutorotate() -> Bool {
+        return true
+    }
     
+    override func supportedInterfaceOrientations() -> Int {
+        return Int(UIInterfaceOrientationMask.All.rawValue)
+    }
+
     override func loadView() {
         super.loadView()
         (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
@@ -89,17 +97,15 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // TODO: set the font for the text field as follows after upgrading to XCode 7
+        // UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.Type]).font = UIFont(name: "Helvetica", size: 24)
+
         // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
         refreshControl = UIRefreshControl()
-        // refreshControl.backgroundColor = UIColor.purpleColor()
-        // refreshControl.tintColor = UIColor.whiteColor()
         refreshControl.addTarget(self, action: "refreshTable", forControlEvents: UIControlEvents.ValueChanged)
         tableView.addSubview(refreshControl)
         tableView.sendSubviewToBack(refreshControl)
 
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
-        
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
@@ -375,12 +381,14 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
     // TODO: visually distinguish between the term and definition -- perhaps by font size, perhaps by color
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        UIApplication.sharedApplication().preferredContentSizeCategory
+        
         let cell = tableView.dequeueReusableCellWithIdentifier("termAndDefinition", forIndexPath: indexPath) as! UITableViewCell
         
         var term = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
 
         var termLabel = cell.viewWithTag(10) as! UILabel
-        termLabel.font = UIFont(name: "Arial", size: 18.0)
+        termLabel.font = preferredFontForTextStyle(UIFontTextStyleBody)
         termLabel.text = "\(term.term)\n\(term.definition)"
         termLabel.lineBreakMode = .ByWordWrapping
         termLabel.numberOfLines = 0
@@ -398,7 +406,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         var text = "\(term.term)\n\(term.definition)"
         var width = tableView.frame.width - 16 // margin of 8 pixels on each side of the cell
-        var font = UIFont(name: "Arial", size: 18.0)
+        var font = preferredFontForTextStyle(UIFontTextStyleBody)
 
         var attributedText = NSAttributedString(string: text, attributes: [NSFontAttributeName: font!])
         var rect = attributedText.boundingRectWithSize(CGSizeMake(width, CGFloat.max),
@@ -409,55 +417,46 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return size.height + 6
     }
 
+    func preferredFontForTextStyle(textStyle: String) -> UIFont? {
+        // choose the font size
+        let fontSize: CGFloat
+        var contentSize = UIApplication.sharedApplication().preferredContentSizeCategory
+        
+        switch (contentSize) {
+        case UIContentSizeCategoryExtraSmall:
+            fontSize = 12.0
+        case UIContentSizeCategoryExtraSmall:
+            fontSize = 12.0
+        case UIContentSizeCategorySmall:
+            fontSize = 14.0
+        case UIContentSizeCategoryMedium:
+            fontSize = 16.0
+        case UIContentSizeCategoryLarge:
+            fontSize = 18.0
+        case UIContentSizeCategoryExtraLarge:
+            fontSize = 20.0
+        case UIContentSizeCategoryExtraExtraLarge:
+            fontSize = 22.0
+        case UIContentSizeCategoryExtraExtraExtraLarge:
+            fontSize = 24.0
+        default:
+            fontSize = 16.0
+        }
+        
+        // choose the font weight
+        if (textStyle == UIFontTextStyleHeadline || textStyle == UIFontTextStyleSubheadline) {
+            return UIFont(name: "Arial-Bold", size: fontSize)
+        } else {
+            return UIFont(name: "Arial", size: fontSize)
+        }
+    }
+    
     /*
-    Basically, to add sections and an index list in the UITableView, you need to deal with these methods as defined in UITableViewDataSource protocol:
+    TODO: A-Z sections with indexes?
 
-    numberOfSectionsInTableView: method – returns the total number of sections in the table view. Usually we set the number of section to 1. If you want to have multiple sections, set this value to a larger number.
-    
-    titleForHeaderInSection: method – returns the header titles for different sections. This method is optional if you do not assign titles for the section.
-    
-    numberOfRowsInSection: method – returns the total number of rows in a specific section
-    
-    cellForRowAtIndexPath: method – this method shouldn’t be new to you if you know how to display data in UITableView. It returns the table data for a particular section.
-    
     sectionIndexTitlesForTableView: method – returns the indexed titles that appear in the index list on the right side of the table view. For example, you can return an array of strings containing “A” to “Z”.
     
     sectionForSectionIndexTitle: method – returns the section index that the table view should jump to when user taps a particular index.
-    */
-
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-    // Return NO if you do not want the specified item to be editable.
-    return true
-    }
-    */
-    
-    /*
-    // Override to support editing the table view.
-    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-    if editingStyle == .Delete {
-    // Delete the row from the data source
-    tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: .Fade)
-    } else if editingStyle == .Insert {
-    // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-    }
-    }
-    */
-    
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
-    
-    }
-    */
-    
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-    // Return NO if you do not want the item to be re-orderable.
-    return true
-    }
     */
     
     /*
@@ -469,6 +468,5 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     // Pass the selected object to the new view controller.
     }
     */
-    
 }
 

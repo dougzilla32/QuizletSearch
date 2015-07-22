@@ -15,6 +15,14 @@ class LoginViewController: UIViewController {
         var appDelegate = (UIApplication.sharedApplication().delegate as! AppDelegate)
         UIApplication.sharedApplication().openURL(appDelegate.quizletSession.authorizeURL())
     }
+    
+    override func shouldAutorotate() -> Bool {
+        return true
+    }
+    
+    override func supportedInterfaceOrientations() -> Int {
+        return Int(UIInterfaceOrientationMask.All.rawValue)
+    }
 
     override func loadView() {
         super.loadView()
