@@ -20,17 +20,29 @@ class QuizletSession {
     let quizletState = "qW3Ecv34asdf4/aseErBw34gs="
     
     var currentUser: UserAccount?
-
-    private var currentTask: NSURLSessionDataTask?
-    private var currentTaskDescription: String?
     
-    func close() {
-        if let task = currentTask {
-            NSLog("Canceling task: \(currentTaskDescription)")
-            task.cancel()
-            currentTask = nil
-            currentTaskDescription = nil
+    class Task {
+        let task: NSURLSessionDataTask
+        let description: String
+        
+        init(task: NSURLSessionDataTask, description: String) {
+            self.task = task
+            self.description = description
         }
+    }
+    
+    private var currentTokenTask: Task?
+    private var currentSetsTask: Task?
+
+    func close() {
+        for task in [ currentTokenTask, currentSetsTask ] {
+            if (task != nil) {
+                NSLog("Canceling task: \(task!.description)")
+                task!.task.cancel()
+            }
+        }
+        currentTokenTask = nil
+        currentSetsTask = nil
     }
     
     // Quizlet authorize parameters:
@@ -146,15 +158,13 @@ class QuizletSession {
         request.HTTPMethod = "POST"
         request.HTTPBody = parameters.percentEncodedQuery?.dataUsingEncoding(NSUTF8StringEncoding)
         
-        if (currentTask != nil) {
-            NSLog("Task already running: \(currentTaskDescription)")
-            return
+        if (currentTokenTask != nil) {
+            NSLog("Warning: task already running: \(currentTokenTask!.description)")
         }
         
         let task = session.dataTaskWithRequest(request,
             completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
-                self.currentTask = nil
-                self.currentTaskDescription = nil
+                self.currentTokenTask = nil
                 
                 var jsonAny: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)
                 
@@ -170,8 +180,7 @@ class QuizletSession {
                 }
         })
         
-        currentTaskDescription = toString(url.URL)
-        currentTask = task
+        currentTokenTask = Task(task: task, description: toString(url.URL!))
         task.resume()
     }
     
@@ -216,7 +225,7 @@ class QuizletSession {
     // Possible failures: not connected, session expired, others
     //
     func getSetsInClass(classId: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletCall("/2.0/classes/\(classId)/sets", queryItems: nil, jsonCallback: { (data: AnyObject?) in
+        self.invokeQuizletSetsCall("/2.0/classes/\(classId)/sets", queryItems: nil, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
                 completionHandler(nil)
                 return
@@ -230,7 +239,7 @@ class QuizletSession {
     }
     
     func searchSetsWithQuery(query: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletCall("/2.0/search/sets",
+        self.invokeQuizletSetsCall("/2.0/search/sets",
             queryItems: [NSURLQueryItem(name: "q", value: query)],
             jsonCallback: { (data: AnyObject?) in
                 if (data == nil) {
@@ -245,7 +254,7 @@ class QuizletSession {
     }
     
     func getFavoriteSetsForUser(user: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletCall("/2.0/users/\(user)/favorites", queryItems: nil, jsonCallback: { (data: AnyObject?) in
+        self.invokeQuizletSetsCall("/2.0/users/\(user)/favorites", queryItems: nil, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
                 completionHandler(nil)
                 return
@@ -258,7 +267,7 @@ class QuizletSession {
     }
     
     func getStudiedSetsForUser(user: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuizletCall("/2.0/users/\(user)/studied", queryItems: nil,
+        self.invokeQuizletSetsCall("/2.0/users/\(user)/studied", queryItems: nil,
             jsonCallback: { (data: AnyObject?) in
                 if (data == nil) {
                     completionHandler(nil)
@@ -284,7 +293,7 @@ class QuizletSession {
         }
         */
         
-        self.invokeQuizletCall("/2.0/users/\(user)/sets", queryItems: queryItems, jsonCallback: { (data: AnyObject?) in
+        self.invokeQuizletSetsCall("/2.0/users/\(user)/sets", queryItems: queryItems, jsonCallback: { (data: AnyObject?) in
             if let json = data as? Array<NSDictionary> {
                 var qsets = QSet.setsFromJSON(json)
                 if (qsets == nil) {
@@ -298,7 +307,7 @@ class QuizletSession {
         })
     }
     
-    func invokeQuizletCall(path: String, var queryItems: [NSURLQueryItem]?, jsonCallback: ((AnyObject?) -> Void)) {
+    func invokeQuizletSetsCall(path: String, var queryItems: [NSURLQueryItem]?, jsonCallback: ((AnyObject?) -> Void)) {
         var accessToken = currentUser?.accessToken
         if (accessToken == nil) {
             NSLog("Access token is not set")
@@ -330,17 +339,17 @@ class QuizletSession {
         var session = NSURLSession(configuration: config)
         var request = NSMutableURLRequest(URL: url.URL!)
         request.HTTPMethod = "GET"
+        request.timeoutInterval = 15 // default is 60 seconds, timeout is the limit on a period of inactivity
         
-        if (currentTask != nil) {
-            NSLog("Task already running: \(currentTaskDescription)")
-            jsonCallback(nil)
-            return
+        if (currentSetsTask != nil) {
+            NSLog("Canceling task already running: \(currentSetsTask!.description)")
+            currentSetsTask!.task.cancel()
+            currentSetsTask = nil
         }
         
         let task = session.dataTaskWithRequest(request,
             completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
-                self.currentTask = nil
-                self.currentTaskDescription = nil
+                self.currentSetsTask = nil
                 
                 /** Print the result
                 println(path)
@@ -351,8 +360,7 @@ class QuizletSession {
                 jsonCallback(jsonData)
         })
         
-        currentTaskDescription = toString(url.URL)
-        currentTask = task
+        currentSetsTask = Task(task: task, description: toString(url.URL!))
         task.resume()
     }
 }
