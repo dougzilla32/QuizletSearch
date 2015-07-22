@@ -94,7 +94,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                     if let err = error {
                         var alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
                         alert.show()
-                        // TODO: should switch to either top-level login window or login list view here
+                        // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
                     } else {
                         self.dataModel.addOrUpdateUser(userAccount!)
                         self.saveContext()

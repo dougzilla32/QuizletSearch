@@ -199,12 +199,10 @@ class DataModel: NSObject {
                     completionHandler(qsets)
             })
         case .CurrentUserFavorites:
-            // TODO: implement CurrentUserFavorites filter
             quizletSession.getFavoriteSetsForUser(currentUser!.name, modifiedSince: 0, allowCellularAccess: allowCellularAccess,
                 completionHandler: { (qsets: [QSet]?) in
             })
         case .GeneralQuery:
-            // TODO: implement GeneralQuery filter
             println("General Query")
         }
     }

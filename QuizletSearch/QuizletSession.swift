@@ -350,7 +350,6 @@ class QuizletSession {
         
         let task = session.dataTaskWithRequest(request,
             completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
-                sleep(10)
                 self.currentQueryTask = nil
                 
                 /** Print the result
