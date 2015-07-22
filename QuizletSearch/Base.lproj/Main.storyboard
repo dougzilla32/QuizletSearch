@@ -410,28 +410,11 @@
                     </view>
                     <connections>
                         <outlet property="searchBar" destination="6Ql-ol-eWP" id="1OY-0D-egt"/>
-                        <outlet property="searchDisplayController" destination="ZyO-FB-Nhw" id="gca-uV-5gZ"/>
                         <outlet property="sortStyle" destination="PYH-n9-IH5" id="5ZL-PH-ytE"/>
                         <outlet property="tableView" destination="8IP-x1-ERJ" id="Psi-b0-rLO"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="5Co-Ox-AjM" userLabel="First Responder" sceneMemberID="firstResponder"/>
-                <searchDisplayController id="8Z3-b9-rjV">
-                    <connections>
-                        <outlet property="delegate" destination="bQl-lE-mnK" id="dcq-GV-5Ww"/>
-                        <outlet property="searchContentsController" destination="bQl-lE-mnK" id="uxb-Uj-YmC"/>
-                        <outlet property="searchResultsDataSource" destination="bQl-lE-mnK" id="n52-a1-zFC"/>
-                        <outlet property="searchResultsDelegate" destination="bQl-lE-mnK" id="qXS-07-rsc"/>
-                    </connections>
-                </searchDisplayController>
-                <searchDisplayController id="ZyO-FB-Nhw">
-                    <connections>
-                        <outlet property="delegate" destination="bQl-lE-mnK" id="Os9-YN-aKV"/>
-                        <outlet property="searchContentsController" destination="bQl-lE-mnK" id="O9d-XA-MEi"/>
-                        <outlet property="searchResultsDataSource" destination="bQl-lE-mnK" id="5fF-Rb-YFW"/>
-                        <outlet property="searchResultsDelegate" destination="bQl-lE-mnK" id="rB2-pa-YEV"/>
-                    </connections>
-                </searchDisplayController>
             </objects>
             <point key="canvasLocation" x="262" y="-217"/>
         </scene>

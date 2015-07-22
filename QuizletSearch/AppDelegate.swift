@@ -47,13 +47,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return true
     }
     
-    func refreshAndRestartTimer() {
-        println("refreshAndRestartTimer")
+    func refreshAndRestartTimer(completionHandler: (([QSet]?) -> Void)? = nil) {
         if (managedObjectContext == nil || dataModel.currentUser == nil) {
             return
         }
 
-        refresh()
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+        
+        // Refresh the data model
+        self.dataModel.refreshModelForCurrentFilter(completionHandler: { (qsets: [QSet]?) in
+            if (completionHandler != nil) {
+                completionHandler!(qsets)
+            }
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        })
         
         if (refreshTimer != nil) {
             refreshTimer!.invalidate()
@@ -62,16 +69,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     }
     
     func cancelRefreshTimer() {
-        println("cancelRefreshTimer")
         if (refreshTimer != nil) {
             refreshTimer!.invalidate()
             refreshTimer = nil
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         }
     }
     
     func refresh() {
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+        
         self.dataModel.refreshModelForCurrentFilter(completionHandler: { (qsets: [QSet]?) in
-            // println("Refresh successful: \(qsets)")
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         })
     }
     

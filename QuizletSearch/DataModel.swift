@@ -185,6 +185,7 @@ class DataModel: NSObject {
         var filterType = FilterType(rawValue: currentFilter.type)
         if (filterType == nil) {
             NSLog("Invalid filter type found in data store: \(currentFilter.type)")
+            completionHandler(nil)
             return
         }
         
@@ -192,12 +193,16 @@ class DataModel: NSObject {
         case .CurrentUserAllSets:
             quizletSession.getAllSetsForUser(currentUser!.name, modifiedSince: currentFilter.maxModifiedDate,
                 completionHandler: { (qsets: [QSet]?) in
-                    self.updateTermsForFilter(currentFilter, qsets: qsets)
+                    if (qsets != nil) {
+                        self.updateTermsForFilter(currentFilter, qsets: qsets)
+                    }
                     completionHandler(qsets)
             })
         case .CurrentUserFavorites:
             // TODO: implement CurrentUserFavorites filter
-            quizletSession.getFavoriteSetsForUser(currentUser!.name)
+            quizletSession.getFavoriteSetsForUser(currentUser!.name, modifiedSince: 0,
+                completionHandler: { (qsets: [QSet]?) in
+            })
         case .GeneralQuery:
             // TODO: implement GeneralQuery filter
             println("General Query")

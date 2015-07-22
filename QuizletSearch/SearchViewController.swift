@@ -18,6 +18,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     @IBOutlet weak var searchBar: UISearchBar!
     
+    var refreshControl: UIRefreshControl!
+    
     enum SortSelection: Int {
         case AtoZ = 0, BySet, BySetAtoZ
     }
@@ -87,6 +89,14 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
+        refreshControl = UIRefreshControl()
+        // refreshControl.backgroundColor = UIColor.purpleColor()
+        // refreshControl.tintColor = UIColor.whiteColor()
+        refreshControl.addTarget(self, action: "refreshTable", forControlEvents: UIControlEvents.ValueChanged)
+        tableView.addSubview(refreshControl)
+        tableView.sendSubviewToBack(refreshControl)
+
         // Uncomment the following line to preserve selection between presentations
         // self.clearsSelectionOnViewWillAppear = false
         
@@ -101,6 +111,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             selector: "contextDidSaveNotification:",
             name: NSManagedObjectContextDidSaveNotification,
             object: moc)
+    }
+    
+    func refreshTable() {
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(completionHandler: { (qsets: [QSet]?) in
+            self.refreshControl.endRefreshing()
+        })
     }
     
     // call back function by saveContext, support multi-thread
