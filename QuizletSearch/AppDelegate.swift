@@ -47,7 +47,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return true
     }
     
-    func refreshAndRestartTimer(completionHandler: (([QSet]?) -> Void)? = nil) {
+    func refreshAndRestartTimer(#allowCellularAccess: Bool, completionHandler: (([QSet]?) -> Void)? = nil) {
         if (managedObjectContext == nil || dataModel.currentUser == nil) {
             return
         }
@@ -55,7 +55,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
         // Refresh the data model
-        self.dataModel.refreshModelForCurrentFilter(completionHandler: { (qsets: [QSet]?) in
+        self.dataModel.refreshModelForCurrentFilter(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?) in
             if (completionHandler != nil) {
                 completionHandler!(qsets)
             }
@@ -79,7 +79,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     func refresh() {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
-        self.dataModel.refreshModelForCurrentFilter(completionHandler: { (qsets: [QSet]?) in
+        self.dataModel.refreshModelForCurrentFilter(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?) in
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         })
     }
@@ -98,7 +98,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                     } else {
                         self.dataModel.addOrUpdateUser(userAccount!)
                         self.saveContext()
-                        self.refreshAndRestartTimer()
+                        self.refreshAndRestartTimer(allowCellularAccess: true)
                     }
                 })
             

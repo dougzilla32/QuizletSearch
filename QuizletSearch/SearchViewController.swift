@@ -79,11 +79,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     override func loadView() {
         super.loadView()
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer()
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
     }
 
     @IBAction func unwindToSearchView(segue: UIStoryboardSegue) {
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer()        
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
     }
     
     override func viewDidLoad() {
@@ -113,8 +113,14 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             object: moc)
     }
     
+    // Called after the view was dismissed, covered or otherwise hidden.
+    override func viewDidDisappear(animated: Bool) {
+        super.viewDidDisappear(animated)
+        self.refreshControl.endRefreshing()
+    }
+    
     func refreshTable() {
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(completionHandler: { (qsets: [QSet]?) in
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
             self.refreshControl.endRefreshing()
         })
     }

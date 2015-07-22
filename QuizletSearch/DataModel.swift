@@ -176,7 +176,7 @@ class DataModel: NSObject {
         return filter
     }
     
-    func refreshModelForCurrentFilter(#completionHandler: ([QSet]?) -> Void) {
+    func refreshModelForCurrentFilter(#allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         if (currentUser == nil) {
             return
         }
@@ -191,7 +191,7 @@ class DataModel: NSObject {
         
         switch (filterType!) {
         case .CurrentUserAllSets:
-            quizletSession.getAllSetsForUser(currentUser!.name, modifiedSince: currentFilter.maxModifiedDate,
+            quizletSession.getAllSetsForUser(currentUser!.name, modifiedSince: currentFilter.maxModifiedDate, allowCellularAccess: allowCellularAccess,
                 completionHandler: { (qsets: [QSet]?) in
                     if (qsets != nil) {
                         self.updateTermsForFilter(currentFilter, qsets: qsets)
@@ -200,7 +200,7 @@ class DataModel: NSObject {
             })
         case .CurrentUserFavorites:
             // TODO: implement CurrentUserFavorites filter
-            quizletSession.getFavoriteSetsForUser(currentUser!.name, modifiedSince: 0,
+            quizletSession.getFavoriteSetsForUser(currentUser!.name, modifiedSince: 0, allowCellularAccess: allowCellularAccess,
                 completionHandler: { (qsets: [QSet]?) in
             })
         case .GeneralQuery:

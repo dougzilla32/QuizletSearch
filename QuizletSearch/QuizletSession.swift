@@ -148,7 +148,6 @@ class QuizletSession {
         var base64AuthString = authData!.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
         
         var config = NSURLSessionConfiguration.defaultSessionConfiguration()
-        // config.allowsCellularAccess = false
         config.HTTPAdditionalHeaders = [
             "Accept": "application/json",
             "Authorization": "Basic \(base64AuthString)"
@@ -220,8 +219,8 @@ class QuizletSession {
     //
     // Possible failures: not connected, session expired, others
     //
-    func getSetsInClass(classId: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuery("/2.0/classes/\(classId)/sets", queryItems: nil, jsonCallback: { (data: AnyObject?) in
+    func getSetsInClass(classId: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+        self.invokeQuery("/2.0/classes/\(classId)/sets", queryItems: nil, allowCellularAccess: allowCellularAccess, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
                 completionHandler(nil)
                 return
@@ -234,9 +233,10 @@ class QuizletSession {
         })
     }
     
-    func searchSetsWithQuery(query: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
+    func searchSetsWithQuery(query: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuery("/2.0/search/sets",
             queryItems: [NSURLQueryItem(name: "q", value: query)],
+            allowCellularAccess: allowCellularAccess,
             jsonCallback: { (data: AnyObject?) in
                 if (data == nil) {
                     completionHandler(nil)
@@ -249,8 +249,8 @@ class QuizletSession {
         })
     }
     
-    func getFavoriteSetsForUser(user: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuery("/2.0/users/\(user)/favorites", queryItems: nil, jsonCallback: { (data: AnyObject?) in
+    func getFavoriteSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+        self.invokeQuery("/2.0/users/\(user)/favorites", queryItems: nil, allowCellularAccess: allowCellularAccess, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
                 completionHandler(nil)
                 return
@@ -262,8 +262,8 @@ class QuizletSession {
         })
     }
     
-    func getStudiedSetsForUser(user: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
-        self.invokeQuery("/2.0/users/\(user)/studied", queryItems: nil,
+    func getStudiedSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+        self.invokeQuery("/2.0/users/\(user)/studied", queryItems: nil, allowCellularAccess: allowCellularAccess, 
             jsonCallback: { (data: AnyObject?) in
                 if (data == nil) {
                     completionHandler(nil)
@@ -276,7 +276,7 @@ class QuizletSession {
         })
     }
     
-    func getAllSetsForUser(user: String, modifiedSince: Int64, completionHandler: ([QSet]?) -> Void) {
+    func getAllSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
 
         var queryItems: [NSURLQueryItem]? = nil
         
@@ -289,7 +289,7 @@ class QuizletSession {
         }
         */
         
-        self.invokeQuery("/2.0/users/\(user)/sets", queryItems: queryItems, jsonCallback: { (data: AnyObject?) in
+        self.invokeQuery("/2.0/users/\(user)/sets", queryItems: queryItems, allowCellularAccess: allowCellularAccess, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
                 completionHandler(nil)
                 return
@@ -308,7 +308,7 @@ class QuizletSession {
         })
     }
     
-    func invokeQuery(path: String, var queryItems: [NSURLQueryItem]?, jsonCallback: ((AnyObject?) -> Void)) {
+    func invokeQuery(path: String, var queryItems: [NSURLQueryItem]?, allowCellularAccess: Bool, jsonCallback: ((AnyObject?) -> Void)) {
         var accessToken = currentUser?.accessToken
         if (accessToken == nil) {
             NSLog("Access token is not set")
@@ -332,7 +332,7 @@ class QuizletSession {
         url.queryItems = queryItems
         
         var config = NSURLSessionConfiguration.defaultSessionConfiguration()
-        // config.allowsCellularAccess = false
+        config.allowsCellularAccess = allowCellularAccess
         config.HTTPAdditionalHeaders = [
             "Accept": "application/json",
             "Authorization": "Bearer \(accessToken!)"
