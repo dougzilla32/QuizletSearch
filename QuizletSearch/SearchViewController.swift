@@ -20,6 +20,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     var refreshControl: UIRefreshControl!
     
+    // MARK: - Sorting
+    
     enum SortSelection: Int {
         case AtoZ = 0, BySet, BySetAtoZ
     }
@@ -72,10 +74,14 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return SortSelection(rawValue: sortStyle.selectedSegmentIndex)!
     }
     
+    // MARK: - Search Bar
+    
     // called when text changes (including clear)
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String)    {
         updateSearchTermsForQuery(searchBar.text)
     }
+    
+    // MARK: - View Controller
         
     override func shouldAutorotate() -> Bool {
         return true
@@ -90,10 +96,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
     }
 
-    @IBAction func unwindToSearchView(segue: UIStoryboardSegue) {
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
         
@@ -123,16 +125,22 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             object: moc)
     }
     
-    deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
-    }
- 
     // Called after the view was dismissed, covered or otherwise hidden.
     override func viewDidDisappear(animated: Bool) {
         super.viewDidDisappear(animated)
         self.refreshControl.endRefreshing()
     }
     
+    // MARK: - Search View Controller
+    
+    @IBAction func unwindToSearchView(segue: UIStoryboardSegue) {
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
+    }
+    
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
+ 
     func keyboardWillShow(notification: NSNotification) {
         if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
     
