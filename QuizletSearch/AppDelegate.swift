@@ -65,7 +65,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         if (refreshTimer != nil) {
             refreshTimer!.invalidate()
         }
-        refreshTimer = NSTimer.scheduledTimerWithTimeInterval(60, target: self, selector: "refresh", userInfo: nil, repeats: true)
+        refreshTimer = NSTimer.scheduledTimerWithTimeInterval(60 * 5, target: self, selector: "refresh", userInfo: nil, repeats: true)
     }
     
     func cancelRefreshTimer() {

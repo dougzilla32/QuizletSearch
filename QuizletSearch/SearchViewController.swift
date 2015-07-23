@@ -112,6 +112,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         sortedTerms = SearchViewController.initSortedTerms()
         updateSearchTermsForQuery(searchBar.text)
         
+        // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
+
         let moc = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext
         NSNotificationCenter.defaultCenter().addObserver(self,
             selector: "contextDidSaveNotification:",
@@ -119,10 +123,34 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             object: moc)
     }
     
+    deinit {
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
+ 
     // Called after the view was dismissed, covered or otherwise hidden.
     override func viewDidDisappear(animated: Bool) {
         super.viewDidDisappear(animated)
         self.refreshControl.endRefreshing()
+    }
+    
+    func keyboardWillShow(notification: NSNotification) {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
+    
+            var contentInsets: UIEdgeInsets
+            if (UIInterfaceOrientationIsPortrait(UIApplication.sharedApplication().statusBarOrientation)) {
+                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.height, 0.0);
+            } else {
+                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.width, 0.0);
+            }
+    
+            self.tableView.contentInset = contentInsets;
+            self.tableView.scrollIndicatorInsets = contentInsets;
+        }
+    }
+
+    func keyboardWillHide(notification: NSNotification) {
+        self.tableView.contentInset = UIEdgeInsetsZero
+        self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero
     }
     
     func refreshTable() {
@@ -321,6 +349,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     // The UITableViewController deselects the currently selected row when the table becomes visible.  We are not subclassing UITableViewController because we want to add a custom filter bar, and the UITableViewController does not allow for this.
     override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
         if let path = tableView.indexPathForSelectedRow() {
             tableView.deselectRowAtIndexPath(path, animated: true)
         }
@@ -328,6 +358,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     // The UITableViewController flashes the scrollbar when the table becomes visible.
     override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
         tableView.flashScrollIndicators()
     }
     
