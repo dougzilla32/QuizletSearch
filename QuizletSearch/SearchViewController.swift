@@ -77,10 +77,19 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     // MARK: - Search Bar
     
     // called when text changes (including clear)
-    func searchBar(searchBar: UISearchBar, textDidChange searchText: String)    {
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
         updateSearchTermsForQuery(searchBar.text)
     }
     
+    // Have the keyboard close when 'Return' is pressed
+    func searchBar(searchBar: UISearchBar, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool // called before text changes
+    {
+        if (text == "\n") {
+            searchBar.resignFirstResponder()
+        }
+        return true
+    }
+
     // MARK: - View Controller
         
     override func shouldAutorotate() -> Bool {
@@ -123,6 +132,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             selector: "contextDidSaveNotification:",
             name: NSManagedObjectContextDidSaveNotification,
             object: moc)
+
+        // Dismiss the keyboard as soon as the user drags the table
+        // tableView.keyboardDismissMode = .OnDrag
+
+        // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
+        tableView.keyboardDismissMode = .Interactive
     }
     
     // Called after the view was dismissed, covered or otherwise hidden.
