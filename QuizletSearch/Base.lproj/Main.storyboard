@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14E46" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="nwM-di-8tA">
     <dependencies>
-        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
@@ -56,7 +55,7 @@
                                 <size key="shadowOffset" width="0.0" height="0.0"/>
                             </label>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" highlighted="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ekM-7i-D8Z">
-                                <rect key="frame" x="240" y="211" width="120" height="64"/>
+                                <rect key="frame" x="240" y="211" width="119.5" height="64"/>
                                 <attributedString key="attributedText">
                                     <fragment content="Search">
                                         <attributes>
@@ -119,6 +118,17 @@
                                 <color key="highlightedColor" red="0.098039215690000001" green="0.33725490200000002" blue="0.80000000000000004" alpha="1" colorSpace="calibratedRGB"/>
                                 <size key="shadowOffset" width="0.0" height="0.0"/>
                             </label>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="2Gx-Ow-MXk">
+                                <rect key="frame" x="243.5" y="491" width="113" height="29"/>
+                                <fontDescription key="fontDescription" style="UICTFontTextStyleSubhead"/>
+                                <state key="normal" title="Proceed as guest">
+                                    <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                    <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                </state>
+                                <connections>
+                                    <action selector="proceedAsGuest:" destination="nwM-di-8tA" eventType="touchUpInside" id="mxL-K4-FVR"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" red="0.098039215690000001" green="0.33725490200000002" blue="0.80000000000000004" alpha="1" colorSpace="calibratedRGB"/>
                         <constraints>
@@ -126,12 +136,14 @@
                             <constraint firstItem="5yv-Di-otj" firstAttribute="top" secondItem="ekM-7i-D8Z" secondAttribute="bottom" constant="10" id="3Oe-kt-SUd"/>
                             <constraint firstAttribute="centerX" secondItem="ekM-7i-D8Z" secondAttribute="centerX" id="6x3-fs-X1y"/>
                             <constraint firstAttribute="centerX" secondItem="5yv-Di-otj" secondAttribute="centerX" id="7Ln-h6-bUg"/>
+                            <constraint firstAttribute="centerX" secondItem="2Gx-Ow-MXk" secondAttribute="centerX" id="C8y-Qz-jHK"/>
                             <constraint firstAttribute="centerX" secondItem="27T-pV-tap" secondAttribute="centerX" constant="-0.5" id="CKZ-n3-bAD"/>
                             <constraint firstItem="kRy-Pi-7gy" firstAttribute="leading" secondItem="g83-kl-U4u" secondAttribute="leading" id="Hmz-4H-XFA"/>
                             <constraint firstItem="feO-Uq-pIN" firstAttribute="top" secondItem="5yv-Di-otj" secondAttribute="bottom" constant="10" id="IUB-RM-OkT"/>
                             <constraint firstItem="ekM-7i-D8Z" firstAttribute="top" secondItem="27T-pV-tap" secondAttribute="bottom" constant="-10" id="YSi-2R-jhr"/>
                             <constraint firstAttribute="centerY" secondItem="5yv-Di-otj" secondAttribute="centerY" id="cXk-uj-CA3"/>
                             <constraint firstItem="jKb-uk-QnZ" firstAttribute="top" secondItem="kRy-Pi-7gy" secondAttribute="bottom" id="hlw-K5-z0B"/>
+                            <constraint firstItem="kRy-Pi-7gy" firstAttribute="top" secondItem="2Gx-Ow-MXk" secondAttribute="bottom" constant="20" id="xSC-sT-ls8"/>
                             <constraint firstAttribute="trailing" secondItem="kRy-Pi-7gy" secondAttribute="trailing" id="yl5-Nv-fud"/>
                         </constraints>
                     </view>
@@ -388,10 +400,7 @@
                                 </connections>
                             </tableView>
                             <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bar" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="PYH-n9-IH5">
-                                <rect key="frame" x="216" y="564" width="168" height="29"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" constant="168" id="p3w-A3-CFO"/>
-                                </constraints>
+                                <rect key="frame" x="209" y="564" width="182" height="29"/>
                                 <segments>
                                     <segment title="A-Z"/>
                                     <segment title="Set"/>
@@ -422,11 +431,9 @@
                         </constraints>
                     </view>
                     <connections>
-                        <outlet property="filterButton" destination="tHj-Oq-tC6" id="bUU-5c-ArN"/>
                         <outlet property="searchBar" destination="6Ql-ol-eWP" id="1OY-0D-egt"/>
                         <outlet property="sortStyle" destination="PYH-n9-IH5" id="5ZL-PH-ytE"/>
                         <outlet property="tableView" destination="8IP-x1-ERJ" id="Psi-b0-rLO"/>
-                        <outlet property="toolbar" destination="baF-Hf-jTQ" id="YP0-K4-LDd"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="5Co-Ox-AjM" userLabel="First Responder" sceneMemberID="firstResponder"/>
@@ -450,6 +457,23 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="JXF-0I-NoT" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="262" y="490"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="xu1-iB-JCh">
+            <objects>
+                <viewController id="FJw-lK-ad6" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="hSW-o0-UCu"/>
+                        <viewControllerLayoutGuide type="bottom" id="kUt-7q-HjH"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="3Nb-g8-EEC">
+                        <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="sdz-Q5-OYS" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
         </scene>
     </scenes>
     <resources>

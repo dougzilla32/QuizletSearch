@@ -10,6 +10,79 @@ import UIKit
 import CoreData
 import Foundation
 
+enum SortSelection: Int {
+    case AtoZ = 0, BySet, BySetAtoZ
+}
+
+class SearchTerm {
+    let term: Term
+    let score: Double
+    let termRanges: [Range<String.Index>]?
+    let definitionRanges: [Range<String.Index>]?
+    
+    init(term: Term, score: Double = 0.0, termRanges: [Range<String.Index>]? = nil, definitionRanges: [Range<String.Index>]? = nil) {
+        self.term = term
+        self.score = score
+        self.termRanges = termRanges
+        self.definitionRanges = definitionRanges
+    }
+}
+
+class SortSet<T> {
+    let title: String
+    let terms: [T]
+    let createdDate: Int64
+    
+    init(title: String, terms: [T], createdDate: Int64) {
+        self.title = title
+        self.terms = terms
+        self.createdDate = createdDate
+    }
+}
+
+class SortedTerms<T> {
+    var AtoZ: [T]
+    var bySet: [SortSet<T>]
+    var bySetAtoZ: [SortSet<T>]
+    
+    var levenshteinMatch: [T] = []
+    var stringScoreMatch: [T] = []
+    
+    init() {
+        AtoZ = []
+        bySet = []
+        bySetAtoZ = []
+    }
+    
+    init(AtoZ: [T], bySet: [SortSet<T>], bySetAtoZ: [SortSet<T>]) {
+        self.AtoZ = AtoZ
+        self.bySet = bySet
+        self.bySetAtoZ = bySetAtoZ
+    }
+    
+    func termForPath(indexPath: NSIndexPath, sortSelection: SortSelection) -> T {
+        var term: T
+        switch (sortSelection) {
+        case .AtoZ:
+            switch (indexPath.section) {
+            case 0:
+                term = AtoZ[indexPath.row]
+            case 1:
+                term = (levenshteinMatch.count > 0) ? levenshteinMatch[indexPath.row] : stringScoreMatch[indexPath.row]
+            case 2:
+                term = stringScoreMatch[indexPath.row]
+            default:
+                abort()
+            }
+        case .BySet:
+            term = bySet[indexPath.section].terms[indexPath.row]
+        case .BySetAtoZ:
+            term = bySetAtoZ[indexPath.section].terms[indexPath.row]
+        }
+        return term
+    }
+}
+
 class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
     
     @IBOutlet weak var tableView: UITableView!
@@ -22,49 +95,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     // MARK: - Sorting
     
-    enum SortSelection: Int {
-        case AtoZ = 0, BySet, BySetAtoZ
-    }
-    
-    class SortSet {
-        let title: String
-        let terms: [Term]
-        let createdDate: Int64
-        
-        init(title: String, terms: [Term], createdDate: Int64) {
-            self.title = title
-            self.terms = terms
-            self.createdDate = createdDate
-        }
-    }
-    
-    class SortedTerms {
-        var AtoZ: [Term]
-        var bySet: [SortSet]
-        var bySetAtoZ: [SortSet]
-        
-        init(AtoZ: [Term], bySet: [SortSet], bySetAtoZ: [SortSet]) {
-            self.AtoZ = AtoZ
-            self.bySet = bySet
-            self.bySetAtoZ = bySetAtoZ
-        }
-        
-        func termForPath(indexPath: NSIndexPath, sortSelection: SortSelection) -> Term {
-            var term: Term
-            switch (sortSelection) {
-            case .AtoZ:
-                term = AtoZ[indexPath.row]
-            case .BySet:
-                term = bySet[indexPath.section].terms[indexPath.row]
-            case .BySetAtoZ:
-                term = bySetAtoZ[indexPath.section].terms[indexPath.row]
-            }
-            return term
-        }
-    }
-    
-    var sortedTerms: SortedTerms = SortedTerms(AtoZ: [], bySet: [], bySetAtoZ: [])
-    var searchTerms: SortedTerms = SortedTerms(AtoZ: [], bySet: [], bySetAtoZ: [])
+    var sortedTerms: SortedTerms<Term> = SortedTerms<Term>()
+    var searchTerms: SortedTerms<SearchTerm> = SortedTerms<SearchTerm>()
     
     @IBAction func sortStyleChanged(sender: AnyObject) {
         updateSearchTermsForQuery(searchBar.text)
@@ -108,8 +140,15 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        let font = Common.preferredSystemFontForTextStyle(UIFontTextStyleBody)
+        sortStyle.setTitleTextAttributes([NSFontAttributeName: font!], forState: UIControlState.Normal)
+        
         // TODO: set the font for the text field as follows after upgrading to XCode 7
         // UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.Type]).font = UIFont(name: "Helvetica", size: 24)
+        Common.findTextFieldAndUpdateFont(self.searchBar)
+        // if let searchField = self.searchBar.valueForKey("_searchField") as? UITextField {
+        //     searchField.font = preferredFontForTextStyle(UIFontTextStyleBody)
+        // }
 
         // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
         refreshControl = UIRefreshControl()
@@ -241,12 +280,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return false
     }
     
-    class func initSortedTerms() -> SortedTerms {
+    class func initSortedTerms() -> SortedTerms<Term> {
         let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
         
         var AtoZ: [Term] = []
-        var bySet: [SortSet] = []
-        var bySetAtoZ: [SortSet] = []
+        var bySet: [SortSet<Term>] = []
+        var bySetAtoZ: [SortSet<Term>] = []
         
         if let filter = dataModel.currentUser?.currentFilter {
             for set  in filter.sets {
@@ -269,11 +308,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             
             sort(&AtoZ, termComparator)
             
-            sort(&bySet, { (s1: SortSet, s2: SortSet) -> Bool in
+            sort(&bySet, { (s1: SortSet<Term>, s2: SortSet<Term>) -> Bool in
                 return s1.createdDate > s2.createdDate
             })
             
-            sort(&bySetAtoZ, { (s1: SortSet, s2: SortSet) -> Bool in
+            sort(&bySetAtoZ, { (s1: SortSet<Term>, s2: SortSet<Term>) -> Bool in
                 return s1.title.compare(s2.title, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch) != .OrderedDescending
             })
         }
@@ -297,49 +336,88 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         switch (currentSortSelection()) {
         case .AtoZ:
-            searchTerms.AtoZ = SearchViewController.searchTermsForQuery(query, terms: sortedTerms.AtoZ)
+            searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
+            // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
+            // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
         case .BySet:
-            searchTerms.bySet = SearchViewController.searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySet)
+            searchTerms.bySet = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySet)
         case .BySetAtoZ:
-            searchTerms.bySetAtoZ = SearchViewController.searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySetAtoZ)
+            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySetAtoZ)
         }
 
         tableView.reloadData()
     }
     
-    class func searchTermsForQuery(query: String, terms: [Term]) -> [Term] {
-        var searchTerms: [Term]
-        if (query.isEmpty) {
-            searchTerms = terms
-        } else {
-            searchTerms = []
-            /*
-            var bmp = BoyerMoorePattern(pattern: query)
+    var rangeOfStringMethod = String.rangeOfStringWithOptions
+    // var rangeOfStringMethod = String.rangeOfStringWithWhitespace
+    // var rangeOfStringMethod = String.rangeOfOverlappingUnicharsInString
+    
+    func searchTermsForQuery(query: String, terms: [Term]) -> [SearchTerm] {
+        var searchTerms: [SearchTerm] = []
+        if (query.isWhitespace()) {
             for term in terms {
-                if (term.term.findIndexOf(pattern: bmp) != nil || term.definition.findIndexOf(pattern: bmp) != nil) {
-                    searchTerms.append(term)
-                }
+                searchTerms.append(SearchTerm(term: term))
             }
-            */
-            
+        } else {
+            var options =  NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.WhitespaceInsensitiveSearch
             for term in terms {
-                if (term.term.rangeOfString(query, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil || term.definition.rangeOfString(query, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil) {
-                    searchTerms.append(term)
+                var termRange = rangeOfStringMethod(term.term)(query, options: options)
+                var definitionRange = rangeOfStringMethod(term.definition)(query, options: options)
+                if (termRange != nil || definitionRange != nil) {
+                    searchTerms.append(SearchTerm(term: term,
+                        score: 0.0,
+                        termRanges: termRange != nil ? [termRange!] : nil,
+                        definitionRanges: definitionRange != nil ? [definitionRange!] : nil))
                 }
             }
         }
         return searchTerms
     }
     
-    class func searchTermsBySetForQuery(query: String, termsBySet: [SortSet]) -> [SortSet] {
-        var searchTermsBySet: [SortSet]
-        if (query.isEmpty) {
-            searchTermsBySet = termsBySet
+    class func levenshteinMatchForQuery(query: String, terms: [Term]) -> [SearchTerm] {
+        var levenshteinMatch: [SearchTerm] = []
+        if (!query.isWhitespace()) {
+            for term in terms {
+                var termScore = computeLevenshteinScore(query, term.term)
+                var definitionScore = computeLevenshteinScore(query, term.definition)
+                
+                if (termScore > 0.70 || definitionScore > 0.70) {
+                    levenshteinMatch.append(SearchTerm(term: term, score: max(termScore, definitionScore)))
+                }
+            }
+        }
+        return levenshteinMatch
+    }
+    
+    class func stringScoreMatchForQuery(query: String, terms: [Term]) -> [SearchTerm] {
+        var stringScoreMatch: [SearchTerm] = []
+        if (!query.isWhitespace()) {
+            for term in terms {
+                var termScore = term.term.scoreAgainst(query)
+                var definitionScore = term.definition.scoreAgainst(query)
+                
+                if (termScore > 0.70 || definitionScore > 0.70) {
+                    stringScoreMatch.append(SearchTerm(term: term, score: max(termScore, definitionScore)))
+                }
+            }
+        }
+        return stringScoreMatch
+    }
+    
+    func searchTermsBySetForQuery(query: String, termsBySet: [SortSet<Term>]) -> [SortSet<SearchTerm>] {
+        var searchTermsBySet: [SortSet<SearchTerm>] = []
+        if (query.isWhitespace()) {
+            for quizletSet in termsBySet {
+                var termsForSet = [SearchTerm]()
+                for term in quizletSet.terms {
+                    termsForSet.append(SearchTerm(term: term))
+                }
+                searchTermsBySet.append(SortSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+            }
         } else {
-            searchTermsBySet = []
             // var bmp = BoyerMoorePattern(pattern: query)
             for quizletSet in termsBySet {
-                var termsForSet = [Term]()
+                var termsForSet = [SearchTerm]()
 
                 /*
                 for term in quizletSet.terms {
@@ -350,13 +428,19 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 */
                 
                 for term in quizletSet.terms {
-                    if (term.term.rangeOfString(query, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil || term.definition.rangeOfString(query, options: NSStringCompareOptions.CaseInsensitiveSearch) != nil) {
-                        termsForSet.append(term)
+                    var options = NSStringCompareOptions.CaseInsensitiveSearch
+                    var termRange = rangeOfStringMethod(term.term)(query, options: options)
+                    var definitionRange = rangeOfStringMethod(term.definition)(query, options: options)
+                    if (termRange != nil || definitionRange != nil) {
+                        termsForSet.append(SearchTerm(term: term,
+                            score: 0.0,
+                            termRanges: termRange != nil ? [termRange!] : nil,
+                            definitionRanges: definitionRange != nil ? [definitionRange!] : nil))
                     }
                 }
                 
                 if (termsForSet.count > 0) {
-                    searchTermsBySet.append(SortSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+                    searchTermsBySet.append(SortSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
                 }
             }
         }
@@ -397,6 +481,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         switch (currentSortSelection()) {
         case .AtoZ:
             numberOfSections = 1
+            if (searchTerms.levenshteinMatch.count > 0) {
+                numberOfSections++
+            }
+            if (searchTerms.stringScoreMatch.count > 0) {
+                numberOfSections++
+            }
         case .BySet:
             numberOfSections = searchTerms.bySet.count
         case .BySetAtoZ:
@@ -410,7 +500,16 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var numberOfRows: Int
         switch (currentSortSelection()) {
         case .AtoZ:
-            numberOfRows = searchTerms.AtoZ.count
+            switch (section) {
+            case 0:
+                numberOfRows = searchTerms.AtoZ.count
+            case 1:
+                numberOfRows = (searchTerms.levenshteinMatch.count > 0) ? searchTerms.levenshteinMatch.count : searchTerms.stringScoreMatch.count
+            case 2:
+                numberOfRows = searchTerms.stringScoreMatch.count
+            default:
+                numberOfRows = 0
+            }
         case .BySet:
             numberOfRows = searchTerms.bySet[section].terms.count
         case .BySetAtoZ:
@@ -424,7 +523,16 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var title: String?
         switch (currentSortSelection()) {
         case .AtoZ:
-            title = nil
+            switch (section) {
+            case 0:
+                title = nil
+            case 1:
+                title = (searchTerms.levenshteinMatch.count > 0) ? "Levenshtein Matches" : "String Score Matches"
+            case 2:
+                title = "String Score Matches"
+            default:
+                title = nil
+            }
         case .BySet:
             title = searchTerms.bySet[section].title
         case .BySetAtoZ:
@@ -435,15 +543,29 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
     // TODO: visually distinguish between the term and definition -- perhaps by font size, perhaps by color
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        UIApplication.sharedApplication().preferredContentSizeCategory
-        
         let cell = tableView.dequeueReusableCellWithIdentifier("termAndDefinition", forIndexPath: indexPath) as! UITableViewCell
         
-        var term = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+        var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
 
+        var termText = NSMutableAttributedString(string: searchTerm.term.term + "\n")
+        if (searchTerm.termRanges != nil) {
+            for r in searchTerm.termRanges! {
+                termText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: Common.stringRangeToNSRange(searchTerm.term.term, range: r))
+            }
+        }
+        
+        var definitionText = NSMutableAttributedString(string: searchTerm.term.definition)
+        if (searchTerm.definitionRanges != nil) {
+            for r in searchTerm.definitionRanges! {
+                definitionText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: Common.stringRangeToNSRange(searchTerm.term.term, range: r))
+            }
+        }
+
+        termText.appendAttributedString(definitionText)
+        
         var termLabel = cell.viewWithTag(10) as! UILabel
-        termLabel.font = preferredFontForTextStyle(UIFontTextStyleBody)
-        termLabel.text = "\(term.term)\n\(term.definition)"
+        termLabel.font = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
+        termLabel.attributedText = termText
         termLabel.lineBreakMode = .ByWordWrapping
         termLabel.numberOfLines = 0
         
@@ -456,11 +578,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        var term = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+        var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
 
-        var text = "\(term.term)\n\(term.definition)"
+        var text = "\(searchTerm.term.term)\n\(searchTerm.term.definition)"
         var width = tableView.frame.width - 16 // margin of 8 pixels on each side of the cell
-        var font = preferredFontForTextStyle(UIFontTextStyleBody)
+        var font = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
 
         var attributedText = NSAttributedString(string: text, attributes: [NSFontAttributeName: font!])
         var rect = attributedText.boundingRectWithSize(CGSizeMake(width, CGFloat.max),
@@ -471,40 +593,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return size.height + 6
     }
 
-    func preferredFontForTextStyle(textStyle: String) -> UIFont? {
-        // choose the font size
-        let fontSize: CGFloat
-        var contentSize = UIApplication.sharedApplication().preferredContentSizeCategory
-        
-        switch (contentSize) {
-        case UIContentSizeCategoryExtraSmall:
-            fontSize = 12.0
-        case UIContentSizeCategoryExtraSmall:
-            fontSize = 12.0
-        case UIContentSizeCategorySmall:
-            fontSize = 14.0
-        case UIContentSizeCategoryMedium:
-            fontSize = 16.0
-        case UIContentSizeCategoryLarge:
-            fontSize = 18.0
-        case UIContentSizeCategoryExtraLarge:
-            fontSize = 20.0
-        case UIContentSizeCategoryExtraExtraLarge:
-            fontSize = 22.0
-        case UIContentSizeCategoryExtraExtraExtraLarge:
-            fontSize = 24.0
-        default:
-            fontSize = 16.0
-        }
-        
-        // choose the font weight
-        if (textStyle == UIFontTextStyleHeadline || textStyle == UIFontTextStyleSubheadline) {
-            return UIFont(name: "Arial-Bold", size: fontSize)
-        } else {
-            return UIFont(name: "Arial", size: fontSize)
-        }
-    }
-    
     /*
     TODO: A-Z sections with indexes?
 

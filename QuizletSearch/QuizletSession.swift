@@ -14,10 +14,17 @@ import AVFoundation
 // problems while parsing the response: '&' ';'
 //
 class QuizletSession {
+    // Original client, dougzilla32 'Quizlet Search'
     let quizletClientId = "ZwGccNSqZJ"
     let quizletSecretKey = "Jq2xbvn55EaJwhqbtMvtem"
     let quizletRedirectUri = "quizletsearch://userauthorization"
     let quizletState = "qW3Ecv34asdf4/aseErBw34gs="
+
+    // Test client, dougzilla88 'Quizlet Search Tester'
+    // let quizletClientId = "kJTRmEt95w"
+    // let quizletSecretKey = "Jq2xbvn55EaJwhqbtMvtem"
+    // let quizletRedirectUri = "quizletsearch://userauthorization"
+    // let quizletState = "simpleState"
     
     var currentUser: UserAccount?
     
@@ -141,6 +148,8 @@ class QuizletSession {
             NSURLQueryItem(name: "grant_type", value: "authorization_code"),
             NSURLQueryItem(name: "code", value: code!),
             NSURLQueryItem(name: "redirect_uri", value: quizletRedirectUri)
+            // NSURLQueryItem(name: "client_id", value: quizletClientId),
+            // NSURLQueryItem(name: "client_secret", value: quizletSecretKey)
         ]
         
         var authString = "\(quizletClientId):\(quizletSecretKey)"
@@ -151,6 +160,7 @@ class QuizletSession {
         config.HTTPAdditionalHeaders = [
             "Accept": "application/json",
             "Authorization": "Basic \(base64AuthString)"
+            // "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
         ]
         var session = NSURLSession(configuration: config)
         var request = NSMutableURLRequest(URL: url.URL!)
@@ -308,6 +318,39 @@ class QuizletSession {
         })
     }
     
+    func getAllSampleSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+        var qsets: [QSet]? = nil
+
+        let sampleFilePath = NSBundle.mainBundle().pathForResource("SampleQuizletData", ofType: "json")
+        if (sampleFilePath == nil) {
+            NSLog("Resource not found: SampleQuizletData.json")
+            completionHandler(nil)
+            return
+        }
+
+        let data = NSData(contentsOfFile: sampleFilePath!)
+
+        var jsonError: NSError?
+        var jsonAny: AnyObject? = NSJSONSerialization.JSONObjectWithData(
+            data!, options: NSJSONReadingOptions.AllowFragments, error: &jsonError)
+        if (jsonError != nil) {
+            NSLog("\(jsonError!)")
+            completionHandler(nil)
+            return
+        }
+        
+        if let json = jsonAny as? Array<NSDictionary> {
+            var qsets = QSet.setsFromJSON(json)
+            if (qsets == nil) {
+                NSLog("Invalid Quizlet Set in getAllSampleSetsForUser")
+            }
+            completionHandler(qsets)
+        } else {
+            NSLog("Unexpected response in getAllSampleSetsForUser: \(data)")
+            completionHandler(nil)
+        }
+    }
+    
     func invokeQuery(path: String, var queryItems: [NSURLQueryItem]?, allowCellularAccess: Bool, jsonCallback: ((AnyObject?) -> Void)) {
         var accessToken = currentUser?.accessToken
         if (accessToken == nil) {
@@ -321,22 +364,34 @@ class QuizletSession {
         url.host = "api.quizlet.com"
         url.path = path
         
+        var config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        config.allowsCellularAccess = allowCellularAccess
+
+        if (accessToken!.isEmpty) {
+            var queryClientId = NSURLQueryItem(name: "client_id", value: quizletClientId)
+            if (queryItems != nil) {
+                queryItems!.append(queryClientId)
+            } else {
+                queryItems = [queryClientId]
+            }
+        } else {
+            config.HTTPAdditionalHeaders = [
+                "Accept": "application/json",
+                "Authorization": "Bearer \(accessToken!)"
+            ]
+        }
+
         /** Pretty print for debugging
         var whitespace = NSURLQueryItem(name: "whitespace", value: "1")
         if (queryItems != nil) {
-            queryItems!.append(whitespace)
+        queryItems!.append(whitespace)
         } else {
-            queryItems = [whitespace]
+        queryItems = [whitespace]
         }
         */
-        url.queryItems = queryItems
         
-        var config = NSURLSessionConfiguration.defaultSessionConfiguration()
-        config.allowsCellularAccess = allowCellularAccess
-        config.HTTPAdditionalHeaders = [
-            "Accept": "application/json",
-            "Authorization": "Bearer \(accessToken!)"
-        ]
+        url.queryItems = queryItems
+
         var session = NSURLSession(configuration: config)
         var request = NSMutableURLRequest(URL: url.URL!)
         request.HTTPMethod = "GET"

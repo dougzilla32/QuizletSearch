@@ -11,6 +11,44 @@ import Foundation
 
 class LoginViewController: UIViewController {
     
+    @IBAction func proceedAsGuest(sender: AnyObject) {
+        
+        var alertController:UIAlertController?
+        alertController = UIAlertController(title: "Guest",
+            message: "Enter the user name to search as guest",
+            preferredStyle: .Alert)
+        
+        alertController!.addTextFieldWithConfigurationHandler(
+            {(textField: UITextField!) in
+                textField.placeholder = "Username"
+        })
+        
+        let proceed = UIAlertAction(title: "Proceed",
+            style: UIAlertActionStyle.Default,
+            handler: {[weak self]
+                (paramAction:UIAlertAction!) in
+                if let textFields = alertController?.textFields {
+                    let theTextFields = textFields as! [UITextField]
+                    let enteredText = theTextFields[0].text
+                    println("Text: \(enteredText)")
+                    (UIApplication.sharedApplication().delegate as! AppDelegate).proceedAsGuest(enteredText)
+                }
+            })
+        
+        let cancel = UIAlertAction(title: "Cancel",
+            style: UIAlertActionStyle.Default,
+            handler: {[weak self]
+                (paramAction:UIAlertAction!) in
+            })
+        
+        alertController?.addAction(proceed)
+        alertController?.addAction(cancel)
+        
+        self.presentViewController(alertController!,
+            animated: true,
+            completion: nil)
+    }
+
     @IBAction func loginAction(sender: UIButton) {
         var appDelegate = (UIApplication.sharedApplication().delegate as! AppDelegate)
         UIApplication.sharedApplication().openURL(appDelegate.quizletSession.authorizeURL())

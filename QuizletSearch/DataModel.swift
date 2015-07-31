@@ -157,6 +157,7 @@ class DataModel: NSObject {
         
         if (currentUser != user) {
             currentUser = user
+            self.quizletSession.currentUser = userAccount
             NSUserDefaults.standardUserDefaults().setObject(user!.id, forKey: "currentUser")
         }
         
@@ -191,7 +192,12 @@ class DataModel: NSObject {
         
         switch (filterType!) {
         case .CurrentUserAllSets:
-            quizletSession.getAllSetsForUser(currentUser!.name, modifiedSince: currentFilter.maxModifiedDate, allowCellularAccess: allowCellularAccess,
+            var getAllSetsForUserFunction = quizletSession.getAllSetsForUser
+            if (Common.isSampleMode) {
+                getAllSetsForUserFunction = quizletSession.getAllSampleSetsForUser
+            }
+            
+            getAllSetsForUserFunction(currentUser!.name, modifiedSince: currentFilter.maxModifiedDate, allowCellularAccess: allowCellularAccess,
                 completionHandler: { (qsets: [QSet]?) in
                     if (qsets != nil) {
                         self.updateTermsForFilter(currentFilter, qsets: qsets)

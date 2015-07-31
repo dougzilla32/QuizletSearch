@@ -89,23 +89,41 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         if (url.scheme == "quizletsearch") {
             self.setRootViewControllerWithIdentifier("SearchViewController")
             
-            quizletSession.acquireAccessToken(url,
-                completionHandler: { (userAccount: UserAccount?, error: NSError?) in
-                    if let err = error {
-                        var alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
-                        alert.show()
-                        // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
-                    } else {
-                        self.dataModel.addOrUpdateUser(userAccount!)
-                        self.saveContext()
-                        self.refreshAndRestartTimer(allowCellularAccess: true)
-                    }
+            if (Common.isSampleMode) {
+                // Sustitute a sample user, for use when the quizlet authentication server is down
+                var userAccount = UserAccount(accessToken: "1234", expiresIn: 3200, userName: "dougzilla32", userId: "1234")
+                self.dataModel.addOrUpdateUser(userAccount)
+                self.saveContext()
+                self.refreshAndRestartTimer(allowCellularAccess: true)
+            }
+            else {
+                quizletSession.acquireAccessToken(url,
+                    completionHandler: { (userAccount: UserAccount?, error: NSError?) in
+                        if let err = error {
+                            var alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
+                            alert.show()
+                            // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
+                        } else {
+                            self.dataModel.addOrUpdateUser(userAccount!)
+                            self.saveContext()
+                            self.refreshAndRestartTimer(allowCellularAccess: true)
+                        }
                 })
-            
+            }
+
             return true
         }
         
         return false
+    }
+    
+    func proceedAsGuest(username: String) {
+        self.setRootViewControllerWithIdentifier("SearchViewController")
+
+        var userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: "dougzilla32", userId: "")
+        self.dataModel.addOrUpdateUser(userAccount)
+        self.saveContext()
+        self.refreshAndRestartTimer(allowCellularAccess: true)
     }
     
     func applicationWillResignActive(application: UIApplication) {
