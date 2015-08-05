@@ -96,12 +96,44 @@ class Common {
             }
         }
     }
+}
+
+class StringWithBoundaries {
+    let string: String
+    let nsString: NSString
+    let characterBoundaries: [Int]
     
-    // TODO: account for converstion of String to NSAttributedString, does not work for unicode
-    class func stringRangeToNSRange(text: String, range: Range<String.Index>) -> NSRange {
-        let start = distance(text.startIndex, range.startIndex)
-        let length = distance(range.startIndex, range.endIndex)
-        return NSMakeRange(start, length)
+    init(string: String) {
+        self.string = string
+        self.nsString = string as NSString
+        characterBoundaries = StringWithBoundaries.calculateCharacterBoundaries(string)
+    }
+
+    init(string: String, characterBoundaries: [Int]) {
+        self.string = string
+        self.nsString = string as NSString
+        self.characterBoundaries = characterBoundaries
+    }
+    
+    func characterRangesToUnicharRanges(characterRanges: [NSRange]) -> [NSRange] {
+        var unicharRanges = [NSRange]()
+        for cr in characterRanges {
+            var start = characterBoundaries[cr.location]
+            var end = characterBoundaries[cr.location + cr.length]
+            unicharRanges.append(NSMakeRange(start, end - start))
+        }
+        return unicharRanges
+    }
+
+    class func calculateCharacterBoundaries(text: NSString) -> [Int] {
+        var index = 0
+        var characterBoundaries: [Int] = []
+        while (index < text.length) {
+            characterBoundaries.append(index)
+            index += text.rangeOfComposedCharacterSequenceAtIndex(index).length
+        }
+        characterBoundaries.append(index)
+        return characterBoundaries
     }
 }
 
@@ -110,27 +142,7 @@ extension NSStringCompareOptions {
 }
 
 extension String {
-    init(sep: String, _ lines: String...) {
-        self = ""
-        for (idx, item) in enumerate(lines) {
-            self += "\(item)"
-            if idx < lines.count-1 {
-                self += sep
-            }
-        }
-    }
-    
-    init(_ lines: String...) {
-        self = ""
-        for (idx, item) in enumerate(lines) {
-            self += "\(item)"
-            if idx < lines.count-1 {
-                self += "\n"
-            }
-        }
-    }
-    
-    private class StringAndIndex {
+    private class StringAndIndexSLOW {
         let string: String
         var index: String.Index
         let skipWhitespaceOption: Bool
@@ -141,7 +153,7 @@ extension String {
             self.skipWhitespaceOption = (options.rawValue & NSStringCompareOptions.WhitespaceInsensitiveSearch.rawValue) != 0
         }
         
-        init(stringAndIndex: StringAndIndex) {
+        init(stringAndIndex: StringAndIndexSLOW) {
             self.string = stringAndIndex.string
             self.index = stringAndIndex.index
             self.skipWhitespaceOption = stringAndIndex.skipWhitespaceOption
@@ -159,7 +171,7 @@ extension String {
         func isLastCharacter() -> Bool {
             var next = index.successor()
             if (skipWhitespaceOption) {
-                next = StringAndIndex.skipWhitespace(string, index: next)
+                next = StringAndIndexSLOW.skipWhitespace(string, index: next)
             }
             return (next == string.endIndex)
         }
@@ -170,12 +182,12 @@ extension String {
         
         func skipWhitespace() {
             if (skipWhitespaceOption) {
-                index = StringAndIndex.skipWhitespace(string, index: index)
+                index = StringAndIndexSLOW.skipWhitespace(string, index: index)
             }
         }
         
         class func skipWhitespace(string: String, var index: String.Index) -> String.Index {
-            while (index < string.endIndex && StringAndIndex.isWhitespace(string[index])) {
+            while (index < string.endIndex && StringAndIndexSLOW.isWhitespace(string[index])) {
                 index = index.successor()
             }
             return index
@@ -192,9 +204,73 @@ extension String {
         }
     }
     
-    func isWhitespace() -> Bool {
+    private class StringAndIndex {
+        let string: StringWithBoundaries
+        var unicharIndex: Int
+        var characterIndex: Int
+        let skipWhitespaceOption: Bool
+        
+        init(string: StringWithBoundaries, options: NSStringCompareOptions) {
+            self.string = string
+            self.unicharIndex = 0
+            self.characterIndex = 0
+            self.skipWhitespaceOption = (options.rawValue & NSStringCompareOptions.WhitespaceInsensitiveSearch.rawValue) != 0
+        }
+        
+        init(stringAndIndex: StringAndIndex) {
+            self.string = stringAndIndex.string
+            self.unicharIndex = stringAndIndex.unicharIndex
+            self.characterIndex = stringAndIndex.characterIndex
+            self.skipWhitespaceOption = stringAndIndex.skipWhitespaceOption
+        }
+        
+        func isEnd() -> Bool {
+            skipWhitespace()
+            return unicharIndex == string.nsString.length
+        }
+        
+        func currentUnichar() -> unichar {
+            return string.nsString.characterAtIndex(unicharIndex)
+        }
+        
+        func advance() {
+            unicharIndex++
+            if (unicharIndex == string.characterBoundaries[characterIndex]+1) {
+                characterIndex++
+            }
+        }
+        
+        func advanceCharacter() {
+            characterIndex++
+            unicharIndex = string.characterBoundaries[characterIndex]
+        }
+        
+        func skipWhitespace() {
+            if (skipWhitespaceOption) {
+                while (unicharIndex < string.nsString.length && StringAndIndex.isWhitespace(string.nsString.characterAtIndex(unicharIndex))) {
+                    advance()
+                }
+            }
+        }
+        
+        class func isWhitespace(character: unichar) -> Bool {
+            return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(character)
+        }
+    }
+    
+    func isWhitespaceSLOW() -> Bool {
         for i in self.startIndex..<self.endIndex {
-            if (!StringAndIndex.isWhitespace(self[i])) {
+            if (!StringAndIndexSLOW.isWhitespace(self[i])) {
+                return false
+            }
+        }
+        return true
+    }
+    
+    func isWhitespace() -> Bool {
+        var string = self as NSString
+        for i in 0..<string.length {
+            if (!StringAndIndex.isWhitespace(string.characterAtIndex(i))) {
                 return false
             }
         }
@@ -205,7 +281,75 @@ extension String {
         return rangeOfString(aString, options: options)
     }
     
-    func rangeOfStringWithWhitespace(var targetString: String, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> Range<String.Index>? {
+    static let x = Character("x")
+    static let xx = "xx"
+
+    func rangeOfStringTestSwiftString(var targetString: String, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> Range<String.Index>? {
+
+        var counter = 0
+        for c in targetString {
+            if (c == String.x) {
+                counter++
+            }
+        }
+
+        /*
+        for i in targetString.startIndex..<targetString.endIndex {
+        var c = targetString[i]
+        if (i.successor() < targetString.endIndex) {
+        if (c == x) {
+        counter++
+        }
+        }
+        }
+        */
+        
+        return nil
+    }
+    
+    func rangeOfStringTestNSString(var targetString: String, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> Range<String.Index>? {
+/*
+        var sourceString = self.decomposedStringWithCanonicalMapping
+        var targetStringX = targetString.decomposedStringWithCanonicalMapping
+        var sa = [String]()
+        sa.append(sourceString)
+        sa.append(targetStringX)
+
+        var sourceStringL = sourceString.lowercaseString
+        var targetStringL = targetStringX.lowercaseString
+        sa.append(sourceStringL)
+        sa.append(targetStringL)
+        */
+
+        var ts = targetString as NSString
+        var counter = 0
+        var y: unichar = 17
+        for i in 0..<ts.length {
+            var c = ts.characterAtIndex(i)
+            if (i+1 < ts.length) {
+                if (c == y) {
+                    counter++
+                }
+            }
+        }
+        
+        return nil
+    }
+    
+    func rangeOfStringTestBuffer(var targetString: UnsafeMutablePointer<unichar>, length: Int, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> Range<String.Index>? {
+
+        var counter = 0
+        var y: unichar = 17
+        for i in 0..<length {
+            if (targetString[i] == y) {
+                counter++
+            }
+        }
+
+        return nil
+    }
+    
+    func rangeOfStringWithWhitespaceSLOW(var targetString: String, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> Range<String.Index>? {
 
         var sourceString = self
         if ((options.rawValue & NSStringCompareOptions.CaseInsensitiveSearch.rawValue) != 0) {
@@ -213,8 +357,8 @@ extension String {
             targetString = targetString.lowercaseString
         }
         
-        var source = StringAndIndex(string: sourceString, options: options)
-        var target = StringAndIndex(string: targetString, options: options)
+        var source = StringAndIndexSLOW(string: sourceString, options: options)
+        var target = StringAndIndexSLOW(string: targetString, options: options)
         if (target.isEnd()) {
             return nil
         }
@@ -226,8 +370,8 @@ extension String {
             var targetCharacter: Character = firstTargetCharacter
 
             if (sourceCharacter == targetCharacter) {
-                    var sourceSubstring = StringAndIndex(stringAndIndex: source)
-                    var targetSubstring = StringAndIndex(stringAndIndex: target)
+                    var sourceSubstring = StringAndIndexSLOW(stringAndIndex: source)
+                    var targetSubstring = StringAndIndexSLOW(stringAndIndex: target)
                 
                     sourceSubstring.advance()
                     targetSubstring.advance()
@@ -249,7 +393,45 @@ extension String {
         return nil
     }
 
-    func rangeOfOverlappingUnicharsInString(var targetString: String, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> Range<String.Index>? {
+    // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
+    // TODO: search for all occurances, not just first occurance 
+    static func characterRangesOfUnichars(sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> [NSRange] {
+        
+        let source = StringAndIndex(string: sourceString, options: options)
+        let target = StringAndIndex(string: targetString, options: options)
+        if (target.isEnd()) {
+            return []
+        }
+        
+        let firstTargetCharacter = target.currentUnichar()
+        
+        while ((source.string.nsString.length - source.unicharIndex) > target.string.nsString.length) {
+
+            if (source.currentUnichar() == firstTargetCharacter) {
+                    var sourceSubstring = StringAndIndex(stringAndIndex: source)
+                    var targetSubstring = StringAndIndex(stringAndIndex: target)
+                    
+                    sourceSubstring.advance()
+                    targetSubstring.advance()
+                
+                    var foundMismatch = false
+                    while (!foundMismatch && !sourceSubstring.isEnd() && !targetSubstring.isEnd()) {
+                        if (sourceSubstring.currentUnichar() != targetSubstring.currentUnichar()) {
+                            foundMismatch = true
+                        }
+                        sourceSubstring.advance()
+                        targetSubstring.advance()
+                    }
+                    if (!foundMismatch && targetSubstring.isEnd()) {
+                        return [ NSMakeRange(source.characterIndex, sourceSubstring.characterIndex - source.characterIndex) ]
+                    }
+            }
+            source.advanceCharacter()
+        }
+        return []
+    }
+
+    func rangeOfOverlappingUnicharsInStringSLOW(var targetString: String, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> Range<String.Index>? {
 
         var sourceString = self
         if ((options.rawValue & NSStringCompareOptions.CaseInsensitiveSearch.rawValue) != 0) {
@@ -260,8 +442,8 @@ extension String {
         sourceString = sourceString.decomposedStringWithCanonicalMapping
         targetString = targetString.decomposedStringWithCanonicalMapping
 
-        var source = StringAndIndex(string: sourceString, options: options)
-        var target = StringAndIndex(string: targetString, options: options)
+        var source = StringAndIndexSLOW(string: sourceString, options: options)
+        var target = StringAndIndexSLOW(string: targetString, options: options)
         if (target.isEnd()) {
             return nil
         }
@@ -274,11 +456,11 @@ extension String {
             var targetCharacter = firstTargetCharacter
 
             if (target.isLastCharacter()
-                ? String.isUnicharPrefix(sourceCharacter, targetCharacter)
+                ? String.isUnicharPrefixSLOW(sourceCharacter, targetCharacter)
                 : sourceCharacter == targetCharacter) {
 
-                var sourceSubstring = StringAndIndex(stringAndIndex: source)
-                var targetSubstring = StringAndIndex(stringAndIndex: target)
+                var sourceSubstring = StringAndIndexSLOW(stringAndIndex: source)
+                var targetSubstring = StringAndIndexSLOW(stringAndIndex: target)
                     
                 sourceSubstring.advance()
                 targetSubstring.advance()
@@ -287,7 +469,7 @@ extension String {
                 var foundMismatch = false
                 while (!foundMismatch && !sourceSubstring.isEnd() && !targetSubstring.isEnd()) {
                     if (targetSubstring.isLastCharacter()
-                        ? !String.isUnicharPrefix(sourceSubstring.currentCharacter(), targetSubstring.currentCharacter())
+                        ? !String.isUnicharPrefixSLOW(sourceSubstring.currentCharacter(), targetSubstring.currentCharacter())
                         : sourceSubstring.currentCharacter() != targetSubstring.currentCharacter()) {
 
                         foundMismatch = true
@@ -307,8 +489,8 @@ extension String {
         }
         return nil
     }
-    
-    private static func isUnicharPrefix(sourceCharacter: Character, _ targetCharacter: Character) -> Bool {
+
+    private static func isUnicharPrefixSLOW(sourceCharacter: Character, _ targetCharacter: Character) -> Bool {
         if (sourceCharacter == targetCharacter) {
             return true
         }
@@ -319,7 +501,7 @@ extension String {
         var foundMismatch = false
         
         while (!foundMismatch && sourceIndex < sourceScalars.endIndex && targetIndex < targetScalars.endIndex) {
-            if (String.normalize(sourceScalars[sourceIndex].value) != (String.normalize(targetScalars[targetIndex].value))) {
+            if (unichar(sourceScalars[sourceIndex].value) != unichar(targetScalars[targetIndex].value)) {
                 foundMismatch = true
             }
             sourceIndex = sourceIndex.successor()
@@ -329,84 +511,106 @@ extension String {
         return !foundMismatch && targetIndex == targetScalars.endIndex
     }
     
-    private static func normalize(unicodeScalarValue: UInt32) -> UInt32 {
-        var n = String.normalizeTable[unicodeScalarValue]
-        if (n == nil) {
-            n = unicodeScalarValue
+    func decomposeAndNormalize() -> StringWithBoundaries {
+        var from = self.decomposedStringWithCanonicalMapping as NSString
+        var to = [unichar]()
+        var boundaries = [Int]()
+        
+        var index = 0
+        var boundaryIndex = 0
+        while (index < from.length) {
+            boundaries.append(boundaryIndex)
+            var sequenceLength = from.rangeOfComposedCharacterSequenceAtIndex(index).length
+            for sequenceIndex in index..<(index+sequenceLength) {
+                let fromUnichar = from.characterAtIndex(sequenceIndex)
+                let normalizedUnichars = String.normalizeTable[fromUnichar]
+                if (normalizedUnichars != nil) {
+                    for u in normalizedUnichars! {
+                        to.append(u)
+                    }
+                    boundaryIndex += normalizedUnichars!.count
+                }
+                else {
+                    to.append(fromUnichar)
+                    boundaryIndex++
+                }
+            }
+            index += sequenceLength
         }
-        return n!
+        boundaries.append(boundaryIndex)
+        return StringWithBoundaries(string: NSString(characters: to, length: to.count) as String, characterBoundaries: boundaries)
     }
-    
-    private static let normalizeTable: [UInt32: UInt32] = [
-        0x1100: 0x3131, // G ᄀ
-        0x1101: 0x3132, // GG ᄁ
-        0x1102: 0x3134, // N ᄂ
-        0x1103: 0x3137, // D ᄃ
-        0x1104: 0x3138, // DD ᄄ
-        0x1105: 0x3139, // R ᄅ
-        0x1106: 0x3141, // M ᄆ
-        0x1107: 0x3142, // B ᄇ
-        0x1108: 0x3143, // BB ᄈ
-        0x1109: 0x3145, // S ᄉ
-        0x110A: 0x3146, // SS ᄊ
-        0x110B: 0x3147, //   ᄋ
-        0x110C: 0x3148, // J ᄌ
-        0x110D: 0x3149, // JJ ᄍ
-        0x110E: 0x314A, // C ᄎ
-        0x110F: 0x314B, // K ᄏ
-        0x1110: 0x314C, // T ᄐ
-        0x1111: 0x314D, // P ᄑ
-        0x1112: 0x314E, // H ᄒ
+
+    private static let normalizeTable: [unichar: [unichar]] = [
+        0x1100: [ 0x3131 ],         // G ᄀ
+        0x1101: [ 0x3132 ],         // GG ᄁ
+        0x1102: [ 0x3134 ],         // N ᄂ
+        0x1103: [ 0x3137 ],         // D ᄃ
+        0x1104: [ 0x3137, 0x3137 ], // DD ᄄ
+        0x1105: [ 0x3139 ],         // R ᄅ
+        0x1106: [ 0x3141 ],         // M ᄆ
+        0x1107: [ 0x3142 ],         // B ᄇ
+        0x1108: [ 0x3142, 0x3142 ], // BB ᄈ
+        0x1109: [ 0x3145 ],         // S ᄉ
+        0x110A: [ 0x3145, 0x3145 ], // SS ᄊ
+        0x110B: [ 0x3147 ],         //   ᄋ
+        0x110C: [ 0x3148 ],         // J ᄌ
+        0x110D: [ 0x3148, 0x3148 ], // JJ ᄍ
+        0x110E: [ 0x314A ],         // C ᄎ
+        0x110F: [ 0x314B ],         // K ᄏ
+        0x1110: [ 0x314C ],         // T ᄐ
+        0x1111: [ 0x314D ],         // P ᄑ
+        0x1112: [ 0x314E ],         // H ᄒ
         
-        0x1161: 0x314F, // A ᅡ
-        0x1162: 0x3150, // AE ᅢ
-        0x1163: 0x3151, // YA ᅣ
-        // 0x1164: 0x1164, YAE ᅤ
-        0x1165: 0x3153, // EO ᅥ
-        0x1166: 0x3154, // E ᅦ
-        0x1167: 0x3155, // YEO ᅧ
-        // 0x1168: 0x1168, YE ᅨ
-        0x1169: 0x3157, // O ᅩ
-        0x116A: 0x3158, // WA ᅪ
-        // 0x116B: 0x116B, WAE ᅫ
-        // 0x116C: 0x116C, OE ᅬ
-        0x116D: 0x315B, // YO ᅭ
-        0x116E: 0x315C, // U ᅮ
-        // 0x116F: 0x116F, WEO ᅯ
-        // 0x1170: 0x1170, WE ᅰ
-        // 0x1171: 0x1171, WI ᅱ
-        0x1172: 0x3160, // YU ᅲ
-        0x1173: 0x3161, // EU ᅳ
-        0x1174: 0x3162, // YI ᅴ
-        0x1175: 0x3163, // I ᅵ
+        0x1161: [ 0x314F ],         // A ᅡ
+        0x1162: [ 0x3150 ],         // AE ᅢ
+        0x1163: [ 0x3151 ],         // YA ᅣ
+        // 0x1164: [ 0x1164 ],         YAE ᅤ
+        0x1165: [ 0x3153 ],         // EO ᅥ
+        0x1166: [ 0x3154 ],         // E ᅦ
+        0x1167: [ 0x3155 ],         // YEO ᅧ
+        // 0x1168: [ 0x1168 ],         YE ᅨ
+        0x1169: [ 0x3157 ],         // O ᅩ
+        0x116A: [ 0x3157, 0x314F ], // WA ᅪ
+        0x116B: [ 0x3157, 0x3150 ], // WAE ᅫ
+        0x116C: [ 0x3157, 0x3163 ], // OE ᅬ
+        0x116D: [ 0x315B ],         // YO ᅭ
+        0x116E: [ 0x315C ],         // U ᅮ
+        0x116F: [ 0x315C, 0x3153 ], // WEO ᅯ
+        0x1170: [ 0x315C, 0x3154 ], // WE ᅰ
+        0x1171: [ 0x315C, 0x3163 ], // WI ᅱ
+        0x1172: [ 0x3160 ],         // YU ᅲ
+        0x1173: [ 0x3161 ],         // EU ᅳ
+        0x1174: [ 0x3162 ],         // YI ᅴ
+        0x1175: [ 0x3163 ],         // I ᅵ
         
-        0x11A8: 0x3131, // G ᆨ
-        0x11A9: 0x3132, // GG ᆩ
-        // 0x11AA: 0x11AA, GS ᆪ
-        0x11AB: 0x3134, // N ᆫ
-        // 0x11AC: 0x11AC, NJ ᆬ
-        // 0x11AD: 0x11AD, NH ᆭ
-        0x11AE: 0x3137, // D ᆮ
-        0x11AF: 0x3139, // L ᆯ
-        // 0x11B0: 0x11B0, LG ᆰ
-        // 0x11B1: 0x11B1, LM ᆱ
-        // 0x11B2: 0x11B2, LB ᆲ
-        // 0x11B3: 0x11B3, LS ᆳ
-        // 0x11B4: 0x11B4, LT ᆴ
-        // 0x11B5: 0x11B5, LP ᆵ
-        // 0x11B6: 0x11B6, LH ᆶ
-        0x11B7: 0x3141, // M ᆷ
-        0x11B8: 0x3142, // B ᆸ
-        // 0x11B9: 0x11B9, BS ᆹ
-        0x11BA: 0x3145, // S ᆺ
-        0x11BB: 0x3146, // SS ᆻ
-        0x11BC: 0x3147, // NG ᆼ
-        0x11BD: 0x3148, // J ᆽ
-        0x11BE: 0x314A, // C ᆾ
-        0x11BF: 0x314B, // K ᆿ
-        0x11C0: 0x314C, // T ᇀ
-        0x11C1: 0x314D, // P ᇁ
-        0x11C2: 0x314E, // H ᇂ
+        0x11A8: [ 0x3131 ],         // G ᆨ
+        0x11A9: [ 0x3131, 0x3131 ], // GG ᆩ
+        0x11AA: [ 0x3131, 0x3145 ], // GS ᆪ
+        0x11AB: [ 0x3134 ],         // N ᆫ
+        0x11AC: [ 0x3134, 0x3148 ], // NJ ᆬ
+        0x11AD: [ 0x3134, 0x314E ], // NH ᆭ
+        0x11AE: [ 0x3137 ],         // D ᆮ
+        0x11AF: [ 0x3139 ],         // L ᆯ
+        0x11B0: [ 0x3139, 0x3131 ], // LG ᆰ
+        0x11B1: [ 0x3139, 0x3134 ], // LM ᆱ
+        0x11B2: [ 0x3139, 0x3142 ], // LB ᆲ
+        0x11B3: [ 0x3139, 0x3145 ], // LS ᆳ
+        0x11B4: [ 0x3139, 0x314C ], // LT ᆴ
+        0x11B5: [ 0x3139, 0x314D ], // LP ᆵ
+        0x11B6: [ 0x3139, 0x314E ], // LH ᆶ
+        0x11B7: [ 0x3141 ],         // M ᆷ
+        0x11B8: [ 0x3142 ],         // B ᆸ
+        0x11B9: [ 0x3142, 0x3145 ], // BS ᆹ
+        0x11BA: [ 0x3145 ],         // S ᆺ
+        0x11BB: [ 0x3145, 0x3145 ], // SS ᆻ
+        0x11BC: [ 0x3147 ],         // NG ᆼ
+        0x11BD: [ 0x3148 ],         // J ᆽ
+        0x11BE: [ 0x314A ],         // C ᆾ
+        0x11BF: [ 0x314B ],         // K ᆿ
+        0x11C0: [ 0x314C ],         // T ᇀ
+        0x11C1: [ 0x314D ],         // P ᇁ
+        0x11C2: [ 0x314E ]          // H ᇂ
 
         /*
         1	G	ᄀ	ㄱ	&#x1100;
