@@ -146,12 +146,14 @@ extension String {
         let string: StringWithBoundaries
         var unicharIndex: Int
         var characterIndex: Int
+        var characterSubIndex: Int
         let skipWhitespaceOption: Bool
         
         init(string: StringWithBoundaries, options: NSStringCompareOptions) {
             self.string = string
             self.unicharIndex = 0
             self.characterIndex = 0
+            self.characterSubIndex = 0
             self.skipWhitespaceOption = (options.rawValue & NSStringCompareOptions.WhitespaceInsensitiveSearch.rawValue) != 0
         }
         
@@ -159,6 +161,7 @@ extension String {
             self.string = stringAndIndex.string
             self.unicharIndex = stringAndIndex.unicharIndex
             self.characterIndex = stringAndIndex.characterIndex
+            self.characterSubIndex = stringAndIndex.characterSubIndex
             self.skipWhitespaceOption = stringAndIndex.skipWhitespaceOption
         }
         
@@ -167,20 +170,28 @@ extension String {
             return unicharIndex == string.nsString.length
         }
         
+        func isLastCharacter() -> Bool {
+            return characterIndex >= (string.characterBoundaries.count - 2)
+        }
+        
         func currentUnichar() -> unichar {
             return string.nsString.characterAtIndex(unicharIndex)
         }
         
         func advance() {
             unicharIndex++
-            if (unicharIndex == string.characterBoundaries[characterIndex]+1) {
+            if (unicharIndex == string.characterBoundaries[characterIndex + 1]) {
                 characterIndex++
+                characterSubIndex = 0
+            } else {
+                characterSubIndex++
             }
         }
         
         func advanceCharacter() {
             characterIndex++
             unicharIndex = string.characterBoundaries[characterIndex]
+            characterSubIndex = 0
         }
         
         func skipWhitespace() {
@@ -217,30 +228,34 @@ extension String {
         }
         
         let firstTargetCharacter = target.currentUnichar()
-        
-        while ((source.string.nsString.length - source.unicharIndex) > target.string.nsString.length) {
 
+        // TODO: cut off search when remaining characters in source are less the characters in target
+        while (!source.isEnd() /* && (source.string.nsString.length - source.unicharIndex) >= target.string.nsString.length */) {
             if (source.currentUnichar() == firstTargetCharacter) {
-                    var sourceSubstring = StringAndIndex(stringAndIndex: source)
-                    var targetSubstring = StringAndIndex(stringAndIndex: target)
-                    
+                var sourceSubstring = StringAndIndex(stringAndIndex: source)
+                var targetSubstring = StringAndIndex(stringAndIndex: target)
+                
+                sourceSubstring.advance()
+                targetSubstring.advance()
+                
+                var foundMismatch = false
+                var prevSourceSubstringCharacterIndex = source.characterIndex
+
+                while (!foundMismatch && !sourceSubstring.isEnd() && !targetSubstring.isEnd()) {
+                    prevSourceSubstringCharacterIndex = sourceSubstring.characterIndex
+                    foundMismatch = (sourceSubstring.currentUnichar() != targetSubstring.currentUnichar()) ||
+                                    (!targetSubstring.isLastCharacter() && sourceSubstring.characterSubIndex != targetSubstring.characterSubIndex)
                     sourceSubstring.advance()
                     targetSubstring.advance()
-                
-                    var foundMismatch = false
-                    while (!foundMismatch && !sourceSubstring.isEnd() && !targetSubstring.isEnd()) {
-                        if (sourceSubstring.currentUnichar() != targetSubstring.currentUnichar()) {
-                            foundMismatch = true
-                        }
-                        sourceSubstring.advance()
-                        targetSubstring.advance()
-                    }
-                    if (!foundMismatch && targetSubstring.isEnd()) {
-                        return [ NSMakeRange(source.characterIndex, sourceSubstring.characterIndex - source.characterIndex) ]
-                    }
+                }
+
+                if (!foundMismatch && targetSubstring.isEnd()) {
+                    return [ NSMakeRange(source.characterIndex, prevSourceSubstringCharacterIndex - source.characterIndex + 1) ]
+                }
             }
             source.advanceCharacter()
         }
+
         return []
     }
 
@@ -298,11 +313,11 @@ extension String {
         0x1161: [ 0x314F ],         // A ᅡ
         0x1162: [ 0x3150 ],         // AE ᅢ
         0x1163: [ 0x3151 ],         // YA ᅣ
-        // 0x1164: [ 0x1164 ],         YAE ᅤ
+        0x1164: [ 0x1164 ],         // YAE ᅤ
         0x1165: [ 0x3153 ],         // EO ᅥ
         0x1166: [ 0x3154 ],         // E ᅦ
         0x1167: [ 0x3155 ],         // YEO ᅧ
-        // 0x1168: [ 0x1168 ],         YE ᅨ
+        0x1168: [ 0x1168 ],         // YE ᅨ
         0x1169: [ 0x3157 ],         // O ᅩ
         0x116A: [ 0x3157, 0x314F ], // WA ᅪ
         0x116B: [ 0x3157, 0x3150 ], // WAE ᅫ
@@ -314,7 +329,7 @@ extension String {
         0x1171: [ 0x315C, 0x3163 ], // WI ᅱ
         0x1172: [ 0x3160 ],         // YU ᅲ
         0x1173: [ 0x3161 ],         // EU ᅳ
-        0x1174: [ 0x3162 ],         // YI ᅴ
+        0x1174: [ 0x3161, 0x3163 ], // YI ᅴ
         0x1175: [ 0x3163 ],         // I ᅵ
         
         0x11A8: [ 0x3131 ],         // G ᆨ
@@ -343,8 +358,16 @@ extension String {
         0x11BF: [ 0x314B ],         // K ᆿ
         0x11C0: [ 0x314C ],         // T ᇀ
         0x11C1: [ 0x314D ],         // P ᇁ
-        0x11C2: [ 0x314E ]          // H ᇂ
+        0x11C2: [ 0x314E ],          // H ᇂ
 
+        0x3132: [ 0x3131, 0x3131 ],  // ㄲ
+        0x3138: [ 0x3137, 0x3137 ],  // ㄸ
+        0x3143: [ 0x3142, 0x3142 ],  // ㅃ
+        0x3146: [ 0x3145, 0x3145 ],  // ㅆ
+        0x3149: [ 0x3148, 0x3148 ],  // ㅉ
+        0x3158: [ 0x3157, 0x314F ],  // ㅘ
+        0x3162: [ 0x3161, 0x3163 ]   // ㅢ
+        
         /*
         1	G	ᄀ	ㄱ	&#x1100;
         2	GG	ᄁ	ㄲ	&#x1101;

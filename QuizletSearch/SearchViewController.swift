@@ -15,15 +15,15 @@ enum SortSelection: Int {
 }
 
 class SortTerm {
-    let term: StringWithBoundaries
-    let definition: StringWithBoundaries
+    let termForDisplay: StringWithBoundaries
+    let definitionForDisplay: StringWithBoundaries
     
     let termForCompare: StringWithBoundaries
     let definitionForCompare: StringWithBoundaries
 
     init(term: Term) {
-        self.term = StringWithBoundaries(string: term.term)
-        self.definition = StringWithBoundaries(string: term.definition)
+        self.termForDisplay = StringWithBoundaries(string: term.term)
+        self.definitionForDisplay = StringWithBoundaries(string: term.definition)
         
         self.termForCompare = term.term.lowercaseString.decomposeAndNormalize()
         self.definitionForCompare = term.definition.lowercaseString.decomposeAndNormalize()
@@ -337,13 +337,13 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     class func termComparator(t1: SortTerm, t2: SortTerm) -> Bool {
-        switch (t1.term.string.compare(t2.term.string, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch)) {
+        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch)) {
         case .OrderedAscending:
             return true
         case .OrderedDescending:
             return false
         case .OrderedSame:
-            return t1.definition.string.compare(t2.definition.string, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch) != .OrderedDescending
+            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch) != .OrderedDescending
         }
     }
     
@@ -377,12 +377,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             for term in terms {
                 var termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
                 var definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
-
+                
                 if (termRanges.count > 0 || definitionRanges.count > 0) {
                     searchTerms.append(SearchTerm(sortTerm: term,
                         score: 0.0,
-                        termRanges: term.term.characterRangesToUnicharRanges(termRanges),
-                        definitionRanges: term.definition.characterRangesToUnicharRanges(definitionRanges)))
+                        termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
+                        definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
                 }
             }
         }
@@ -393,8 +393,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var levenshteinMatch: [SearchTerm] = []
         if (!query.isWhitespace()) {
             for sortTerm in sortTerms {
-                var termScore = computeLevenshteinScore(query, sortTerm.term.string)
-                var definitionScore = computeLevenshteinScore(query, sortTerm.definition.string)
+                var termScore = computeLevenshteinScore(query, sortTerm.termForDisplay.string)
+                var definitionScore = computeLevenshteinScore(query, sortTerm.definitionForDisplay.string)
                 
                 if (termScore > 0.70 || definitionScore > 0.70) {
                     levenshteinMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
@@ -409,8 +409,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         if (!query.isWhitespace()) {
             for sortTerm in sortTerms {
                 var lowercaseQuery = query.lowercaseString
-                var termScore = sortTerm.term.string.scoreAgainst(lowercaseQuery)
-                var definitionScore = sortTerm.definition.string.scoreAgainst(lowercaseQuery)
+                var termScore = sortTerm.termForDisplay.string.scoreAgainst(lowercaseQuery)
+                var definitionScore = sortTerm.definitionForDisplay.string.scoreAgainst(lowercaseQuery)
                 
                 if (termScore > 0.70 || definitionScore > 0.70) {
                     stringScoreMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
@@ -442,8 +442,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                     if (termRanges.count > 0 || definitionRanges.count > 0) {
                         termsForSet.append(SearchTerm(sortTerm: term,
                             score: 0.0,
-                            termRanges: term.term.characterRangesToUnicharRanges(termRanges),
-                            definitionRanges: term.definition.characterRangesToUnicharRanges(definitionRanges)))
+                            termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
+                            definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
                     }
                 }
                 
@@ -555,12 +555,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
 
-        var termText = NSMutableAttributedString(string: searchTerm.sortTerm.term.string + "\n")
+        var termText = NSMutableAttributedString(string: searchTerm.sortTerm.termForDisplay.string + "\n")
         for r in searchTerm.termRanges {
             termText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: r)
         }
         
-        var definitionText = NSMutableAttributedString(string: searchTerm.sortTerm.definition.string)
+        var definitionText = NSMutableAttributedString(string: searchTerm.sortTerm.definitionForDisplay.string)
         for r in searchTerm.definitionRanges {
             definitionText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: r)
         }
@@ -584,7 +584,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
 
-        var text = "\(searchTerm.sortTerm.term)\n\(searchTerm.sortTerm.definition)"
+        var text = "\(searchTerm.sortTerm.termForDisplay)\n\(searchTerm.sortTerm.definitionForDisplay)"
         var width = tableView.frame.width - 16 // margin of 8 pixels on each side of the cell
         var font = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
 
