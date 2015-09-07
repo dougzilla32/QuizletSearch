@@ -188,6 +188,16 @@ extension String {
             }
         }
         
+        func advanceToCharacterBoundary() {
+            if (unicharIndex != string.characterBoundaries[characterIndex]) {
+                while (unicharIndex != string.characterBoundaries[characterIndex + 1]) {
+                    unicharIndex++
+                }
+                characterIndex++
+                characterSubIndex = 0
+            }
+        }
+        
         func advanceCharacter() {
             characterIndex++
             unicharIndex = string.characterBoundaries[characterIndex]
@@ -221,16 +231,17 @@ extension String {
     // TODO: search for all occurances, not just first occurance 
     static func characterRangesOfUnichars(sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> [NSRange] {
         
-        let source = StringAndIndex(string: sourceString, options: options)
+        var source = StringAndIndex(string: sourceString, options: options)
         let target = StringAndIndex(string: targetString, options: options)
         if (target.isEnd()) {
             return []
         }
         
         let firstTargetCharacter = target.currentUnichar()
+        var ranges = [NSRange]()
 
-        // TODO: cut off search when remaining characters in source are less the characters in target
-        while (!source.isEnd() /* && (source.string.nsString.length - source.unicharIndex) >= target.string.nsString.length */) {
+        while ((source.string.nsString.length - source.unicharIndex) >= target.string.nsString.length) {
+        // while (!source.isEnd()) {
             if (source.currentUnichar() == firstTargetCharacter) {
                 var sourceSubstring = StringAndIndex(stringAndIndex: source)
                 var targetSubstring = StringAndIndex(stringAndIndex: target)
@@ -250,13 +261,18 @@ extension String {
                 }
 
                 if (!foundMismatch && targetSubstring.isEnd()) {
-                    return [ NSMakeRange(source.characterIndex, prevSourceSubstringCharacterIndex - source.characterIndex + 1) ]
+                    ranges.append(NSMakeRange(source.characterIndex, prevSourceSubstringCharacterIndex - source.characterIndex + 1))
+                    source = sourceSubstring
+                    source.advanceToCharacterBoundary()
+                } else {
+                    source.advanceCharacter()
                 }
+            } else {
+                source.advanceCharacter()
             }
-            source.advanceCharacter()
         }
 
-        return []
+        return ranges
     }
 
     func decomposeAndNormalize() -> StringWithBoundaries {
