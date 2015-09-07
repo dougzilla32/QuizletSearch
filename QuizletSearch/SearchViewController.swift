@@ -115,7 +115,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var searchTerms = SortedTerms<SearchTerm>()
     
     @IBAction func sortStyleChanged(sender: AnyObject) {
-        updateSearchTermsForQuery(searchBar.text)
+        executeSearchForQuery(searchBar.text)
     }
     
     func currentSortSelection() -> SortSelection {
@@ -126,7 +126,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     // called when text changes (including clear)
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-        updateSearchTermsForQuery(searchBar.text)
+        executeSearchForQuery(searchBar.text)
     }
     
     // Have the keyboard close when 'Return' is pressed
@@ -176,7 +176,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
         sortedTerms = SearchViewController.initSortedTerms()
-        updateSearchTermsForQuery(searchBar.text)
+        executeSearchForQuery(searchBar.text)
         
         // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
@@ -278,7 +278,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
             dispatch_sync(dispatch_get_main_queue(), {
                 self.sortedTerms = sortedTerms
-                self.updateSearchTermsForQuery(self.searchBar.text)
+                self.executeSearchForQuery(self.searchBar.text)
             });
         }
     }
@@ -347,112 +347,177 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     
-    func updateSearchTermsForQuery(var queryString: String) {
-        var query = queryString.lowercaseString.decomposeAndNormalize()
+    func executeSearchForQuery(var query: String) {
+        currentSearchOperation?.cancel()
         
-        // TODO: possibly put this on the QOS_CLASS_USER_INITIATED queue, test if there is noticable lag for a keystroke.  And try it with and without the queue, see if there is a discernable difference
-        
-        switch (currentSortSelection()) {
-        case .AtoZ:
-            searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
-            // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
-            // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
-        case .BySet:
-            searchTerms.bySet = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySet)
-        case .BySetAtoZ:
-            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySetAtoZ)
+        let searchOp = SearchOperation(query: query, sortSelection: currentSortSelection(), sortedTerms: sortedTerms)
+        searchOp.qualityOfService = NSQualityOfService.UserInitiated
+
+        searchOp.completionBlock = {
+            dispatch_async(dispatch_get_main_queue(), {
+                if (searchOp.cancelled) {
+                    return
+                }
+                
+                switch (searchOp.sortSelection) {
+                case .AtoZ:
+                    self.searchTerms.AtoZ = searchOp.searchTerms.AtoZ
+                    // searchTerms.levenshteinMatch = searchOp.searchTerms.levenshteinMatch
+                    // searchTerms.stringScoreMatch = searchOp.searchTerms.stringScoreMatch
+                case .BySet:
+                    self.searchTerms.bySet = searchOp.searchTerms.bySet
+                case .BySetAtoZ:
+                    self.searchTerms.bySetAtoZ = searchOp.searchTerms.bySetAtoZ
+                }
+                self.tableView.reloadData()
+            })
         }
 
-        tableView.reloadData()
+        currentSearchOperation = searchOp
+        searchQueue.addOperation(searchOp)
     }
     
-    func searchTermsForQuery(query: StringWithBoundaries, terms: [SortTerm]) -> [SearchTerm] {
-        var searchTerms: [SearchTerm] = []
-        if (query.string.isWhitespace()) {
-            for term in terms {
-                searchTerms.append(SearchTerm(sortTerm: term))
-            }
-        } else {
-            var options = NSStringCompareOptions.WhitespaceInsensitiveSearch
-            for term in terms {
-                var termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
-                var definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
-                
-                if (termRanges.count > 0 || definitionRanges.count > 0) {
-                    searchTerms.append(SearchTerm(sortTerm: term,
-                        score: 0.0,
-                        termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
-                        definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
-                }
-            }
-        }
-        return searchTerms
-    }
-    
-    class func levenshteinMatchForQuery(query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
-        var levenshteinMatch: [SearchTerm] = []
-        if (!query.isWhitespace()) {
-            for sortTerm in sortTerms {
-                var termScore = computeLevenshteinScore(query, sortTerm.termForDisplay.string)
-                var definitionScore = computeLevenshteinScore(query, sortTerm.definitionForDisplay.string)
-                
-                if (termScore > 0.70 || definitionScore > 0.70) {
-                    levenshteinMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
-                }
-            }
-        }
-        return levenshteinMatch
-    }
-    
-    class func stringScoreMatchForQuery(query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
-        var stringScoreMatch: [SearchTerm] = []
-        if (!query.isWhitespace()) {
-            for sortTerm in sortTerms {
-                var lowercaseQuery = query.lowercaseString
-                var termScore = sortTerm.termForDisplay.string.scoreAgainst(lowercaseQuery)
-                var definitionScore = sortTerm.definitionForDisplay.string.scoreAgainst(lowercaseQuery)
-                
-                if (termScore > 0.70 || definitionScore > 0.70) {
-                    stringScoreMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
-                }
-            }
-        }
-        return stringScoreMatch
-    }
-    
-    func searchTermsBySetForQuery(query: StringWithBoundaries, termsBySet: [SortSet<SortTerm>]) -> [SortSet<SearchTerm>] {
-        var searchTermsBySet: [SortSet<SearchTerm>] = []
-        if (query.string.isWhitespace()) {
-            for quizletSet in termsBySet {
-                var termsForSet = [SearchTerm]()
-                for term in quizletSet.terms {
-                    termsForSet.append(SearchTerm(sortTerm: term))
-                }
-                searchTermsBySet.append(SortSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
-            }
-        } else {
-            for quizletSet in termsBySet {
-                var termsForSet = [SearchTerm]()
+    lazy var searchQueue: NSOperationQueue = {
+        var queue = NSOperationQueue()
+        queue.name = "Search queue"
+        return queue
+        }()
 
-                for term in quizletSet.terms {
-                    var options = NSStringCompareOptions.WhitespaceInsensitiveSearch
+    var currentSearchOperation: SearchOperation?
+    
+    class SearchOperation: NSOperation {
+        let query: String
+        let sortSelection: SortSelection
+        let sortedTerms: SortedTerms<SortTerm>
+        
+        let searchTerms = SortedTerms<SearchTerm>()
+        
+        init(query: String, sortSelection: SortSelection, sortedTerms: SortedTerms<SortTerm>) {
+            self.query = query
+            self.sortSelection = sortSelection
+            self.sortedTerms = sortedTerms
+        }
+        
+        override func main() {
+           updateSearchTermsForQuery(query)
+        }
+    
+        func updateSearchTermsForQuery(var queryString: String) {
+            var query = queryString.lowercaseString.decomposeAndNormalize()
+            
+            if (self.cancelled) {
+                return
+            }
+
+            switch (sortSelection) {
+            case .AtoZ:
+                searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
+                // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
+                // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
+            case .BySet:
+                searchTerms.bySet = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySet)
+            case .BySetAtoZ:
+                searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySetAtoZ)
+            }
+        }
+        
+        func searchTermsForQuery(query: StringWithBoundaries, terms: [SortTerm]) -> [SearchTerm] {
+            var searchTerms: [SearchTerm] = []
+            if (query.string.isWhitespace()) {
+                for term in terms {
+                    searchTerms.append(SearchTerm(sortTerm: term))
+                }
+            } else {
+                var options = NSStringCompareOptions.WhitespaceInsensitiveSearch
+
+                for term in terms {
+                    if (self.cancelled) {
+                        return []
+                    }
+                    
                     var termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
                     var definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
-
+                    
                     if (termRanges.count > 0 || definitionRanges.count > 0) {
-                        termsForSet.append(SearchTerm(sortTerm: term,
+                        searchTerms.append(SearchTerm(sortTerm: term,
                             score: 0.0,
                             termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
                             definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
                     }
                 }
-                
-                if (termsForSet.count > 0) {
+            }
+            return searchTerms
+        }
+
+        func searchTermsBySetForQuery(query: StringWithBoundaries, termsBySet: [SortSet<SortTerm>]) -> [SortSet<SearchTerm>] {
+            var searchTermsBySet: [SortSet<SearchTerm>] = []
+            if (query.string.isWhitespace()) {
+                for quizletSet in termsBySet {
+                    var termsForSet = [SearchTerm]()
+                    for term in quizletSet.terms {
+                        termsForSet.append(SearchTerm(sortTerm: term))
+                    }
                     searchTermsBySet.append(SortSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
                 }
+            } else {
+                for quizletSet in termsBySet {
+                    var termsForSet = [SearchTerm]()
+                    
+                    for term in quizletSet.terms {
+                        if (self.cancelled) {
+                            return []
+                        }
+                        
+                        var options = NSStringCompareOptions.WhitespaceInsensitiveSearch
+                        var termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
+                        var definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
+                        
+                        if (termRanges.count > 0 || definitionRanges.count > 0) {
+                            termsForSet.append(SearchTerm(sortTerm: term,
+                                score: 0.0,
+                                termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
+                                definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
+                        }
+                    }
+                    
+                    if (termsForSet.count > 0) {
+                        searchTermsBySet.append(SortSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+                    }
+                }
             }
+            return searchTermsBySet
         }
-        return searchTermsBySet
+
+        class func levenshteinMatchForQuery(query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
+            var levenshteinMatch: [SearchTerm] = []
+            if (!query.isWhitespace()) {
+                for sortTerm in sortTerms {
+                    var termScore = computeLevenshteinScore(query, sortTerm.termForDisplay.string)
+                    var definitionScore = computeLevenshteinScore(query, sortTerm.definitionForDisplay.string)
+                    
+                    if (termScore > 0.70 || definitionScore > 0.70) {
+                        levenshteinMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
+                    }
+                }
+            }
+            return levenshteinMatch
+        }
+        
+        class func stringScoreMatchForQuery(query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
+            var stringScoreMatch: [SearchTerm] = []
+            if (!query.isWhitespace()) {
+                for sortTerm in sortTerms {
+                    var lowercaseQuery = query.lowercaseString
+                    var termScore = sortTerm.termForDisplay.string.scoreAgainst(lowercaseQuery)
+                    var definitionScore = sortTerm.definitionForDisplay.string.scoreAgainst(lowercaseQuery)
+                    
+                    if (termScore > 0.70 || definitionScore > 0.70) {
+                        stringScoreMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
+                    }
+                }
+            }
+            return stringScoreMatch
+        }
     }
     
     override func didReceiveMemoryWarning() {
