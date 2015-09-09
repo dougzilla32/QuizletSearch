@@ -10,8 +10,8 @@ import UIKit
 
 class SearchTableViewCell: UITableViewCell {
     
-    @IBOutlet weak var termLabel: UILabel?
-    @IBOutlet weak var definitionLabel: UILabel?
+    @IBOutlet weak var termLabel: SearchLabel?
+    @IBOutlet weak var definitionLabel: SearchLabel?
 
     override func awakeFromNib() {
         super.awakeFromNib()

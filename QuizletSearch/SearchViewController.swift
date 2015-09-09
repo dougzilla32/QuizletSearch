@@ -680,8 +680,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }()
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        
         configureCell(sizingCell, atIndexPath:indexPath)
         
+        sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(sizingCell.bounds));
         sizingCell.setNeedsLayout()
         sizingCell.layoutIfNeeded()
         
