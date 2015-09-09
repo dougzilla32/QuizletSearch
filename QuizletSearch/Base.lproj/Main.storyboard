@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="7706" systemVersion="14E46" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="nwM-di-8tA">
     <dependencies>
+        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
-        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--Login View Controller-->
@@ -372,25 +372,39 @@
                                 <rect key="frame" x="0.0" y="110" width="600" height="446"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="termAndDefinition" id="yvP-AG-coC" userLabel="Term and Definition Cell">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="SearchTableViewCell" rowHeight="63" id="kjR-Ii-w4B" customClass="SearchTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="yvP-AG-coC" id="9nJ-Sf-aYc">
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="kjR-Ii-w4B" id="abg-qX-cnM">
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" tag="10" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="hNc-8s-gnT" userLabel="Term Label">
-                                                    <rect key="frame" x="8" y="0.0" width="584" height="43"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
-                                                    <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="Term" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="280" translatesAutoresizingMaskIntoConstraints="NO" id="O75-vu-YZp">
+                                                    <rect key="frame" x="15" y="4" width="570" height="25.5"/>
+                                                    <fontDescription key="fontDescription" name="ArialMT" family="Arial" pointSize="22"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="750" verticalHuggingPriority="750" text="Definition" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="280" translatesAutoresizingMaskIntoConstraints="NO" id="GTH-rq-ap8">
+                                                    <rect key="frame" x="15" y="31.5" width="570" height="27"/>
+                                                    <fontDescription key="fontDescription" name="ArialMT" family="Arial" pointSize="22"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstItem="hNc-8s-gnT" firstAttribute="top" secondItem="9nJ-Sf-aYc" secondAttribute="top" id="9By-jc-9ue"/>
-                                                <constraint firstAttribute="trailingMargin" secondItem="hNc-8s-gnT" secondAttribute="trailing" id="EhB-k3-G4q"/>
-                                                <constraint firstItem="hNc-8s-gnT" firstAttribute="leading" secondItem="9nJ-Sf-aYc" secondAttribute="leadingMargin" id="Wd3-Ol-aYa"/>
-                                                <constraint firstAttribute="bottom" secondItem="hNc-8s-gnT" secondAttribute="bottom" id="uPf-z3-YPV"/>
+                                                <constraint firstAttribute="trailing" secondItem="O75-vu-YZp" secondAttribute="trailing" constant="15" id="Ree-rY-b1A"/>
+                                                <constraint firstItem="GTH-rq-ap8" firstAttribute="leading" secondItem="abg-qX-cnM" secondAttribute="leading" constant="15" id="SIf-LH-Mqf"/>
+                                                <constraint firstItem="O75-vu-YZp" firstAttribute="top" secondItem="abg-qX-cnM" secondAttribute="top" constant="4" id="Wda-TA-8xf"/>
+                                                <constraint firstAttribute="bottom" secondItem="GTH-rq-ap8" secondAttribute="bottom" constant="4" id="acZ-1M-Ifs"/>
+                                                <constraint firstItem="O75-vu-YZp" firstAttribute="leading" secondItem="abg-qX-cnM" secondAttribute="leading" constant="15" id="iyE-fe-gNT"/>
+                                                <constraint firstAttribute="trailing" secondItem="GTH-rq-ap8" secondAttribute="trailing" constant="15" id="tJz-aV-6Nj"/>
+                                                <constraint firstItem="GTH-rq-ap8" firstAttribute="top" secondItem="O75-vu-YZp" secondAttribute="bottom" constant="2" id="zG5-QV-MAm"/>
                                             </constraints>
                                         </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="definitionLabel" destination="GTH-rq-ap8" id="4tl-Al-vpc"/>
+                                            <outlet property="termLabel" destination="O75-vu-YZp" id="jtW-5l-TrX"/>
+                                        </connections>
                                     </tableViewCell>
                                 </prototypes>
                                 <sections/>

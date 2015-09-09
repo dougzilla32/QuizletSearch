@@ -156,16 +156,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let font = Common.preferredSystemFontForTextStyle(UIFontTextStyleBody)
-        sortStyle.setTitleTextAttributes([NSFontAttributeName: font!], forState: UIControlState.Normal)
+        NSNotificationCenter.defaultCenter().addObserver(self,
+            selector: "preferredContentSizeChanged:",
+            name: UIContentSizeCategoryDidChangeNotification,
+            object: nil)
+        resetFonts()
         
-        // TODO: set the font for the text field as follows after upgrading to XCode 7
-        // UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.Type]).font = UIFont(name: "Helvetica", size: 24)
-        Common.findTextFieldAndUpdateFont(self.searchBar)
-        // if let searchField = self.searchBar.valueForKey("_searchField") as? UITextField {
-        //     searchField.font = preferredFontForTextStyle(UIFontTextStyleBody)
-        // }
-
         // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
         refreshControl = UIRefreshControl()
         refreshControl.addTarget(self, action: "refreshTable", forControlEvents: UIControlEvents.ValueChanged)
@@ -193,6 +189,30 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
         tableView.keyboardDismissMode = .Interactive
+    }
+    
+    var preferredSearchFont: UIFont?
+    
+    func preferredContentSizeChanged(notification: NSNotification) {
+        resetFonts()
+    }
+    
+    func resetFonts() {
+         preferredSearchFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
+        
+        sizingCell.termLabel!.font = preferredSearchFont
+        sizingCell.definitionLabel!.font = preferredSearchFont
+       
+        sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], forState: UIControlState.Normal)
+        
+        // TODO: set the font for the text field as follows after upgrading to XCode 7
+        // UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.Type]).font = UIFont(name: "Helvetica", size: 24)
+        Common.findTextFieldAndUpdateFont(self.searchBar)
+        // if let searchField = self.searchBar.valueForKey("_searchField") as? UITextField {
+        //     searchField.font = preferredFontForTextStyle(UIFontTextStyleBody)
+        // }
+
+        self.view.setNeedsLayout()
     }
     
     // Called after the view was dismissed, covered or otherwise hidden.
@@ -614,52 +634,59 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return title
     }
 
-    // TODO: visually distinguish between the term and definition -- perhaps by font size, perhaps by color
     func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("termAndDefinition", forIndexPath: indexPath) as! UITableViewCell
-        
+        let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell", forIndexPath: indexPath) as! SearchTableViewCell
+        configureCell(cell, atIndexPath: indexPath)
+        return cell
+    }
+    
+    // TODO: visually distinguish between the term and definition -- perhaps by font size, perhaps by color
+    func configureCell(cell: SearchTableViewCell, atIndexPath indexPath: NSIndexPath) {
         var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-
-        var termText = NSMutableAttributedString(string: searchTerm.sortTerm.termForDisplay.string + "\n")
-        for r in searchTerm.termRanges {
-            termText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: r)
-        }
         
-        var definitionText = NSMutableAttributedString(string: searchTerm.sortTerm.definitionForDisplay.string)
-        for r in searchTerm.definitionRanges {
-            definitionText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: r)
+        var termForDisplay = SearchViewController.truncateText(searchTerm.sortTerm.termForDisplay.string, toLength: 1000)
+        var termText = NSMutableAttributedString(string: termForDisplay)
+        for range in searchTerm.termRanges {
+            termText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: range)
         }
-
-        termText.appendAttributedString(definitionText)
+        cell.termLabel!.font = preferredSearchFont
+        cell.termLabel!.attributedText = termText
         
-        var termLabel = cell.viewWithTag(10) as! UILabel
-        termLabel.font = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
-        termLabel.attributedText = termText
-        termLabel.lineBreakMode = .ByWordWrapping
-        termLabel.numberOfLines = 0
+        var definitionForDisplay = SearchViewController.truncateText(searchTerm.sortTerm.definitionForDisplay.string, toLength: 1000)
+        var definitionText = NSMutableAttributedString(string: definitionForDisplay)
+        for range in searchTerm.definitionRanges {
+            definitionText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: range)
+        }
+        cell.definitionLabel!.font = preferredSearchFont
+        cell.definitionLabel!.attributedText = definitionText
         
         var hasImage = false || false
         if (hasImage) {
             cell.accessoryView = UIImageView(image: nil)
         }
-    
-        return cell
     }
     
+    class func truncateText(var text: String, toLength: Int) -> String {
+        var index = advance(text.startIndex, toLength, text.endIndex)
+        if (index != text.endIndex) {
+            text = text.substringToIndex(index)
+            text = "\(text)..."
+        }
+        return text
+    }
+    
+    lazy var sizingCell: SearchTableViewCell = {
+        return self.tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell") as! SearchTableViewCell
+    }()
+    
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-
-        var text = "\(searchTerm.sortTerm.termForDisplay)\n\(searchTerm.sortTerm.definitionForDisplay)"
-        var width = tableView.frame.width - 16 // margin of 8 pixels on each side of the cell
-        var font = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
-
-        var attributedText = NSAttributedString(string: text, attributes: [NSFontAttributeName: font!])
-        var rect = attributedText.boundingRectWithSize(CGSizeMake(width, CGFloat.max),
-            options: NSStringDrawingOptions.UsesLineFragmentOrigin | NSStringDrawingOptions.UsesFontLeading,
-            context: nil)
-        var size = rect.size
+        configureCell(sizingCell, atIndexPath:indexPath)
         
-        return size.height + 6
+        sizingCell.setNeedsLayout()
+        sizingCell.layoutIfNeeded()
+        
+        var size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+        return size.height + 1.0 // Add 1.0 for the cell separator height
     }
 
     /*
