@@ -202,6 +202,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         sizingCell.termLabel!.font = preferredSearchFont
         sizingCell.definitionLabel!.font = preferredSearchFont
+        estimatedHeight = nil
        
         sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], forState: UIControlState.Normal)
         
@@ -644,7 +645,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func configureCell(cell: SearchTableViewCell, atIndexPath indexPath: NSIndexPath) {
         var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
         
-        var termForDisplay = SearchViewController.truncateText(searchTerm.sortTerm.termForDisplay.string, toLength: 1000)
+        var termForDisplay = searchTerm.sortTerm.termForDisplay.string
         var termText = NSMutableAttributedString(string: termForDisplay)
         for range in searchTerm.termRanges {
             termText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: range)
@@ -652,7 +653,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         cell.termLabel!.font = preferredSearchFont
         cell.termLabel!.attributedText = termText
         
-        var definitionForDisplay = SearchViewController.truncateText(searchTerm.sortTerm.definitionForDisplay.string, toLength: 1000)
+        var definitionForDisplay = searchTerm.sortTerm.definitionForDisplay.string
         var definitionText = NSMutableAttributedString(string: definitionForDisplay)
         for range in searchTerm.definitionRanges {
             definitionText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: range)
@@ -666,21 +667,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     
-    class func truncateText(var text: String, toLength: Int) -> String {
-        var index = advance(text.startIndex, toLength, text.endIndex)
-        if (index != text.endIndex) {
-            text = text.substringToIndex(index)
-            text = "\(text)..."
-        }
-        return text
-    }
-    
     lazy var sizingCell: SearchTableViewCell = {
         return self.tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell") as! SearchTableViewCell
     }()
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        
+
         configureCell(sizingCell, atIndexPath:indexPath)
         
         sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(sizingCell.bounds));
@@ -691,6 +683,38 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return size.height + 1.0 // Add 1.0 for the cell separator height
     }
 
+    var estimatedHeight: CGFloat?
+    
+    func tableView(tableView: UITableView,
+        estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+
+        if (estimatedHeight == nil) {
+            sizingCell.termLabel!.font = preferredSearchFont
+            sizingCell.termLabel!.text = "Term"
+            
+            sizingCell.definitionLabel!.font = preferredSearchFont
+            sizingCell.definitionLabel!.text = "Definition"
+            
+            sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(sizingCell.bounds));
+            sizingCell.setNeedsLayout()
+            sizingCell.layoutIfNeeded()
+            
+            var size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+            estimatedHeight = size.height + 1.0 // Add 1.0 for the cell separator height
+        }
+            
+        return estimatedHeight!
+    }
+    
+    class func truncateText(var text: String, toLength: Int) -> String {
+        var index = advance(text.startIndex, toLength, text.endIndex)
+        if (index != text.endIndex) {
+            text = text.substringToIndex(index)
+            text = "\(text)..."
+        }
+        return text
+    }
+    
     /*
     TODO: A-Z sections with indexes?
 
