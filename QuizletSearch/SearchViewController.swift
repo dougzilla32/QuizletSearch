@@ -137,6 +137,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         return true
     }
+    
+    func hideKeyboard(recognizer: UITapGestureRecognizer) {
+        searchBar.resignFirstResponder()
+    }
 
     // MARK: - View Controller
         
@@ -156,6 +160,15 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Disable selections in the table
+        tableView.allowsSelection = false
+        
+        // Dismiss keyboard when user touches the table
+        var gestureRecognizer = UITapGestureRecognizer(target: self,  action: "hideKeyboard:")
+        gestureRecognizer.cancelsTouchesInView = false
+        tableView.addGestureRecognizer(gestureRecognizer)
+        
+        // Respond to dynamic type font changes
         NSNotificationCenter.defaultCenter().addObserver(self,
             selector: "preferredContentSizeChanged:",
             name: UIContentSizeCategoryDidChangeNotification,
@@ -208,11 +221,14 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         // TODO: set the font for the text field as follows after upgrading to XCode 7
         // UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.Type]).font = UIFont(name: "Helvetica", size: 24)
-        Common.findTextFieldAndUpdateFont(self.searchBar)
+        var searchTextField = Common.findTextField(self.searchBar)
+        searchTextField?.font = preferredSearchFont
+        searchTextField?.autocapitalizationType = UITextAutocapitalizationType.None
+        searchTextField?.enablesReturnKeyAutomatically = false
         // if let searchField = self.searchBar.valueForKey("_searchField") as? UITextField {
         //     searchField.font = preferredFontForTextStyle(UIFontTextStyleBody)
         // }
-
+        
         self.view.setNeedsLayout()
     }
     

@@ -86,15 +86,19 @@ class Common {
         return fontSize
     }
     
-    class func findTextFieldAndUpdateFont(view: UIView) {
+    class func findTextField(view: UIView) -> UITextField? {
         for i in 0..<view.subviews.count {
             if let subview = view.subviews[i] as? UIView {
                 if let textField = subview as? UITextField {
-                    textField.font = preferredSearchFontForTextStyle(UIFontTextStyleBody)
+                    return textField
                 }
-                Common.findTextFieldAndUpdateFont(subview)
+                var textField = Common.findTextField(subview)
+                if (textField != nil) {
+                    return textField
+                }
             }
         }
+        return nil
     }
 }
 
