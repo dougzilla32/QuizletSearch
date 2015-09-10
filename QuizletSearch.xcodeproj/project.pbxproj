@@ -17,6 +17,8 @@
 		911A0D551B41EEF500B219D7 /* UsersTableViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911A0D541B41EEF500B219D7 /* UsersTableViewController.swift */; };
 		911C41051B9F7A7C007E0AEE /* SearchTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911C41041B9F7A7C007E0AEE /* SearchTableViewCell.swift */; };
 		911C41071B9FB64F007E0AEE /* SearchLabel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911C41061B9FB64F007E0AEE /* SearchLabel.swift */; };
+		911C41091BA10A21007E0AEE /* SearchOperation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911C41081BA10A21007E0AEE /* SearchOperation.swift */; };
+		911C410B1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 911C410A1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift */; };
 		9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */; };
 		9126FDC11B1D0E1000642E56 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDBF1B1D0E1000642E56 /* Main.storyboard */; };
 		9126FDC31B1D0E1000642E56 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDC21B1D0E1000642E56 /* Images.xcassets */; };
@@ -58,6 +60,8 @@
 		911A0D541B41EEF500B219D7 /* UsersTableViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UsersTableViewController.swift; sourceTree = "<group>"; };
 		911C41041B9F7A7C007E0AEE /* SearchTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTableViewCell.swift; sourceTree = "<group>"; };
 		911C41061B9FB64F007E0AEE /* SearchLabel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchLabel.swift; sourceTree = "<group>"; };
+		911C41081BA10A21007E0AEE /* SearchOperation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchOperation.swift; sourceTree = "<group>"; };
+		911C410A1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchTableViewHeaderCell.swift; sourceTree = "<group>"; };
 		9126FDB61B1D0E1000642E56 /* QuizletSearch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = QuizletSearch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9126FDBA1B1D0E1000642E56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
@@ -154,6 +158,8 @@
 				9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */,
 				911A0D4C1B41264200B219D7 /* LoginViewController.swift */,
 				911A0D501B41772C00B219D7 /* SearchViewController.swift */,
+				911C41081BA10A21007E0AEE /* SearchOperation.swift */,
+				911C410A1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift */,
 				911C41041B9F7A7C007E0AEE /* SearchTableViewCell.swift */,
 				911C41061B9FB64F007E0AEE /* SearchLabel.swift */,
 				911A0D541B41EEF500B219D7 /* UsersTableViewController.swift */,
@@ -340,6 +346,7 @@
 				91B4AB581B6845EB0043675A /* StringScore.swift in Sources */,
 				91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */,
 				91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */,
+				911C41091BA10A21007E0AEE /* SearchOperation.swift in Sources */,
 				911A0D4B1B3F2AE900B219D7 /* DataModel.swift in Sources */,
 				911C41051B9F7A7C007E0AEE /* SearchTableViewCell.swift in Sources */,
 				914D0AE11B6AA4ED0025C585 /* QuizletSet.swift in Sources */,
@@ -348,6 +355,7 @@
 				911A0D021B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld in Sources */,
 				914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */,
 				9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */,
+				911C410B1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift in Sources */,
 				91EDA14A1B3161D300E1152D /* DropboxSession.swift in Sources */,
 				914D0AE41B6AA4ED0025C585 /* User.swift in Sources */,
 				910722F61B35FE200066DC87 /* QSet.swift in Sources */,

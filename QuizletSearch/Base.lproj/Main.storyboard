@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="7703"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--Login View Controller-->
@@ -372,19 +373,44 @@
                                 <rect key="frame" x="0.0" y="110" width="600" height="446"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <prototypes>
-                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="SearchTableViewCell" rowHeight="63" id="kjR-Ii-w4B" customClass="SearchTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="SearchTableViewHeaderCell" rowHeight="32" id="kjR-Ii-w4B" userLabel="SearchTableViewHeaderCell" customClass="SearchTableViewHeaderCell" customModule="QuizletSearch" customModuleProvider="target">
                                         <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="kjR-Ii-w4B" id="abg-qX-cnM">
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="Term" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="O75-vu-YZp" customClass="SearchLabel" customModule="QuizletSearch" customModuleProvider="target">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="Header" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="O75-vu-YZp" customClass="SearchLabel" customModule="QuizletSearch" customModuleProvider="target">
+                                                    <rect key="frame" x="15" y="3" width="570" height="25"/>
+                                                    <fontDescription key="fontDescription" name="ArialMT" family="Arial" pointSize="22"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <color key="backgroundColor" red="0.93725490196078431" green="0.93725490196078431" blue="0.93725490196078431" alpha="1" colorSpace="calibratedRGB"/>
+                                            <constraints>
+                                                <constraint firstAttribute="trailing" secondItem="O75-vu-YZp" secondAttribute="trailing" constant="15" id="Ree-rY-b1A"/>
+                                                <constraint firstItem="O75-vu-YZp" firstAttribute="top" secondItem="abg-qX-cnM" secondAttribute="top" constant="3" id="Wda-TA-8xf"/>
+                                                <constraint firstAttribute="bottomMargin" secondItem="O75-vu-YZp" secondAttribute="bottom" constant="-5" id="hdX-H6-nYe"/>
+                                                <constraint firstItem="O75-vu-YZp" firstAttribute="leading" secondItem="abg-qX-cnM" secondAttribute="leading" constant="15" id="iyE-fe-gNT"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="headerLabel" destination="O75-vu-YZp" id="v2F-X2-8qG"/>
+                                        </connections>
+                                    </tableViewCell>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="SearchTableViewCell" rowHeight="63" id="6Cd-Uk-BQw" customClass="SearchTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="6Cd-Uk-BQw" id="JJl-ad-gf3">
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="Term" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="7Od-W1-V7w" customClass="SearchLabel" customModule="QuizletSearch" customModuleProvider="target">
                                                     <rect key="frame" x="15" y="5" width="570" height="25"/>
                                                     <fontDescription key="fontDescription" name="ArialMT" family="Arial" pointSize="22"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="750" verticalHuggingPriority="750" text="Definition" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="GTH-rq-ap8" customClass="SearchLabel" customModule="QuizletSearch" customModuleProvider="target">
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="750" verticalHuggingPriority="750" text="Definition" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="yRh-Yd-tpk" customClass="SearchLabel" customModule="QuizletSearch" customModuleProvider="target">
                                                     <rect key="frame" x="15" y="33" width="570" height="25"/>
                                                     <fontDescription key="fontDescription" name="ArialMT" family="Arial" pointSize="22"/>
                                                     <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
@@ -392,18 +418,18 @@
                                                 </label>
                                             </subviews>
                                             <constraints>
-                                                <constraint firstAttribute="trailing" secondItem="O75-vu-YZp" secondAttribute="trailing" constant="15" id="Ree-rY-b1A"/>
-                                                <constraint firstItem="GTH-rq-ap8" firstAttribute="leading" secondItem="abg-qX-cnM" secondAttribute="leading" constant="15" id="SIf-LH-Mqf"/>
-                                                <constraint firstItem="O75-vu-YZp" firstAttribute="top" secondItem="abg-qX-cnM" secondAttribute="top" constant="5" id="Wda-TA-8xf"/>
-                                                <constraint firstAttribute="bottom" secondItem="GTH-rq-ap8" secondAttribute="bottom" constant="5" id="acZ-1M-Ifs"/>
-                                                <constraint firstItem="O75-vu-YZp" firstAttribute="leading" secondItem="abg-qX-cnM" secondAttribute="leading" constant="15" id="iyE-fe-gNT"/>
-                                                <constraint firstAttribute="trailing" secondItem="GTH-rq-ap8" secondAttribute="trailing" constant="15" id="tJz-aV-6Nj"/>
-                                                <constraint firstItem="GTH-rq-ap8" firstAttribute="top" secondItem="O75-vu-YZp" secondAttribute="bottom" constant="3" id="zG5-QV-MAm"/>
+                                                <constraint firstAttribute="trailing" secondItem="7Od-W1-V7w" secondAttribute="trailing" constant="15" id="1IP-Zj-4fm"/>
+                                                <constraint firstAttribute="trailing" secondItem="yRh-Yd-tpk" secondAttribute="trailing" constant="15" id="2QR-h5-mhu"/>
+                                                <constraint firstItem="7Od-W1-V7w" firstAttribute="top" secondItem="JJl-ad-gf3" secondAttribute="top" constant="5" id="7Ns-vX-er5"/>
+                                                <constraint firstItem="yRh-Yd-tpk" firstAttribute="leading" secondItem="JJl-ad-gf3" secondAttribute="leading" constant="15" id="Bpu-Ve-fir"/>
+                                                <constraint firstItem="yRh-Yd-tpk" firstAttribute="top" secondItem="7Od-W1-V7w" secondAttribute="bottom" constant="3" id="NDu-2c-XeU"/>
+                                                <constraint firstItem="7Od-W1-V7w" firstAttribute="leading" secondItem="JJl-ad-gf3" secondAttribute="leading" constant="15" id="dUN-U0-pIN"/>
+                                                <constraint firstAttribute="bottom" secondItem="yRh-Yd-tpk" secondAttribute="bottom" constant="5" id="zLD-TJ-iIK"/>
                                             </constraints>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <outlet property="definitionLabel" destination="GTH-rq-ap8" id="4tl-Al-vpc"/>
-                                            <outlet property="termLabel" destination="O75-vu-YZp" id="jtW-5l-TrX"/>
+                                            <outlet property="definitionLabel" destination="yRh-Yd-tpk" id="NUN-zd-5xK"/>
+                                            <outlet property="termLabel" destination="7Od-W1-V7w" id="Wlo-UR-pFI"/>
                                         </connections>
                                     </tableViewCell>
                                 </prototypes>
