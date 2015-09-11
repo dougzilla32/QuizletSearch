@@ -8,6 +8,95 @@
 
 import Foundation
 
+class SortTerm {
+    let termForDisplay: StringWithBoundaries
+    let definitionForDisplay: StringWithBoundaries
+    
+    let termForCompare: StringWithBoundaries
+    let definitionForCompare: StringWithBoundaries
+    
+    init(term: Term) {
+        self.termForDisplay = StringWithBoundaries(string: term.term)
+        self.definitionForDisplay = StringWithBoundaries(string: term.definition)
+        
+        self.termForCompare = term.term.lowercaseString.decomposeAndNormalize()
+        self.definitionForCompare = term.definition.lowercaseString.decomposeAndNormalize()
+    }
+}
+
+class SearchTerm {
+    let sortTerm: SortTerm
+    let score: Double
+    let termRanges: [NSRange]
+    let definitionRanges: [NSRange]
+    
+    init(sortTerm: SortTerm, score: Double = 0.0, termRanges: [NSRange] = [], definitionRanges: [NSRange] = []) {
+        self.sortTerm = sortTerm
+        self.score = score
+        self.termRanges = termRanges
+        self.definitionRanges = definitionRanges
+    }
+}
+
+class SortSet<T> {
+    let title: String
+    let terms: [T]
+    let createdDate: Int64
+    
+    init(title: String, terms: [T], createdDate: Int64) {
+        self.title = title
+        self.terms = terms
+        self.createdDate = createdDate
+    }
+}
+
+class SortedTerms<T> {
+    // var AtoZ: [T]
+    var AtoZ: [SortSet<T>]
+    var bySet: [SortSet<T>]
+    var bySetAtoZ: [SortSet<T>]
+    
+    var levenshteinMatch: [T] = []
+    var stringScoreMatch: [T] = []
+    
+    init() {
+        AtoZ = []
+        bySet = []
+        bySetAtoZ = []
+    }
+    
+    init(AtoZ: [SortSet<T>], bySet: [SortSet<T>], bySetAtoZ: [SortSet<T>]) {
+        self.AtoZ = AtoZ
+        self.bySet = bySet
+        self.bySetAtoZ = bySetAtoZ
+    }
+    
+    func termForPath(indexPath: NSIndexPath, sortSelection: SortSelection) -> T {
+        var term: T
+        switch (sortSelection) {
+        case .AtoZ:
+            term = AtoZ[indexPath.section].terms[indexPath.row]
+            /*
+            switch (indexPath.section) {
+            case 0:
+                term = AtoZ[indexPath.row]
+            case 1:
+                term = (levenshteinMatch.count > 0) ? levenshteinMatch[indexPath.row] : stringScoreMatch[indexPath.row]
+            case 2:
+                term = stringScoreMatch[indexPath.row]
+            default:
+                abort()
+            }
+            */
+        case .BySet:
+            term = bySet[indexPath.section].terms[indexPath.row]
+        case .BySetAtoZ:
+            term = bySetAtoZ[indexPath.section].terms[indexPath.row]
+        }
+        return term
+    }
+}
+
 class SearchOperation: NSOperation {
     let query: String
     let sortSelection: SortSelection
@@ -34,7 +123,8 @@ class SearchOperation: NSOperation {
         
         switch (sortSelection) {
         case .AtoZ:
-            searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
+            searchTerms.AtoZ = searchTermsBySetForQuery(query, termsBySet: sortedTerms.AtoZ)
+            // searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
         case .BySet:

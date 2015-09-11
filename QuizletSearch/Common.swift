@@ -100,6 +100,36 @@ class Common {
         }
         return nil
     }
+    
+    class func toUppercase(c: Character) -> Character {
+        var up = String(c).uppercaseString
+        return up[up.startIndex]
+    }
+    
+    class func isWhitespace(c: Character) -> Bool {
+        var s = String(c)
+        var uc = s.utf16[s.utf16.startIndex] as unichar
+        return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(uc)
+    }
+    
+    class func firstNonWhitespaceCharacter(var text: String) -> Character? {
+        text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+        return !text.isEmpty ? text[text.startIndex] : nil
+
+        // Not sure which way is more efficient, have not timed it yet -- Swift strings can be slow
+        /*
+        var firstCharacter: Character? = nil
+        for (var index = text.startIndex; index != text.endIndex; index = index.successor()) {
+            var c = text[index]
+            if (!Common.isWhitespace(c)) {
+                firstCharacter = c
+                break
+            }
+        }
+
+        return firstCharacter
+        */
+    }
 }
 
 class StringWithBoundaries {

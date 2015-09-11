@@ -14,91 +14,6 @@ enum SortSelection: Int {
     case AtoZ = 0, BySet, BySetAtoZ
 }
 
-class SortTerm {
-    let termForDisplay: StringWithBoundaries
-    let definitionForDisplay: StringWithBoundaries
-    
-    let termForCompare: StringWithBoundaries
-    let definitionForCompare: StringWithBoundaries
-
-    init(term: Term) {
-        self.termForDisplay = StringWithBoundaries(string: term.term)
-        self.definitionForDisplay = StringWithBoundaries(string: term.definition)
-        
-        self.termForCompare = term.term.lowercaseString.decomposeAndNormalize()
-        self.definitionForCompare = term.definition.lowercaseString.decomposeAndNormalize()
-    }
-}
-
-class SearchTerm {
-    let sortTerm: SortTerm
-    let score: Double
-    let termRanges: [NSRange]
-    let definitionRanges: [NSRange]
-    
-    init(sortTerm: SortTerm, score: Double = 0.0, termRanges: [NSRange] = [], definitionRanges: [NSRange] = []) {
-        self.sortTerm = sortTerm
-        self.score = score
-        self.termRanges = termRanges
-        self.definitionRanges = definitionRanges
-    }
-}
-
-class SortSet<T> {
-    let title: String
-    let terms: [T]
-    let createdDate: Int64
-    
-    init(title: String, terms: [T], createdDate: Int64) {
-        self.title = title
-        self.terms = terms
-        self.createdDate = createdDate
-    }
-}
-
-class SortedTerms<T> {
-    var AtoZ: [T]
-    var bySet: [SortSet<T>]
-    var bySetAtoZ: [SortSet<T>]
-    
-    var levenshteinMatch: [T] = []
-    var stringScoreMatch: [T] = []
-    
-    init() {
-        AtoZ = []
-        bySet = []
-        bySetAtoZ = []
-    }
-    
-    init(AtoZ: [T], bySet: [SortSet<T>], bySetAtoZ: [SortSet<T>]) {
-        self.AtoZ = AtoZ
-        self.bySet = bySet
-        self.bySetAtoZ = bySetAtoZ
-    }
-    
-    func termForPath(indexPath: NSIndexPath, sortSelection: SortSelection) -> T {
-        var term: T
-        switch (sortSelection) {
-        case .AtoZ:
-            switch (indexPath.section) {
-            case 0:
-                term = AtoZ[indexPath.row]
-            case 1:
-                term = (levenshteinMatch.count > 0) ? levenshteinMatch[indexPath.row] : stringScoreMatch[indexPath.row]
-            case 2:
-                term = stringScoreMatch[indexPath.row]
-            default:
-                abort()
-            }
-        case .BySet:
-            term = bySet[indexPath.section].terms[indexPath.row]
-        case .BySetAtoZ:
-            term = bySetAtoZ[indexPath.section].terms[indexPath.row]
-        }
-        return term
-    }
-}
-
 class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
     
     @IBOutlet weak var tableView: UITableView!
@@ -337,18 +252,19 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     class func initSortedTerms() -> SortedTerms<SortTerm> {
         let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
         
-        var AtoZ: [SortTerm] = []
+        var AtoZterms: [SortTerm] = []
+        var AtoZ: [SortSet<SortTerm>] = []
         var bySet: [SortSet<SortTerm>] = []
         var bySetAtoZ: [SortSet<SortTerm>] = []
         
         if let filter = dataModel.currentUser?.currentFilter {
-            for set  in filter.sets {
+            for set in filter.sets {
                 var quizletSet = set as! QuizletSet
                 var termsForSet = [SortTerm]()
                 
                 for term in quizletSet.terms {
                     var term = SortTerm(term: term as! Term)
-                    AtoZ.append(term)
+                    AtoZterms.append(term)
                     termsForSet.append(term)
                 }
                 
@@ -360,7 +276,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 bySetAtoZ.append(SortSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
             }
             
-            sort(&AtoZ, termComparator)
+            AtoZ = collateAtoZ(AtoZterms)
+            // sort(&AtoZterms, termComparator)
             
             sort(&bySet, { (s1: SortSet<SortTerm>, s2: SortSet<SortTerm>) -> Bool in
                 return s1.createdDate > s2.createdDate
@@ -372,6 +289,52 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         
         return SortedTerms(AtoZ: AtoZ, bySet: bySet, bySetAtoZ: bySetAtoZ)
+    }
+    
+    class func collateAtoZ(var AtoZterms: [SortTerm]) -> [SortSet<SortTerm>] {
+        sort(&AtoZterms, termComparator)
+
+        var currentCharacter: Character? = nil
+        var currentTerms: [SortTerm]? = nil
+        var AtoZbySet: [SortSet<SortTerm>] = []
+
+        for term in AtoZterms {
+            var text = term.termForDisplay.string
+            //var text = term.definitionForDisplay.string
+            text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+            if (text.isEmpty) {
+                continue
+            }
+
+            var firstCharacter = text[text.startIndex]
+            
+            // Use '9' as the index view title for all numbers greater than 9
+            if "0"..."9" ~= firstCharacter {
+                var next = text.startIndex.successor()
+                if (next != text.endIndex) {
+                    var secondCharacter = text[next]
+                    if ("0"..."9" ~= secondCharacter) {
+                        firstCharacter = "9"
+                    }
+                }
+            }
+
+            firstCharacter = Common.toUppercase(firstCharacter)
+            if (currentCharacter != firstCharacter) {
+                if (currentTerms != nil) {
+                    AtoZbySet.append(SortSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
+                }
+                currentTerms = []
+                currentCharacter = firstCharacter
+            }
+            currentTerms!.append(term)
+        }
+        
+        if (currentTerms != nil) {
+            AtoZbySet.append(SortSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
+        }
+        
+        return AtoZbySet
     }
     
     class func termComparator(t1: SortTerm, t2: SortTerm) -> Bool {
@@ -456,6 +419,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var numberOfSections: Int
         switch (currentSortSelection()) {
         case .AtoZ:
+            numberOfSections = searchTerms.AtoZ.count
+            /*
             numberOfSections = 1
             if (searchTerms.levenshteinMatch.count > 0) {
                 numberOfSections++
@@ -463,6 +428,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             if (searchTerms.stringScoreMatch.count > 0) {
                 numberOfSections++
             }
+            */
         case .BySet:
             numberOfSections = searchTerms.bySet.count
         case .BySetAtoZ:
@@ -476,6 +442,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var numberOfRows: Int
         switch (currentSortSelection()) {
         case .AtoZ:
+            numberOfRows = searchTerms.AtoZ[section].terms.count
+            /*
             switch (section) {
             case 0:
                 numberOfRows = searchTerms.AtoZ.count
@@ -486,6 +454,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             default:
                 numberOfRows = 0
             }
+            */
         case .BySet:
             numberOfRows = searchTerms.bySet[section].terms.count
         case .BySetAtoZ:
@@ -494,11 +463,12 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return numberOfRows
     }
 
-    // TODO: visually distinguish between the term and definition -- perhaps by font size, perhaps by color
     func configureHeaderCell(cell: SearchTableViewHeaderCell, section: Int) {
         var title: String?
         switch (currentSortSelection()) {
         case .AtoZ:
+            title = searchTerms.AtoZ[section].title
+            /*
             switch (section) {
             case 0:
                 title = nil
@@ -509,6 +479,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             default:
                 title = nil
             }
+            */
         case .BySet:
             title = searchTerms.bySet[section].title
         case .BySetAtoZ:
@@ -536,7 +507,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             return 0
         }
         
-        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(sizingCell.bounds));
+        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(), CGRectGetHeight(sizingCell.bounds));
         headerSizingCell.setNeedsLayout()
         headerSizingCell.layoutIfNeeded()
         
@@ -551,7 +522,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             headerSizingCell.headerLabel!.font = preferredSearchFont
             headerSizingCell.headerLabel!.text = "Header"
             
-            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(sizingCell.bounds));
+            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(), CGRectGetHeight(sizingCell.bounds));
             headerSizingCell.setNeedsLayout()
             headerSizingCell.layoutIfNeeded()
             
@@ -563,7 +534,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
     }
     
-    // TODO: visually distinguish between the term and definition -- perhaps by font size, perhaps by color
     func configureCell(cell: SearchTableViewCell, atIndexPath indexPath: NSIndexPath) {
         var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
         
@@ -603,7 +573,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         configureCell(sizingCell, atIndexPath:indexPath)
         
-        sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(sizingCell.bounds));
+        sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(), CGRectGetHeight(sizingCell.bounds));
         sizingCell.setNeedsLayout()
         sizingCell.layoutIfNeeded()
         
@@ -623,7 +593,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             sizingCell.definitionLabel!.font = preferredSearchFont
             sizingCell.definitionLabel!.text = "Definition"
             
-            sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(sizingCell.bounds));
+            sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(), CGRectGetHeight(sizingCell.bounds));
             sizingCell.setNeedsLayout()
             sizingCell.layoutIfNeeded()
             
@@ -642,22 +612,58 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         return text
     }
-    
-    /*
-    TODO: A-Z sections with indexes?
 
-    sectionIndexTitlesForTableView: method – returns the indexed titles that appear in the index list on the right side of the table view. For example, you can return an array of strings containing “A” to “Z”.
+    // returns the indexed titles that appear in the index list on the right side of the table view. For example, you can return an array of strings containing “A” to “Z”.
+    func sectionIndexTitlesForTableView(tableView: UITableView) -> [AnyObject]! {
+        var titles: [String]?
+        
+        switch (currentSortSelection()) {
+        case .AtoZ:
+            titles = []
+            for section in searchTerms.AtoZ {
+                titles!.append(section.title)
+            }
+        case .BySet:
+            titles = nil
+        case .BySetAtoZ:
+            titles = nil
+        }
+        
+        return titles
+    }
     
-    sectionForSectionIndexTitle: method – returns the section index that the table view should jump to when user taps a particular index.
-    */
+    // returns the section index that the table view should jump to when user taps a particular index.
+    func tableView(tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
+        return index
+    }
     
+    func getIndexViewWidth() -> CGFloat {
+        var width: CGFloat
+        
+        switch (currentSortSelection()) {
+        case .AtoZ:
+            // From experimenting I know the correct value to be 15
+            // smaller values fail for "used... 를" (2nd largest font size)
+            // width = 14: fails for "comes after the *noun*..." (2nd largest font size)
+            width = 15 // OK!
+            // width = 16 // fails for "attached to a place and indicates going to a destination" (largest font size)
+            // width = 17: fails for "we went to the zoo..." (2nd largest font size)
+        case .BySet:
+            width = 0
+        case .BySetAtoZ:
+            width = 0
+        }
+
+        return width
+    }
+
     /*
     // MARK: - Navigation
     
     // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-    // Get the new view controller using [segue destinationViewController].
-    // Pass the selected object to the new view controller.
+        // Get the new view controller using [segue destinationViewController].
+        // Pass the selected object to the new view controller.
     }
     */
 }
