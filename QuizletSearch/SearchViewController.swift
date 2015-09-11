@@ -302,24 +302,28 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             var text = term.termForDisplay.string
             //var text = term.definitionForDisplay.string
             text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
-            if (text.isEmpty) {
-                continue
-            }
-
-            var firstCharacter = text[text.startIndex]
             
-            // Use '9' as the index view title for all numbers greater than 9
-            if "0"..."9" ~= firstCharacter {
-                var next = text.startIndex.successor()
-                if (next != text.endIndex) {
-                    var secondCharacter = text[next]
-                    if ("0"..."9" ~= secondCharacter) {
-                        firstCharacter = "9"
+            var firstCharacter: Character
+            if (text.isEmpty) {
+                firstCharacter = " "
+            }
+            else {
+                firstCharacter = text[text.startIndex]
+                
+                // Use '9' as the index view title for all numbers greater than 9
+                if "0"..."9" ~= firstCharacter {
+                    var next = text.startIndex.successor()
+                    if (next != text.endIndex) {
+                        var secondCharacter = text[next]
+                        if ("0"..."9" ~= secondCharacter) {
+                            firstCharacter = "9"
+                        }
                     }
                 }
+                
+                firstCharacter = Common.toUppercase(firstCharacter)
             }
-
-            firstCharacter = Common.toUppercase(firstCharacter)
+            
             if (currentCharacter != firstCharacter) {
                 if (currentTerms != nil) {
                     AtoZbySet.append(SortSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
