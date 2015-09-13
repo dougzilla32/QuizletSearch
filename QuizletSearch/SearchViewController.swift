@@ -120,13 +120,15 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     var preferredSearchFont: UIFont?
+    var preferredBoldSearchFont: UIFont?
     
     func preferredContentSizeChanged(notification: NSNotification) {
         resetFonts()
     }
     
     func resetFonts() {
-         preferredSearchFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
+        preferredSearchFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
+        preferredBoldSearchFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleHeadline)
         
         sizingCell.termLabel!.font = preferredSearchFont
         sizingCell.definitionLabel!.font = preferredSearchFont
@@ -538,13 +540,17 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
     }
     
+    lazy var highlightColor =
+        UIColor(red: 163.0 / 255.0, green: 205.0 / 255.0, blue: 254.0 / 255.0, alpha: 1.0)
+    
     func configureCell(cell: SearchTableViewCell, atIndexPath indexPath: NSIndexPath) {
         var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
         
         var termForDisplay = searchTerm.sortTerm.termForDisplay.string
         var termText = NSMutableAttributedString(string: termForDisplay)
         for range in searchTerm.termRanges {
-            termText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: range)
+            termText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
+            // termText.addAttribute(NSBackgroundColorAttributeName, value: highlightColor, range: range)
         }
         cell.termLabel!.font = preferredSearchFont
         cell.termLabel!.attributedText = termText
@@ -552,7 +558,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var definitionForDisplay = searchTerm.sortTerm.definitionForDisplay.string
         var definitionText = NSMutableAttributedString(string: definitionForDisplay)
         for range in searchTerm.definitionRanges {
-            definitionText.addAttribute(NSBackgroundColorAttributeName, value: UIColor.yellowColor(), range: range)
+            definitionText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
+            // definitionText.addAttribute(NSBackgroundColorAttributeName, value: highlightColor, range: range)
         }
         cell.definitionLabel!.font = preferredSearchFont
         cell.definitionLabel!.attributedText = definitionText
@@ -644,6 +651,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     func getIndexViewWidth() -> CGFloat {
         var width: CGFloat
         
+        // TODO: this width changes for different hardware configurations.  "15" works for iPhone 6.
         switch (currentSortSelection()) {
         case .AtoZ:
             // From experimenting I know the correct value to be 15

@@ -50,14 +50,16 @@ class Common {
     }
 
     class func preferredSearchFontForTextStyle(textStyle: String) -> UIFont? {
+        // NSLog("%@", UIFont.fontNamesForFamilyName("Arial"))
+        
         // choose the font size
         let fontSize: CGFloat = preferredSearchFontSize()
         
         // choose the font weight
         if (textStyle == UIFontTextStyleHeadline || textStyle == UIFontTextStyleSubheadline) {
-            return UIFont(name: "Arial-Bold", size: fontSize)
+            return UIFont(name: "Arial-BoldMT", size: fontSize)
         } else {
-            return UIFont(name: "Arial", size: fontSize)
+            return UIFont(name: "ArialMT", size: fontSize)
         }
     }
     
