@@ -37,8 +37,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     }
     
     func setRootViewControllerWithIdentifier(id: String) {
-        var storyboard = self.window!.rootViewController!.storyboard!
-        self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id) as? UIViewController
+        let storyboard = self.window!.rootViewController!.storyboard!
+        self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id)
     }
     
     func application(application: UIApplication,
@@ -47,7 +47,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return true
     }
     
-    func refreshAndRestartTimer(#allowCellularAccess: Bool, completionHandler: (([QSet]?) -> Void)? = nil) {
+    @available(iOS 8.0, *)
+    func refreshAndRestartTimer(allowCellularAccess allowCellularAccess: Bool, completionHandler: (([QSet]?) -> Void)? = nil) {
         if (managedObjectContext == nil || dataModel.currentUser == nil) {
             return
         }
@@ -79,36 +80,48 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     func refresh() {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
-        self.dataModel.refreshModelForCurrentFilter(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?) in
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-        })
+        if #available(iOS 8.0, *) {
+            self.dataModel.refreshModelForCurrentFilter(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?) in
+                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+            })
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
-    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject?) -> Bool {
+    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
 
         if (url.scheme == "quizletsearch") {
             self.setRootViewControllerWithIdentifier("SearchViewController")
             
             if (Common.isSampleMode) {
                 // Sustitute a sample user, for use when the quizlet authentication server is down
-                var userAccount = UserAccount(accessToken: "1234", expiresIn: 3200, userName: "dougzilla32", userId: "1234")
+                let userAccount = UserAccount(accessToken: "1234", expiresIn: 3200, userName: "dougzilla32", userId: "1234")
                 self.dataModel.addOrUpdateUser(userAccount)
                 self.saveContext()
-                self.refreshAndRestartTimer(allowCellularAccess: true)
+                if #available(iOS 8.0, *) {
+                    self.refreshAndRestartTimer(allowCellularAccess: true)
+                } else {
+                    // Fallback on earlier versions
+                }
             }
             else {
-                quizletSession.acquireAccessToken(url,
-                    completionHandler: { (userAccount: UserAccount?, error: NSError?) in
-                        if let err = error {
-                            var alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
-                            alert.show()
-                            // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
-                        } else {
-                            self.dataModel.addOrUpdateUser(userAccount!)
-                            self.saveContext()
-                            self.refreshAndRestartTimer(allowCellularAccess: true)
-                        }
-                })
+                if #available(iOS 8.0, *) {
+                    quizletSession.acquireAccessToken(url,
+                        completionHandler: { (userAccount: UserAccount?, error: NSError?) in
+                            if let err = error {
+                                let alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
+                                alert.show()
+                                // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
+                            } else {
+                                self.dataModel.addOrUpdateUser(userAccount!)
+                                self.saveContext()
+                                self.refreshAndRestartTimer(allowCellularAccess: true)
+                            }
+                    })
+                } else {
+                    // Fallback on earlier versions
+                }
             }
 
             return true
@@ -117,13 +130,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return false
     }
     
-    func proceedAsGuest(username: String) {
+    func proceedAsGuest(username: String?) {
         self.setRootViewControllerWithIdentifier("SearchViewController")
 
-        var userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: "dougzilla32", userId: "")
+        let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: "dougzilla32", userId: "")
         self.dataModel.addOrUpdateUser(userAccount)
         self.saveContext()
-        self.refreshAndRestartTimer(allowCellularAccess: true)
+        if #available(iOS 8.0, *) {
+            self.refreshAndRestartTimer(allowCellularAccess: true)
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     func applicationWillResignActive(application: UIApplication) {
@@ -153,7 +170,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     lazy var applicationDocumentsDirectory: NSURL = {
         // The directory the application uses to store the Core Data store file. This code uses a directory named "com.example.QuizletSearch" in the application's documents Application Support directory.
         let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
-        return urls[urls.count-1] as! NSURL
+        return urls[urls.count-1] 
         }()
     
     lazy var managedObjectModel: NSManagedObjectModel = {
@@ -168,12 +185,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
         let url = self.applicationDocumentsDirectory.URLByAppendingPathComponent("Temp.sqlite")
         var error: NSError? = nil
-        if coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil, error: &error) == nil {
+        do {
+            try coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil)
+        } catch var error as NSError {
             coordinator = nil
-            NSLog("Initialization error \(error!), \(error!.userInfo)")
+            NSLog("Initialization error \(error), \(error.userInfo)")
             
             var reason = String(format: NSLocalizedString("Model load error", comment: ""),
-                (error!.userInfo!["reason"] as! String))
+                (error.userInfo["reason"] as! String))
             var alert = UIAlertView(
                 title: NSLocalizedString("Initialization error", comment: ""),
                 message: reason,
@@ -181,6 +200,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                 cancelButtonTitle: NSLocalizedString("Exit", comment: ""))
             alert.show()
             return nil
+        } catch {
+            fatalError()
         }
         
         return coordinator
@@ -205,12 +226,13 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     // MARK: - Core Data Saving support
     
     func saveContext() {
-        var error: NSError? = nil
-        if (!dataModel.save(&error)) {
-            NSLog("Save error \(error!), \(error!.userInfo)")
-            var alert = UIAlertView(
+        do {
+            try dataModel.save()
+        } catch let error as NSError {
+            NSLog("Save error \(error), \(error.userInfo)")
+            let alert = UIAlertView(
                 title: NSLocalizedString("Save error", comment: ""),
-                message: dataModel.validationMessages(error!),
+                message: dataModel.validationMessages(error),
                 delegate: nil,
                 cancelButtonTitle: NSLocalizedString("Dismiss", comment: ""))
             alert.show()

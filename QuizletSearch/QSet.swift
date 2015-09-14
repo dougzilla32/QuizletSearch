@@ -56,7 +56,7 @@ class QSet {
     class func setsFromJSON(json: Array<NSDictionary>) -> Array<QSet>? {
         var qsets = [QSet]()
         for jsonSet in json {
-            var qset = QSet.setFromJSON(jsonSet)
+            let qset = QSet.setFromJSON(jsonSet)
             if (qset == nil) {
                 NSLog("Invalid Quizlet Set in setsFromJSON: \(jsonSet)")
                 return nil

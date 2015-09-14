@@ -39,8 +39,8 @@ extension NSString {
     }
     
     func scoreAgainst(anotherString: NSString, fuzziness: Double?, options: StringScoreOptions) -> Double {
-        var string = "".join(self.precomposedStringWithCanonicalMapping.componentsSeparatedByCharactersInSet(invalidCharacterSet)) as NSString
-        let otherString = "".join(anotherString.precomposedStringWithCanonicalMapping.componentsSeparatedByCharactersInSet(invalidCharacterSet)) as NSString
+        var string = self.precomposedStringWithCanonicalMapping.componentsSeparatedByCharactersInSet(invalidCharacterSet).joinWithSeparator("") as NSString
+        let otherString = anotherString.precomposedStringWithCanonicalMapping.componentsSeparatedByCharactersInSet(invalidCharacterSet).joinWithSeparator("") as NSString
         
         // If the string is equal to the abbreviation, perfect match.
         if (string == otherString) {

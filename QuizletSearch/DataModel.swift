@@ -28,22 +28,23 @@ class DataModel: NSObject {
         let request = NSFetchRequest(entityName: "Root")
         request.relationshipKeyPathsForPrefetching = ["users"]
         
-        var error: NSError?
-        var result = self.moc.executeFetchRequest(request, error: &error) as? [Root]
-        if (result == nil) {
-            NSLog("An error occurred while fetching the root: \(error), \(error?.userInfo)")
-            abort()
+        var result: [Root]
+        do {
+            result = try self.moc.executeFetchRequest(request) as! [Root]
+        } catch let error as NSError {
+            NSLog("An error occurred while fetching the root: \(error), \(error.userInfo)")
+            fatalError()
         }
         
         var root: Root
-        if (result!.count == 1) {
-            root = result![0]
-        } else if (result!.count == 0) {
+        if (result.count == 1) {
+            root = result[0]
+        } else if (result.count == 0) {
             root = NSEntityDescription.insertNewObjectForEntityForName("Root",
                 inManagedObjectContext: self.moc) as! Root
             root.users = NSOrderedSet()
         } else {
-            NSLog("Unexpected state when loading data model: result.count = \(result!.count)")
+            NSLog("Unexpected state when loading data model: result.count = \(result.count)")
             abort()
         }
         
@@ -109,10 +110,11 @@ class DataModel: NSObject {
     func fetchUsers() -> [User]? {
         let fetchRequest = NSFetchRequest(entityName: "User")
         
-        var error: NSError?
-        var users = moc.executeFetchRequest(fetchRequest, error: &error) as? [User]
-        if (users == nil) {
-            NSLog("An error occurred while fetching the list of users: \(error), \(error?.userInfo)")
+        var users: [User]?
+        do {
+            users = try moc.executeFetchRequest(fetchRequest) as? [User]
+        } catch let error as NSError {
+            NSLog("An error occurred while fetching the list of users: \(error), \(error.userInfo)")
             users = nil
         }
         
@@ -124,10 +126,11 @@ class DataModel: NSObject {
         request.predicate = NSPredicate(format: "id == %@", userId)
         request.relationshipKeyPathsForPrefetching = ["filters"]
         
-        var error: NSError?
-        var users = moc.executeFetchRequest(request, error: &error) as? [User]
-        if (users == nil) {
-            NSLog("An error occurred while fetching the list of users: \(error), \(error?.userInfo)")
+        var users: [User]?
+        do {
+            users = try moc.executeFetchRequest(request) as? [User]
+        } catch let error as NSError {
+            NSLog("An error occurred while fetching the list of users: \(error), \(error.userInfo)")
             return nil
         }
         if (users!.count == 0) {
@@ -140,14 +143,14 @@ class DataModel: NSObject {
     func addOrUpdateUser(userAccount: UserAccount) -> User {
         var user = fetchUserWithId(userAccount.userId)
         if (user == nil) {
-            var newUser = NSEntityDescription.insertNewObjectForEntityForName("User",
+            let newUser = NSEntityDescription.insertNewObjectForEntityForName("User",
                 inManagedObjectContext: moc) as! User
             newUser.root = self.root
             newUser.currentFilter = createDefaultFilterForUser(newUser)
             newUser.currentFilter.currentFilter = newUser
             newUser.filters = NSOrderedSet(object: newUser.currentFilter)
 
-            var mutableUsers = root.users.mutableCopy() as! NSMutableOrderedSet
+            let mutableUsers = root.users.mutableCopy() as! NSMutableOrderedSet
             mutableUsers.addObject(newUser)
             self.root.users = mutableUsers.copy() as! NSOrderedSet
 
@@ -165,7 +168,7 @@ class DataModel: NSObject {
     }
     
     func createDefaultFilterForUser(user: User) -> Filter {
-        var filter = NSEntityDescription.insertNewObjectForEntityForName("Filter",
+        let filter = NSEntityDescription.insertNewObjectForEntityForName("Filter",
             inManagedObjectContext: moc) as! Filter
         filter.type = FilterType.CurrentUserAllSets.rawValue
         filter.title = "My Sets"
@@ -177,13 +180,14 @@ class DataModel: NSObject {
         return filter
     }
     
-    func refreshModelForCurrentFilter(#allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+    @available(iOS 8.0, *)
+    func refreshModelForCurrentFilter(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         if (currentUser == nil) {
             return
         }
         
-        var currentFilter = currentUser!.currentFilter
-        var filterType = FilterType(rawValue: currentFilter.type)
+        let currentFilter = currentUser!.currentFilter
+        let filterType = FilterType(rawValue: currentFilter.type)
         if (filterType == nil) {
             NSLog("Invalid filter type found in data store: \(currentFilter.type)")
             completionHandler(nil)
@@ -209,7 +213,7 @@ class DataModel: NSObject {
                 completionHandler: { (qsets: [QSet]?) in
             })
         case .GeneralQuery:
-            println("General Query")
+            print("General Query")
         }
     }
     
@@ -218,15 +222,14 @@ class DataModel: NSObject {
             return
         }
         
-        // TODO: move 'save' to defer block in Swift 2.0
-        // defer {
-        //     save()
-        // }
+        defer {
+            saveChanges()
+        }
         
         // Put all of the filter's sets into a dictionary
         var existingSetsMap = [Int64: QuizletSet]()
         for set in filter.sets {
-            var quizletSet = set as! QuizletSet
+            let quizletSet = set as! QuizletSet
             existingSetsMap[quizletSet.id] = quizletSet
         }
         
@@ -235,7 +238,7 @@ class DataModel: NSObject {
         var idsToFetch = [NSNumber]()
         var maxModifiedDate: Int64 = 0
         for qset in qsets! {
-            var existingSet = existingSetsMap.removeValueForKey(qset.id)
+            let existingSet = existingSetsMap.removeValueForKey(qset.id)
             if (existingSet != nil) {
                 existingSet!.copyFrom(qset, moc: moc)
             } else {
@@ -250,16 +253,14 @@ class DataModel: NSObject {
         
         if (existingSetsMap.count == 0 && setsToFetch.count == 0) {
             // Unnecessary to update the 'filter.sets' relationships where there are no sets to add and no sets to delete
-            // TODO: move 'save' to defer block in Swift 2.0
-            save()
             return
         }
         
-        var mutableFilterSets = filter.sets.mutableCopy() as! NSMutableSet
+        let mutableFilterSets = filter.sets.mutableCopy() as! NSMutableSet
 
         // DELETE: Remove the filter reference from the sets remaining in 'existingSetsMap' (that have either been deleted from quizlet.com or no longer match this filter) and delete them from the cache if they are not referenced by any other filter
         for set in existingSetsMap.values {
-            var mutableSet = set.filters.mutableCopy() as! NSMutableSet
+            let mutableSet = set.filters.mutableCopy() as! NSMutableSet
             mutableSet.removeObject(filter)
             set.filters = mutableSet.copy() as! NSSet
             if (set.filters.count == 0) {
@@ -274,11 +275,12 @@ class DataModel: NSObject {
             let updateSetsRequest = NSFetchRequest(entityName: "QuizletSet")
             updateSetsRequest.predicate = NSPredicate(format: "id IN %@", idsToFetch)
             
-            var updateSetsError: NSError?
-            var updateSetsResult = self.moc.executeFetchRequest(updateSetsRequest, error: &updateSetsError) as? [QuizletSet]
-            if (updateSetsResult == nil) {
-                NSLog("An error occurred while fetching sets: \(updateSetsError), \(updateSetsError?.userInfo)")
-                abort()
+            var updateSetsResult: [QuizletSet]?
+            do {
+                updateSetsResult = try self.moc.executeFetchRequest(updateSetsRequest) as? [QuizletSet]
+            } catch let error as NSError {
+                NSLog("An error occurred while fetching sets: \(error), \(error.userInfo)")
+                fatalError()
             }
             
             var updateSetsMap = [Int64: QuizletSet]()
@@ -290,13 +292,13 @@ class DataModel: NSObject {
                 if let quizletSet = updateSetsMap[qset.id] {
                     quizletSet.copyFrom(qset, moc: moc)
                     
-                    var mutableSet = quizletSet.filters.mutableCopy() as! NSMutableSet
+                    let mutableSet = quizletSet.filters.mutableCopy() as! NSMutableSet
                     mutableSet.addObject(filter)
                     quizletSet.filters = mutableSet.copy() as! NSSet
                     
                     mutableFilterSets.addObject(quizletSet)
                 } else {
-                    var quizletSet = NSEntityDescription.insertNewObjectForEntityForName("QuizletSet", inManagedObjectContext: moc) as! QuizletSet
+                    let quizletSet = NSEntityDescription.insertNewObjectForEntityForName("QuizletSet", inManagedObjectContext: moc) as! QuizletSet
                     quizletSet.initFrom(qset, moc: moc)
                     quizletSet.filters = NSSet(object: filter)
                     
@@ -306,9 +308,6 @@ class DataModel: NSObject {
         }
         
         filter.sets = mutableFilterSets.copy() as! NSSet
-        
-        // TODO: move 'save' to defer block in Swift 2.0
-        save()
     }
     
     /*
@@ -332,18 +331,19 @@ class DataModel: NSObject {
     }
     */
     
-    func save() {
-        var error: NSError? = nil
-        if (moc.hasChanges && !moc.save(&error)) {
-            NSLog("Save error \(error!), \(error!.userInfo)")
+    func saveChanges() {
+        if (moc.hasChanges) {
+            do {
+                try moc.save()
+            } catch let error as NSError {
+                NSLog("Save error \(error), \(error.userInfo)")
+            }
         }
     }
 
-    func save(error: NSErrorPointer) -> Bool {
+    func save() throws {
         if (moc.hasChanges) {
-            return moc.save(error);
-        } else {
-            return true
+            try moc.save()
         }
     }
     
@@ -356,7 +356,7 @@ class DataModel: NSObject {
         
         // multiple errors?
         if (anError.code == NSValidationMultipleErrorsError) {
-            errors = anError.userInfo?[NSDetailedErrorsKey] as! [NSError]?
+            errors = anError.userInfo[NSDetailedErrorsKey] as! [NSError]?
         } else {
             errors = [anError]
         }
@@ -368,8 +368,8 @@ class DataModel: NSObject {
         var messages = "Reason(s):\n"
         
         for error in errors! {
-            var entityName = (error.userInfo!["NSValidationErrorObject"] as! NSManagedObject).entity.name
-            var attributeName = error.userInfo!["NSValidationErrorKey"] as! String
+            let entityName = (error.userInfo["NSValidationErrorObject"] as! NSManagedObject).entity.name
+            let attributeName = error.userInfo["NSValidationErrorKey"] as! String
             var msg: String
             switch (error.code) {
             case NSManagedObjectValidationError:

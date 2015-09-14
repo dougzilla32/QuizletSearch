@@ -8,14 +8,14 @@
 import Foundation
 
 func computeLevenshteinScore(source: String, target: String) -> Double {
-    var sourceCharacters = Array(source)
-    var targetCharacters = Array(target)
-    var levenshteinDistance = computeLevenshteinDistance(sourceCharacters, targetCharacters)
+    var sourceCharacters = Array(source.characters)
+    var targetCharacters = Array(target.characters)
+    var levenshteinDistance = computeLevenshteinDistance(sourceCharacters, target: targetCharacters)
     return 1.0 - (Double(levenshteinDistance)/Double(max(sourceCharacters.count, targetCharacters.count)))
 }
 
 func computeLevenshteinDistance(source: String, target: String) -> Int {
-    return computeLevenshteinDistance(Array(source), Array(target))
+    return computeLevenshteinDistance(Array(source.characters), target: Array(target.characters))
 }
 
 private func computeLevenshteinDistance(source: [Character], target: [Character]) -> Int {
@@ -34,14 +34,14 @@ private func computeLevenshteinDistance(source: [Character], target: [Character]
         newCost[0] = j - 1
         
         for i in 1..<sourceLength {
-            var match = (source[i - 1] == target[j - 1]) ? 0 : 1
-            var costReplace = cost[i - 1] + match
-            var costInsert = cost[i] + 1
-            var costDelete = newCost[i - 1] + 1
+            let match = (source[i - 1] == target[j - 1]) ? 0 : 1
+            let costReplace = cost[i - 1] + match
+            let costInsert = cost[i] + 1
+            let costDelete = newCost[i - 1] + 1
             newCost[i] = min(min(costInsert, costDelete), costReplace)
         }
         
-        var swap: [Int] = cost
+        let swap: [Int] = cost
         cost = newCost
         newCost = swap
     }

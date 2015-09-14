@@ -18,7 +18,7 @@ class BoyerMoorePattern {
 
         // Cache the length of the search pattern because we're going to
         // use it a few times and it's expensive to calculate.
-        self.patternLength = count(pattern)
+        self.patternLength = pattern.characters.count
         if self.patternLength == 0 {
             NSLog("Pattern length is zero: \(pattern)")
         }
@@ -26,7 +26,7 @@ class BoyerMoorePattern {
         // Make the skip table. This table determines how many times successor()
         // needs to be called when a character from the pattern is found.
         self.skipTable = [Character: Int]()
-        for (i, c) in enumerate(pattern) {
+        for (i, c) in pattern.characters.enumerate() {
             skipTable[c] = patternLength - i - 1
         }
     }
@@ -40,7 +40,7 @@ extension String {
         // The pattern is scanned right-to-left, so skip ahead in the string by
         // the length of the pattern. (Minus 1 because startIndex already points
         // at the first character in the source string.)
-        var i = advance(self.startIndex, bmp.patternLength - 1, self.endIndex)
+        var i = self.startIndex.advancedBy(bmp.patternLength - 1, limit: self.endIndex)
         
         // Keep going until the end of the string is reached.
         while i < self.endIndex {
@@ -74,7 +74,7 @@ extension String {
                 // pattern, we can skip ahead by the full pattern length. But if the 
                 // character *is* present in the pattern, there may be a match up ahead 
                 // and we can't skip as far.
-                i = advance(i, bmp.skipTable[self[i]] ?? bmp.patternLength, self.endIndex)
+                i = i.advancedBy(bmp.skipTable[self[i]] ?? bmp.patternLength, limit: self.endIndex)
             }
         }
         return nil

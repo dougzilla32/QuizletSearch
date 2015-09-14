@@ -33,8 +33,9 @@ class DropboxSession {
     // force_reapprove  : true or false
     // disable_signup   : true or false
     //
+    @available(iOS 8.0, *)
     func authorizeURL() -> NSURL {
-        var url = NSURLComponents()
+        let url = NSURLComponents()
         url.scheme = "https"
         url.host = "www.dropbox.com"
         url.path = "/1/oauth2/authorize"
@@ -55,25 +56,26 @@ class DropboxSession {
     // uid          : user id
     // state        : should match state from request
     //
+    @available(iOS 8.0, *)
     func acquireAccessToken(url: NSURL) {
         // The URL fragment contains the "/1/oauth2/authorize" response parameters
-        var fragment = url.fragment
+        let fragment = url.fragment
         if (fragment == nil) {
             NSLog("Fragment is missing from authorize response: \(url)")
             return
         }
         
         // Parse the response parameters
-        var parseFragment = NSURLComponents()
+        let parseFragment = NSURLComponents()
         parseFragment.percentEncodedQuery = fragment
         var responseParams = [String: String]()
         for item in parseFragment.queryItems! {
-            var queryItem = item as! NSURLQueryItem
+            let queryItem = item 
             responseParams[queryItem.name] = queryItem.value
         }
         
         // Check the state to prevent cross-site request forgery (CSRF) attacks
-        var state = responseParams["state"]
+        let state = responseParams["state"]
         if (state == nil) {
             NSLog("Parameter \"state\" missing from authorize response: \(url)")
             return
@@ -84,10 +86,10 @@ class DropboxSession {
         }
         
         // Check if the response contains an error message
-        var responseError = responseParams["error"]
+        let responseError = responseParams["error"]
         if (responseError != nil) {
             NSLog("Error: \(responseError!)")
-            var responseErrorDescription = responseParams["error_description"]
+            let responseErrorDescription = responseParams["error_description"]
             if (responseErrorDescription != nil) {
                 NSLog(responseErrorDescription!.stringByReplacingOccurrencesOfString("+", withString: " "))
             }
@@ -95,18 +97,18 @@ class DropboxSession {
         }
         
         // Sanity check the response parameters
-        var accessToken = responseParams["access_token"]
+        let accessToken = responseParams["access_token"]
         if (accessToken == nil) {
             NSLog("Parameter \"access_token\" missing from authorize response: \(url)")
             return
         }
-        var tokenType = responseParams["token_type"]
+        let tokenType = responseParams["token_type"]
         if (tokenType != "bearer") {
             NSLog("Unexpected token type \"\(tokenType)\" in authorize response: \(url)")
             return
         }
         
         dropboxAccessToken = accessToken
-        println("We have the access token!  Success! \(accessToken!)")
+        print("We have the access token!  Success! \(accessToken!)")
     }
 }

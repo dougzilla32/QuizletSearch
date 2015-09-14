@@ -114,7 +114,7 @@ class Common {
                 if let textField = subview as? UITextField {
                     return textField
                 }
-                var textField = Common.findTextField(subview)
+                let textField = Common.findTextField(subview)
                 if (textField != nil) {
                     return textField
                 }
@@ -124,24 +124,24 @@ class Common {
     }
     
     class func toUppercase(c: Character) -> Character {
-        var up = String(c).uppercaseString
+        let up = String(c).uppercaseString
         return up[up.startIndex]
     }
     
     class func isWhitespace(c: Character) -> Bool {
-        var s = String(c)
-        var uc = s.utf16[s.utf16.startIndex] as unichar
+        let s = String(c)
+        let uc = s.utf16[s.utf16.startIndex] as unichar
         return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(uc)
     }
     
-    class func firstNonWhitespaceCharacter(var text: String) -> Character? {
+    class func firstNonWhitespaceCharacter(text: String) -> Character? {
         // Not sure which way is more efficient, have not timed it yet -- Swift strings can be slow
         // text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
         // return !text.isEmpty ? text[text.startIndex] : nil
 
         var firstCharacter: Character? = nil
         for (var index = text.startIndex; index != text.endIndex; index = index.successor()) {
-            var c = text[index]
+            let c = text[index]
             if (!Common.isWhitespace(c)) {
                 firstCharacter = c
                 break
@@ -172,8 +172,8 @@ class StringWithBoundaries {
     func characterRangesToUnicharRanges(characterRanges: [NSRange]) -> [NSRange] {
         var unicharRanges = [NSRange]()
         for cr in characterRanges {
-            var start = characterBoundaries[cr.location]
-            var end = characterBoundaries[cr.location + cr.length]
+            let start = characterBoundaries[cr.location]
+            let end = characterBoundaries[cr.location + cr.length]
             unicharRanges.append(NSMakeRange(start, end - start))
         }
         return unicharRanges
@@ -272,7 +272,7 @@ extension String {
     }
     
     func isWhitespace() -> Bool {
-        var string = self as NSString
+        let string = self as NSString
         for i in 0..<string.length {
             if (!StringAndIndex.isWhitespace(string.characterAtIndex(i))) {
                 return false
@@ -283,7 +283,7 @@ extension String {
     
     // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
     // TODO: search for all occurances, not just first occurance 
-    static func characterRangesOfUnichars(sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSStringCompareOptions = NSStringCompareOptions(0)) -> [NSRange] {
+    static func characterRangesOfUnichars(sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSStringCompareOptions = NSStringCompareOptions(rawValue: 0)) -> [NSRange] {
         
         var source = StringAndIndex(string: sourceString, options: options)
         let target = StringAndIndex(string: targetString, options: options)
@@ -297,8 +297,8 @@ extension String {
         while ((source.string.nsString.length - source.unicharIndex) >= target.string.nsString.length) {
         // while (!source.isEnd()) {
             if (source.currentUnichar() == firstTargetCharacter) {
-                var sourceSubstring = StringAndIndex(stringAndIndex: source)
-                var targetSubstring = StringAndIndex(stringAndIndex: target)
+                let sourceSubstring = StringAndIndex(stringAndIndex: source)
+                let targetSubstring = StringAndIndex(stringAndIndex: target)
                 
                 sourceSubstring.advance()
                 targetSubstring.advance()
@@ -330,7 +330,7 @@ extension String {
     }
 
     func decomposeAndNormalize() -> StringWithBoundaries {
-        var from = self.decomposedStringWithCanonicalMapping as NSString
+        let from = self.decomposedStringWithCanonicalMapping as NSString
         var to = [unichar]()
         var boundaries = [Int]()
         
@@ -338,7 +338,7 @@ extension String {
         var boundaryIndex = 0
         while (index < from.length) {
             boundaries.append(boundaryIndex)
-            var sequenceLength = from.rangeOfComposedCharacterSequenceAtIndex(index).length
+            let sequenceLength = from.rangeOfComposedCharacterSequenceAtIndex(index).length
             for sequenceIndex in index..<(index+sequenceLength) {
                 let fromUnichar = from.characterAtIndex(sequenceIndex)
                 let normalizedUnichars = String.normalizeTable[fromUnichar]

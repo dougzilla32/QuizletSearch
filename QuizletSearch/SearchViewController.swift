@@ -30,7 +30,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var searchTerms = SortedTerms<SearchTerm>()
     
     @IBAction func sortStyleChanged(sender: AnyObject) {
-        executeSearchForQuery(searchBar.text)
+        if #available(iOS 8.0, *) {
+            executeSearchForQuery(searchBar.text)
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     func currentSortSelection() -> SortSelection {
@@ -41,7 +45,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     // called when text changes (including clear)
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-        executeSearchForQuery(searchBar.text)
+        if #available(iOS 8.0, *) {
+            executeSearchForQuery(searchBar.text)
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     // Have the keyboard close when 'Return' is pressed
@@ -63,13 +71,17 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return true
     }
     
-    override func supportedInterfaceOrientations() -> Int {
-        return Int(UIInterfaceOrientationMask.All.rawValue)
+    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
+        return UIInterfaceOrientationMask.All
     }
 
     override func loadView() {
         super.loadView()
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
+        if #available(iOS 8.0, *) {
+            (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
+        } else {
+            // Fallback on earlier versions
+        }
     }
 
     override func viewDidLoad() {
@@ -79,7 +91,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         tableView.allowsSelection = false
         
         // Dismiss keyboard when user touches the table
-        var gestureRecognizer = UITapGestureRecognizer(target: self,  action: "hideKeyboard:")
+        let gestureRecognizer = UITapGestureRecognizer(target: self,  action: "hideKeyboard:")
         gestureRecognizer.cancelsTouchesInView = false
         tableView.addGestureRecognizer(gestureRecognizer)
         
@@ -100,7 +112,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
         sortedTerms = SearchViewController.initSortedTerms()
-        executeSearchForQuery(searchBar.text)
+        if #available(iOS 8.0, *) {
+            executeSearchForQuery(searchBar.text)
+        } else {
+            // Fallback on earlier versions
+        }
         
         // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
@@ -139,7 +155,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         // TODO: set the font for the text field as follows after upgrading to XCode 7
         // UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.Type]).font = UIFont(name: "Helvetica", size: 24)
-        var searchTextField = Common.findTextField(self.searchBar)
+        let searchTextField = Common.findTextField(self.searchBar)
         searchTextField?.font = preferredSearchFont
         searchTextField?.autocapitalizationType = UITextAutocapitalizationType.None
         searchTextField?.enablesReturnKeyAutomatically = false
@@ -159,7 +175,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     // MARK: - Search View Controller
     
     @IBAction func unwindToSearchView(segue: UIStoryboardSegue) {
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
+     if #available(iOS 8.0, *) {
+            (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     deinit {
@@ -187,17 +207,20 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func refreshTable() {
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
-            self.refreshControl.endRefreshing()
-        })
+      if #available(iOS 8.0, *) {
+            (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
+                self.refreshControl.endRefreshing()
+            })
+        } else {
+            // Fallback on earlier versions
+        }
     }
     
     // call back function by saveContext, support multi-thread
     func contextDidSaveNotification(notification: NSNotification) {
-        let sender = notification.object as! NSManagedObjectContext
         let info = notification.userInfo! as [NSObject: AnyObject]
 
-        var termsChanged = SearchViewController.containsTerms(info[NSInsertedObjectsKey] as? NSSet)
+        let termsChanged = SearchViewController.containsTerms(info[NSInsertedObjectsKey] as? NSSet)
             || SearchViewController.containsTerms(info[NSDeletedObjectsKey] as? NSSet)
             || SearchViewController.containsTerms(info[NSUpdatedObjectsKey] as? NSSet)
 
@@ -228,12 +251,16 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             }
             */
             
-            var sortedTerms = SearchViewController.initSortedTerms()
+            let sortedTerms = SearchViewController.initSortedTerms()
             
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
             dispatch_sync(dispatch_get_main_queue(), {
                 self.sortedTerms = sortedTerms
-                self.executeSearchForQuery(self.searchBar.text)
+                if #available(iOS 8.0, *) {
+                    self.executeSearchForQuery(self.searchBar.text)
+                } else {
+                    // Fallback on earlier versions
+                }
             });
         }
     }
@@ -243,7 +270,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             return false
         }
         for object in managedObjectSet! {
-            var managedObject = object as! NSManagedObject
+            let managedObject = object as! NSManagedObject
             if (managedObject.entity.name == "QuizletSet" || managedObject.entity.name == "Term") {
                 return true
             }
@@ -261,11 +288,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
         if let filter = dataModel.currentUser?.currentFilter {
             for set in filter.sets {
-                var quizletSet = set as! QuizletSet
+                let quizletSet = set as! QuizletSet
                 var termsForSet = [SortTerm]()
                 
                 for term in quizletSet.terms {
-                    var term = SortTerm(term: term as! Term)
+                    let term = SortTerm(term: term as! Term)
                     AtoZterms.append(term)
                     termsForSet.append(term)
                 }
@@ -274,19 +301,19 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 bySet.append(SortSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
 
                 // Use alphabetically sorted terms for 'bySetAtoZ'
-                sort(&termsForSet, termComparator)
+                termsForSet.sortInPlace(termComparator)
                 bySetAtoZ.append(SortSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
             }
             
             AtoZ = collateAtoZ(AtoZterms)
             // sort(&AtoZterms, termComparator)
             
-            sort(&bySet, { (s1: SortSet<SortTerm>, s2: SortSet<SortTerm>) -> Bool in
+            bySet.sortInPlace({ (s1: SortSet<SortTerm>, s2: SortSet<SortTerm>) -> Bool in
                 return s1.createdDate > s2.createdDate
             })
             
-            sort(&bySetAtoZ, { (s1: SortSet<SortTerm>, s2: SortSet<SortTerm>) -> Bool in
-                return s1.title.compare(s2.title, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch) != .OrderedDescending
+            bySetAtoZ.sortInPlace({ (s1: SortSet<SortTerm>, s2: SortSet<SortTerm>) -> Bool in
+                return s1.title.compare(s2.title, options: [NSStringCompareOptions.CaseInsensitiveSearch, NSStringCompareOptions.NumericSearch]) != .OrderedDescending
             })
         }
         
@@ -294,7 +321,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     class func collateAtoZ(var AtoZterms: [SortTerm]) -> [SortSet<SortTerm>] {
-        sort(&AtoZterms, termComparator)
+        AtoZterms.sortInPlace(termComparator)
 
         var currentCharacter: Character? = nil
         var currentTerms: [SortTerm]? = nil
@@ -314,9 +341,9 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 
                 // Use '9' as the index view title for all numbers greater than 9
                 if "0"..."9" ~= firstCharacter {
-                    var next = text.startIndex.successor()
+                    let next = text.startIndex.successor()
                     if (next != text.endIndex) {
-                        var secondCharacter = text[next]
+                        let secondCharacter = text[next]
                         if ("0"..."9" ~= secondCharacter) {
                             firstCharacter = "9"
                         }
@@ -344,13 +371,13 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     class func termComparator(t1: SortTerm, t2: SortTerm) -> Bool {
-        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch)) {
+        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: [NSStringCompareOptions.CaseInsensitiveSearch, NSStringCompareOptions.NumericSearch])) {
         case .OrderedAscending:
             return true
         case .OrderedDescending:
             return false
         case .OrderedSame:
-            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: NSStringCompareOptions.CaseInsensitiveSearch | NSStringCompareOptions.NumericSearch) != .OrderedDescending
+            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: [NSStringCompareOptions.CaseInsensitiveSearch, NSStringCompareOptions.NumericSearch]) != .OrderedDescending
         }
     }
     
@@ -362,10 +389,11 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     var currentSearchOperation: SearchOperation?
     
-    func executeSearchForQuery(var query: String) {
+    @available(iOS 8.0, *)
+    func executeSearchForQuery(query: String?) {
         currentSearchOperation?.cancel()
         
-        let searchOp = SearchOperation(query: query, sortSelection: currentSortSelection(), sortedTerms: sortedTerms)
+        let searchOp = SearchOperation(query: query == nil ? "" : query!, sortSelection: currentSortSelection(), sortedTerms: sortedTerms)
         searchOp.qualityOfService = NSQualityOfService.UserInitiated
 
         searchOp.completionBlock = {
@@ -403,7 +431,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
-        if let path = tableView.indexPathForSelectedRow() {
+        if let path = tableView.indexPathForSelectedRow {
             tableView.deselectRowAtIndexPath(path, animated: true)
         }
     }
@@ -517,7 +545,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         headerSizingCell.setNeedsLayout()
         headerSizingCell.layoutIfNeeded()
         
-        var size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+        let size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
         return size.height + 1.0 // Add 1.0 for the cell separator height
     }
 
@@ -532,7 +560,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             headerSizingCell.setNeedsLayout()
             headerSizingCell.layoutIfNeeded()
             
-            var size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+            let size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
             estimatedHeaderHeight = size.height + 1.0 // Add 1.0 for the cell separator height
         }
         
@@ -544,10 +572,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     lazy var highlightBackgroundColor = UIColor(red: 163.0 / 255.0, green: 205.0 / 255.0, blue: 254.0 / 255.0, alpha: 1.0)
     
     func configureCell(cell: SearchTableViewCell, atIndexPath indexPath: NSIndexPath) {
-        var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+        let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
         
-        var termForDisplay = searchTerm.sortTerm.termForDisplay.string
-        var termText = NSMutableAttributedString(string: termForDisplay)
+        let termForDisplay = searchTerm.sortTerm.termForDisplay.string
+        let termText = NSMutableAttributedString(string: termForDisplay)
         for range in searchTerm.termRanges {
             termText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
             termText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
@@ -555,8 +583,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         cell.termLabel!.font = preferredSearchFont
         cell.termLabel!.attributedText = termText
         
-        var definitionForDisplay = searchTerm.sortTerm.definitionForDisplay.string
-        var definitionText = NSMutableAttributedString(string: definitionForDisplay)
+        let definitionForDisplay = searchTerm.sortTerm.definitionForDisplay.string
+        let definitionText = NSMutableAttributedString(string: definitionForDisplay)
         for range in searchTerm.definitionRanges {
             definitionText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
             definitionText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
@@ -564,7 +592,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         cell.definitionLabel!.font = preferredSearchFont
         cell.definitionLabel!.attributedText = definitionText
         
-        var hasImage = false || false
+        let hasImage = false || false
         if (hasImage) {
             cell.accessoryView = UIImageView(image: nil)
         }
@@ -588,7 +616,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         sizingCell.setNeedsLayout()
         sizingCell.layoutIfNeeded()
         
-        var size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+        let size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
         return size.height + 1.0 // Add 1.0 for the cell separator height
     }
 
@@ -608,7 +636,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             sizingCell.setNeedsLayout()
             sizingCell.layoutIfNeeded()
             
-            var size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+            let size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
             estimatedHeight = size.height + 1.0 // Add 1.0 for the cell separator height
         }
             
@@ -616,7 +644,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     class func truncateText(var text: String, toLength: Int) -> String {
-        var index = advance(text.startIndex, toLength, text.endIndex)
+        let index = text.startIndex.advancedBy(toLength, limit: text.endIndex)
         if (index != text.endIndex) {
             text = text.substringToIndex(index)
             text = "\(text)..."
@@ -625,7 +653,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
 
     // returns the indexed titles that appear in the index list on the right side of the table view. For example, you can return an array of strings containing “A” to “Z”.
-    func sectionIndexTitlesForTableView(tableView: UITableView) -> [AnyObject]! {
+    func sectionIndexTitlesForTableView(tableView: UITableView) -> [String]? {
         var titles: [String]?
         
         switch (currentSortSelection()) {
@@ -635,7 +663,10 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 titles!.append(section.title)
             }
         case .BySet:
-            titles = nil
+            titles = []
+            for _ in searchTerms.bySetAtoZ {
+                titles!.append(".")
+            }
         case .BySetAtoZ:
             titles = []
             for section in searchTerms.bySetAtoZ {

@@ -11,6 +11,7 @@ import Foundation
 
 class LoginViewController: UIViewController {
     
+    @available(iOS 8.0, *)
     @IBAction func proceedAsGuest(sender: AnyObject) {
         
         var alertController:UIAlertController?
@@ -19,25 +20,25 @@ class LoginViewController: UIViewController {
             preferredStyle: .Alert)
         
         alertController!.addTextFieldWithConfigurationHandler(
-            {(textField: UITextField!) in
+            {(textField: UITextField) in
                 textField.placeholder = "Username"
         })
         
         let proceed = UIAlertAction(title: "Proceed",
             style: UIAlertActionStyle.Default,
-            handler: {[weak self]
+            handler: {
                 (paramAction:UIAlertAction!) in
                 if let textFields = alertController?.textFields {
-                    let theTextFields = textFields as! [UITextField]
+                    let theTextFields = textFields
                     let enteredText = theTextFields[0].text
-                    println("Text: \(enteredText)")
+                    print("Text: \(enteredText)")
                     (UIApplication.sharedApplication().delegate as! AppDelegate).proceedAsGuest(enteredText)
                 }
-            })
+        })
         
         let cancel = UIAlertAction(title: "Cancel",
             style: UIAlertActionStyle.Default,
-            handler: {[weak self]
+            handler: {
                 (paramAction:UIAlertAction!) in
             })
         
@@ -49,8 +50,9 @@ class LoginViewController: UIViewController {
             completion: nil)
     }
 
+    @available(iOS 8.0, *)
     @IBAction func loginAction(sender: UIButton) {
-        var appDelegate = (UIApplication.sharedApplication().delegate as! AppDelegate)
+        let appDelegate = (UIApplication.sharedApplication().delegate as! AppDelegate)
         UIApplication.sharedApplication().openURL(appDelegate.quizletSession.authorizeURL())
     }
     
@@ -58,8 +60,8 @@ class LoginViewController: UIViewController {
         return true
     }
     
-    override func supportedInterfaceOrientations() -> Int {
-        return Int(UIInterfaceOrientationMask.All.rawValue)
+    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
+        return UIInterfaceOrientationMask.All
     }
 
     override func loadView() {

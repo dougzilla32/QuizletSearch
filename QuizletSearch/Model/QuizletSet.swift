@@ -32,7 +32,7 @@ class QuizletSet: NSManagedObject {
         
         var newTerms = [Term]()
         for qterm in qset.terms {
-            var term = NSEntityDescription.insertNewObjectForEntityForName("Term",
+            let term = NSEntityDescription.insertNewObjectForEntityForName("Term",
                 inManagedObjectContext: moc) as! Term
             term.initFrom(qterm)
             term.set = self
@@ -66,12 +66,12 @@ class QuizletSet: NSManagedObject {
         }
         
         // Update the terms
-        var minCount = min(self.terms.count, qset.terms.count)
+        let minCount = min(self.terms.count, qset.terms.count)
         var updateFromHere = minCount
         
         // Compare terms until we find the first mismatch
         for i in 0 ..< minCount {
-            var term = self.terms[i] as! Term
+            let term = self.terms[i] as! Term
             if (term.id != qset.terms[i].id || term.term != qset.terms[i].term || term.definition != qset.terms[i].definition) {
                 updateFromHere = i
                 break
@@ -81,12 +81,12 @@ class QuizletSet: NSManagedObject {
         if (updateFromHere < self.terms.count || updateFromHere < qset.terms.count) {
             // Update terms
             for i in updateFromHere ..< minCount {
-                var term = self.terms[i] as! Term
+                let term = self.terms[i] as! Term
                 term.copyFrom(qset.terms[i])
             }
             
             if (self.terms.count > minCount || qset.terms.count > minCount) {
-                var mutableItems = self.terms.mutableCopy() as! NSMutableOrderedSet
+                let mutableItems = self.terms.mutableCopy() as! NSMutableOrderedSet
 
                 // Delete extra terms (if any)
                 for var i = self.terms.count - 1; i >= minCount; i-- {
@@ -96,7 +96,7 @@ class QuizletSet: NSManagedObject {
                 
                 // Append new terms (if any)
                 for i in minCount ..< qset.terms.count {
-                    var term = NSEntityDescription.insertNewObjectForEntityForName("Term",
+                    let term = NSEntityDescription.insertNewObjectForEntityForName("Term",
                         inManagedObjectContext: moc) as! Term
                     term.initFrom(qset.terms[i])
                     term.set = self

@@ -114,8 +114,8 @@ class SearchOperation: NSOperation {
         updateSearchTermsForQuery(query)
     }
     
-    func updateSearchTermsForQuery(var queryString: String) {
-        var query = queryString.lowercaseString.decomposeAndNormalize()
+    func updateSearchTermsForQuery(queryString: String) {
+        let query = queryString.lowercaseString.decomposeAndNormalize()
         
         if (self.cancelled) {
             return
@@ -141,15 +141,15 @@ class SearchOperation: NSOperation {
                 searchTerms.append(SearchTerm(sortTerm: term))
             }
         } else {
-            var options = NSStringCompareOptions.WhitespaceInsensitiveSearch
+            let options = NSStringCompareOptions.WhitespaceInsensitiveSearch
             
             for term in terms {
                 if (self.cancelled) {
                     return []
                 }
                 
-                var termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
-                var definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
+                let termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
+                let definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
                 
                 if (termRanges.count > 0 || definitionRanges.count > 0) {
                     searchTerms.append(SearchTerm(sortTerm: term,
@@ -181,9 +181,9 @@ class SearchOperation: NSOperation {
                         return []
                     }
                     
-                    var options = NSStringCompareOptions.WhitespaceInsensitiveSearch
-                    var termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
-                    var definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
+                    let options = NSStringCompareOptions.WhitespaceInsensitiveSearch
+                    let termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
+                    let definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
                     
                     if (termRanges.count > 0 || definitionRanges.count > 0) {
                         termsForSet.append(SearchTerm(sortTerm: term,
@@ -205,8 +205,8 @@ class SearchOperation: NSOperation {
         var levenshteinMatch: [SearchTerm] = []
         if (!query.isWhitespace()) {
             for sortTerm in sortTerms {
-                var termScore = computeLevenshteinScore(query, sortTerm.termForDisplay.string)
-                var definitionScore = computeLevenshteinScore(query, sortTerm.definitionForDisplay.string)
+                let termScore = computeLevenshteinScore(query, target: sortTerm.termForDisplay.string)
+                let definitionScore = computeLevenshteinScore(query, target: sortTerm.definitionForDisplay.string)
                 
                 if (termScore > 0.70 || definitionScore > 0.70) {
                     levenshteinMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
@@ -220,9 +220,9 @@ class SearchOperation: NSOperation {
         var stringScoreMatch: [SearchTerm] = []
         if (!query.isWhitespace()) {
             for sortTerm in sortTerms {
-                var lowercaseQuery = query.lowercaseString
-                var termScore = sortTerm.termForDisplay.string.scoreAgainst(lowercaseQuery)
-                var definitionScore = sortTerm.definitionForDisplay.string.scoreAgainst(lowercaseQuery)
+                let lowercaseQuery = query.lowercaseString
+                let termScore = sortTerm.termForDisplay.string.scoreAgainst(lowercaseQuery)
+                let definitionScore = sortTerm.definitionForDisplay.string.scoreAgainst(lowercaseQuery)
                 
                 if (termScore > 0.70 || definitionScore > 0.70) {
                     stringScoreMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
