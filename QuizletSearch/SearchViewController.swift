@@ -540,8 +540,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         
     }
     
-    lazy var highlightColor =
-        UIColor(red: 163.0 / 255.0, green: 205.0 / 255.0, blue: 254.0 / 255.0, alpha: 1.0)
+    lazy var highlightForegroundColor = UIColor(red: 25.0 / 255.0, green: 86.0 / 255.0, blue: 204.0 / 255.0, alpha: 1.0)
+    lazy var highlightBackgroundColor = UIColor(red: 163.0 / 255.0, green: 205.0 / 255.0, blue: 254.0 / 255.0, alpha: 1.0)
     
     func configureCell(cell: SearchTableViewCell, atIndexPath indexPath: NSIndexPath) {
         var searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
@@ -550,7 +550,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var termText = NSMutableAttributedString(string: termForDisplay)
         for range in searchTerm.termRanges {
             termText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
-            // termText.addAttribute(NSBackgroundColorAttributeName, value: highlightColor, range: range)
+            termText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
         }
         cell.termLabel!.font = preferredSearchFont
         cell.termLabel!.attributedText = termText
@@ -559,7 +559,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var definitionText = NSMutableAttributedString(string: definitionForDisplay)
         for range in searchTerm.definitionRanges {
             definitionText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
-            // definitionText.addAttribute(NSBackgroundColorAttributeName, value: highlightColor, range: range)
+            definitionText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
         }
         cell.definitionLabel!.font = preferredSearchFont
         cell.definitionLabel!.attributedText = definitionText
@@ -637,7 +637,14 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         case .BySet:
             titles = nil
         case .BySetAtoZ:
-            titles = nil
+            titles = []
+            for section in searchTerms.bySetAtoZ {
+                var firstCharacter = Common.firstNonWhitespaceCharacter(section.title)
+                if (firstCharacter == nil) {
+                    firstCharacter = " "
+                }
+                titles!.append("\(firstCharacter!)")
+            }
         }
         
         return titles

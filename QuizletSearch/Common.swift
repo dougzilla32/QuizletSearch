@@ -41,7 +41,17 @@ class Common {
         case UIContentSizeCategoryExtraExtraLarge:
             fontSize = 18.0
         case UIContentSizeCategoryExtraExtraExtraLarge:
-            fontSize = 18.0
+            fontSize = 20.0
+        case UIContentSizeCategoryAccessibilityMedium:
+            fontSize = 24.0
+        case UIContentSizeCategoryAccessibilityLarge:
+            fontSize = 28.0
+        case UIContentSizeCategoryAccessibilityExtraLarge:
+            fontSize = 32.0
+        case UIContentSizeCategoryAccessibilityExtraExtraLarge:
+            fontSize = 36.0
+        case UIContentSizeCategoryAccessibilityExtraExtraExtraLarge:
+            fontSize = 40.0
         default:
             fontSize = 12.0
         }
@@ -53,7 +63,7 @@ class Common {
         // NSLog("%@", UIFont.fontNamesForFamilyName("Arial"))
         
         // choose the font size
-        let fontSize: CGFloat = preferredSearchFontSize()
+        let fontSize: CGFloat = preferredSearchFontSize(textStyle)
         
         // choose the font weight
         if (textStyle == UIFontTextStyleHeadline || textStyle == UIFontTextStyleSubheadline) {
@@ -63,7 +73,7 @@ class Common {
         }
     }
     
-    class func preferredSearchFontSize() -> CGFloat {
+    class func preferredSearchFontSize(textStyle: String) -> CGFloat {
         let fontSize: CGFloat
         
         switch (UIApplication.sharedApplication().preferredContentSizeCategory) {
@@ -81,6 +91,16 @@ class Common {
             fontSize = 22.0
         case UIContentSizeCategoryExtraExtraExtraLarge:
             fontSize = 24.0
+        case UIContentSizeCategoryAccessibilityMedium:
+            fontSize = 28.0
+        case UIContentSizeCategoryAccessibilityLarge:
+            fontSize = 32.0
+        case UIContentSizeCategoryAccessibilityExtraLarge:
+            fontSize = 36.0
+        case UIContentSizeCategoryAccessibilityExtraExtraLarge:
+            fontSize = 40.0
+        case UIContentSizeCategoryAccessibilityExtraExtraExtraLarge:
+            fontSize = 44.0
         default:
             fontSize = 16.0
         }
@@ -115,11 +135,10 @@ class Common {
     }
     
     class func firstNonWhitespaceCharacter(var text: String) -> Character? {
-        text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
-        return !text.isEmpty ? text[text.startIndex] : nil
-
         // Not sure which way is more efficient, have not timed it yet -- Swift strings can be slow
-        /*
+        // text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+        // return !text.isEmpty ? text[text.startIndex] : nil
+
         var firstCharacter: Character? = nil
         for (var index = text.startIndex; index != text.endIndex; index = index.successor()) {
             var c = text[index]
@@ -130,7 +149,6 @@ class Common {
         }
 
         return firstCharacter
-        */
     }
 }
 
