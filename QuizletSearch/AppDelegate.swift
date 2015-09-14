@@ -97,18 +97,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                 self.refreshAndRestartTimer(allowCellularAccess: true)
             }
             else {
-                quizletSession.acquireAccessToken(url,
-                    completionHandler: { (userAccount: UserAccount?, error: NSError?) in
-                        if let err = error {
-                            let alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
-                            alert.show()
-                            // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
-                        } else {
-                            self.dataModel.addOrUpdateUser(userAccount!)
-                            self.saveContext()
-                            self.refreshAndRestartTimer(allowCellularAccess: true)
-                        }
-                })
+                quizletSession.acquireAccessToken(url) {
+                    do {
+                        let userAccount = try $0()
+                        self.dataModel.addOrUpdateUser(userAccount)
+                        self.saveContext()
+                        self.refreshAndRestartTimer(allowCellularAccess: true)
+                    } catch let error as NSError {
+                        let alert = UIAlertView(title: error.localizedDescription, message: error.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
+                        alert.show()
+                        // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
+                    }
+                }
             }
 
             return true
