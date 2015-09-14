@@ -110,14 +110,13 @@ class Common {
     
     class func findTextField(view: UIView) -> UITextField? {
         for i in 0..<view.subviews.count {
-            if let subview = view.subviews[i] as? UIView {
-                if let textField = subview as? UITextField {
-                    return textField
-                }
-                let textField = Common.findTextField(subview)
-                if (textField != nil) {
-                    return textField
-                }
+            let subview = view.subviews[i]
+            if let textField = subview as? UITextField {
+                return textField
+            }
+            let textField = Common.findTextField(subview)
+            if (textField != nil) {
+                return textField
             }
         }
         return nil
@@ -282,7 +281,6 @@ extension String {
     }
     
     // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
-    // TODO: search for all occurances, not just first occurance 
     static func characterRangesOfUnichars(sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSStringCompareOptions = NSStringCompareOptions(rawValue: 0)) -> [NSRange] {
         
         var source = StringAndIndex(string: sourceString, options: options)

@@ -47,7 +47,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return true
     }
     
-    @available(iOS 8.0, *)
     func refreshAndRestartTimer(allowCellularAccess allowCellularAccess: Bool, completionHandler: (([QSet]?) -> Void)? = nil) {
         if (managedObjectContext == nil || dataModel.currentUser == nil) {
             return
@@ -80,13 +79,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     func refresh() {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
-        if #available(iOS 8.0, *) {
-            self.dataModel.refreshModelForCurrentFilter(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?) in
-                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-            })
-        } else {
-            // Fallback on earlier versions
-        }
+        self.dataModel.refreshModelForCurrentFilter(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?) in
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        })
     }
     
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
@@ -99,29 +94,21 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                 let userAccount = UserAccount(accessToken: "1234", expiresIn: 3200, userName: "dougzilla32", userId: "1234")
                 self.dataModel.addOrUpdateUser(userAccount)
                 self.saveContext()
-                if #available(iOS 8.0, *) {
-                    self.refreshAndRestartTimer(allowCellularAccess: true)
-                } else {
-                    // Fallback on earlier versions
-                }
+                self.refreshAndRestartTimer(allowCellularAccess: true)
             }
             else {
-                if #available(iOS 8.0, *) {
-                    quizletSession.acquireAccessToken(url,
-                        completionHandler: { (userAccount: UserAccount?, error: NSError?) in
-                            if let err = error {
-                                let alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
-                                alert.show()
-                                // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
-                            } else {
-                                self.dataModel.addOrUpdateUser(userAccount!)
-                                self.saveContext()
-                                self.refreshAndRestartTimer(allowCellularAccess: true)
-                            }
-                    })
-                } else {
-                    // Fallback on earlier versions
-                }
+                quizletSession.acquireAccessToken(url,
+                    completionHandler: { (userAccount: UserAccount?, error: NSError?) in
+                        if let err = error {
+                            let alert = UIAlertView(title: err.localizedDescription, message: err.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
+                            alert.show()
+                            // TODO: should switch to either top-level login window or login list view here (i.e. go back) -- cannot defer switching to search view controller because the switch will fail to happen if it is attempted after the launching phase has completed.  Need to use a navigation controller or some such to make this work
+                        } else {
+                            self.dataModel.addOrUpdateUser(userAccount!)
+                            self.saveContext()
+                            self.refreshAndRestartTimer(allowCellularAccess: true)
+                        }
+                })
             }
 
             return true
@@ -136,11 +123,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: "dougzilla32", userId: "")
         self.dataModel.addOrUpdateUser(userAccount)
         self.saveContext()
-        if #available(iOS 8.0, *) {
-            self.refreshAndRestartTimer(allowCellularAccess: true)
-        } else {
-            // Fallback on earlier versions
-        }
+        self.refreshAndRestartTimer(allowCellularAccess: true)
     }
     
     func applicationWillResignActive(application: UIApplication) {

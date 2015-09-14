@@ -329,8 +329,8 @@
                         <rect key="frame" x="0.0" y="0.0" width="600" height="600"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
-                            <view contentMode="scaleToFill" misplaced="YES" translatesAutoresizingMaskIntoConstraints="NO" id="I2L-3C-vGe" userLabel="Scroll-to-top spacer">
-                                <rect key="frame" x="0.0" y="20" width="600" height="1"/>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="I2L-3C-vGe" userLabel="Scroll-to-top spacer">
+                                <rect key="frame" x="0.0" y="20" width="600" height="2"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <constraints>
                                     <constraint firstAttribute="height" constant="2" id="4mn-Gn-t0w"/>
@@ -447,8 +447,8 @@
                                     <outlet property="delegate" destination="bQl-lE-mnK" id="UTl-Nf-2n2"/>
                                 </connections>
                             </tableView>
-                            <segmentedControl opaque="NO" contentMode="scaleToFill" misplaced="YES" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bar" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="PYH-n9-IH5">
-                                <rect key="frame" x="209" y="564" width="182" height="29"/>
+                            <segmentedControl opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bar" selectedSegmentIndex="0" translatesAutoresizingMaskIntoConstraints="NO" id="PYH-n9-IH5">
+                                <rect key="frame" x="207" y="564" width="185" height="29"/>
                                 <segments>
                                     <segment title="A-Z"/>
                                     <segment title="Set"/>

@@ -8,9 +8,9 @@
 import Foundation
 
 func computeLevenshteinScore(source: String, target: String) -> Double {
-    var sourceCharacters = Array(source.characters)
-    var targetCharacters = Array(target.characters)
-    var levenshteinDistance = computeLevenshteinDistance(sourceCharacters, target: targetCharacters)
+    let sourceCharacters = Array(source.characters)
+    let targetCharacters = Array(target.characters)
+    let levenshteinDistance = computeLevenshteinDistance(sourceCharacters, target: targetCharacters)
     return 1.0 - (Double(levenshteinDistance)/Double(max(sourceCharacters.count, targetCharacters.count)))
 }
 

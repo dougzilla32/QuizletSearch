@@ -30,11 +30,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     var searchTerms = SortedTerms<SearchTerm>()
     
     @IBAction func sortStyleChanged(sender: AnyObject) {
-        if #available(iOS 8.0, *) {
-            executeSearchForQuery(searchBar.text)
-        } else {
-            // Fallback on earlier versions
-        }
+        executeSearchForQuery(searchBar.text)
     }
     
     func currentSortSelection() -> SortSelection {
@@ -45,11 +41,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     // called when text changes (including clear)
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-        if #available(iOS 8.0, *) {
-            executeSearchForQuery(searchBar.text)
-        } else {
-            // Fallback on earlier versions
-        }
+        executeSearchForQuery(searchBar.text)
     }
     
     // Have the keyboard close when 'Return' is pressed
@@ -77,11 +69,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
     override func loadView() {
         super.loadView()
-        if #available(iOS 8.0, *) {
-            (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
-        } else {
-            // Fallback on earlier versions
-        }
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
     }
 
     override func viewDidLoad() {
@@ -112,11 +100,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
         sortedTerms = SearchViewController.initSortedTerms()
-        if #available(iOS 8.0, *) {
-            executeSearchForQuery(searchBar.text)
-        } else {
-            // Fallback on earlier versions
-        }
+        executeSearchForQuery(searchBar.text)
         
         // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
         NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
@@ -153,16 +137,19 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
        
         sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], forState: UIControlState.Normal)
         
-        // TODO: set the font for the text field as follows after upgrading to XCode 7
-        // UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.Type]).font = UIFont(name: "Helvetica", size: 24)
-        let searchTextField = Common.findTextField(self.searchBar)
-        searchTextField?.font = preferredSearchFont
-        searchTextField?.autocapitalizationType = UITextAutocapitalizationType.None
-        searchTextField?.enablesReturnKeyAutomatically = false
-        // if let searchField = self.searchBar.valueForKey("_searchField") as? UITextField {
-        //     searchField.font = preferredFontForTextStyle(UIFontTextStyleBody)
+        // Update the appearance of the search bar's textfield
+        let searchTextField: UITextField
+        // appearanceWhenContainedInInstancesOfClasses causes a crash when loading the search view, not sure why this doesn't work
+        // if #available(iOS 9.0, *) {
+        //     searchTextField = UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])
+        // } else {
+            // Fallback on earlier versions
+            searchTextField = Common.findTextField(self.searchBar)!
         // }
-        
+        searchTextField.font = preferredSearchFont
+        searchTextField.autocapitalizationType = UITextAutocapitalizationType.None
+        searchTextField.enablesReturnKeyAutomatically = false
+
         self.view.setNeedsLayout()
     }
     
@@ -175,11 +162,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     // MARK: - Search View Controller
     
     @IBAction func unwindToSearchView(segue: UIStoryboardSegue) {
-     if #available(iOS 8.0, *) {
-            (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
-        } else {
-            // Fallback on earlier versions
-        }
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
     }
     
     deinit {
@@ -207,13 +190,9 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     }
     
     func refreshTable() {
-      if #available(iOS 8.0, *) {
-            (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
-                self.refreshControl.endRefreshing()
-            })
-        } else {
-            // Fallback on earlier versions
-        }
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
+            self.refreshControl.endRefreshing()
+        })
     }
     
     // call back function by saveContext, support multi-thread
@@ -256,11 +235,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
             dispatch_sync(dispatch_get_main_queue(), {
                 self.sortedTerms = sortedTerms
-                if #available(iOS 8.0, *) {
-                    self.executeSearchForQuery(self.searchBar.text)
-                } else {
-                    // Fallback on earlier versions
-                }
+                self.executeSearchForQuery(self.searchBar.text)
             });
         }
     }
@@ -389,7 +364,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     
     var currentSearchOperation: SearchOperation?
     
-    @available(iOS 8.0, *)
     func executeSearchForQuery(query: String?) {
         currentSearchOperation?.cancel()
         

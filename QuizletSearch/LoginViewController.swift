@@ -11,7 +11,6 @@ import Foundation
 
 class LoginViewController: UIViewController {
     
-    @available(iOS 8.0, *)
     @IBAction func proceedAsGuest(sender: AnyObject) {
         
         var alertController:UIAlertController?
@@ -50,7 +49,6 @@ class LoginViewController: UIViewController {
             completion: nil)
     }
 
-    @available(iOS 8.0, *)
     @IBAction func loginAction(sender: UIButton) {
         let appDelegate = (UIApplication.sharedApplication().delegate as! AppDelegate)
         UIApplication.sharedApplication().openURL(appDelegate.quizletSession.authorizeURL())

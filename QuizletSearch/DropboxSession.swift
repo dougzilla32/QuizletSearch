@@ -33,7 +33,6 @@ class DropboxSession {
     // force_reapprove  : true or false
     // disable_signup   : true or false
     //
-    @available(iOS 8.0, *)
     func authorizeURL() -> NSURL {
         let url = NSURLComponents()
         url.scheme = "https"
@@ -56,7 +55,6 @@ class DropboxSession {
     // uid          : user id
     // state        : should match state from request
     //
-    @available(iOS 8.0, *)
     func acquireAccessToken(url: NSURL) {
         // The URL fragment contains the "/1/oauth2/authorize" response parameters
         let fragment = url.fragment

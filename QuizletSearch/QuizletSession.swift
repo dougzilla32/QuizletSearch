@@ -60,7 +60,6 @@ class QuizletSession {
     // state            : arbitrary data
     // redirect_uri     : app URI
     //
-    @available(iOS 8.0, *)
     func authorizeURL() -> NSURL {
         let url = NSURLComponents()
         url.scheme = "https"
@@ -85,7 +84,6 @@ class QuizletSession {
     //
     // Include HTTP basic authorization containing the client ID and secret
     //
-    @available(iOS 8.0, *)
     func acquireAccessToken(url: NSURL,
         completionHandler: (userAccount: UserAccount?, error: NSError?) -> Void) {
             
@@ -236,7 +234,6 @@ class QuizletSession {
     //
     // Possible failures: not connected, session expired, others
     //
-    @available(iOS 8.0, *)
     func getSetsInClass(classId: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuery("/2.0/classes/\(classId)/sets", queryItems: nil, allowCellularAccess: allowCellularAccess, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
@@ -251,7 +248,6 @@ class QuizletSession {
         })
     }
     
-    @available(iOS 8.0, *)
     func searchSetsWithQuery(query: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuery("/2.0/search/sets",
             queryItems: [NSURLQueryItem(name: "q", value: query)],
@@ -268,7 +264,6 @@ class QuizletSession {
         })
     }
     
-    @available(iOS 8.0, *)
     func getFavoriteSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuery("/2.0/users/\(user)/favorites", queryItems: nil, allowCellularAccess: allowCellularAccess, jsonCallback: { (data: AnyObject?) in
             if (data == nil) {
@@ -282,7 +277,6 @@ class QuizletSession {
         })
     }
     
-    @available(iOS 8.0, *)
     func getStudiedSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuery("/2.0/users/\(user)/studied", queryItems: nil, allowCellularAccess: allowCellularAccess, 
             jsonCallback: { (data: AnyObject?) in
@@ -297,7 +291,6 @@ class QuizletSession {
         })
     }
     
-    @available(iOS 8.0, *)
     func getAllSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
 
         let queryItems: [NSURLQueryItem]? = nil
@@ -363,7 +356,6 @@ class QuizletSession {
         }
     }
     
-    @available(iOS 8.0, *)
     func invokeQuery(path: String, var queryItems: [NSURLQueryItem]?, allowCellularAccess: Bool, jsonCallback: ((AnyObject?) -> Void)) {
         let accessToken = currentUser?.accessToken
         if (accessToken == nil) {
@@ -435,7 +427,6 @@ class QuizletSession {
 }
 
 class InvokeWebService {
-    @available(iOS 8.0, *)
     class func samples() {
         // Sample call to fetch dougzilla's sets from the Quizlet
         InvokeWebService.get(scheme: "https",
@@ -460,7 +451,6 @@ class InvokeWebService {
         })
     }
     
-    @available(iOS 8.0, *)
     class func get(scheme scheme: String, host: String, path: String, queryItems: [NSURLQueryItem]?, jsonCallback: ((AnyObject) -> Void)) {
 
         let url = NSURLComponents()
@@ -493,7 +483,6 @@ class InvokeWebService {
 class GoogleTextToSpeech {
     static var player: AVAudioPlayer?
     
-    @available(iOS 8.0, *)
     class func speechFromText(text: String) {
         let url = NSURLComponents()
         url.scheme = "http"
@@ -545,7 +534,6 @@ class MicrosoftTranslateSession {
     static let microsoftTranslatorClientId = "QuizletSearch"
     static let microsoftTranslatorClientSecret = "E3iu5Ludn2SAIdeiRMRkEnoQe3Dxro/QhKZmFz36gow="
     
-    @available(iOS 8.0, *)
     class func getMicrosoftToken() {
         let url = NSURLComponents()
         url.scheme = "https"
@@ -593,7 +581,6 @@ class MicrosoftTranslateSession {
         }).resume()
     }
     
-    @available(iOS 8.0, *)
     class func translateText(text: String, from: String, to: String, accessToken: String) {
         let url = NSURLComponents()
         url.scheme = "http"

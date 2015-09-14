@@ -180,7 +180,6 @@ class DataModel: NSObject {
         return filter
     }
     
-    @available(iOS 8.0, *)
     func refreshModelForCurrentFilter(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         if (currentUser == nil) {
             return
