@@ -122,6 +122,20 @@ class Common {
         return nil
     }
     
+    class func findTableViewIndex(view: UIView) -> UIView? {
+        for i in 0..<view.subviews.count {
+            let subview = view.subviews[i]
+            if (subview.dynamicType.description() == "UITableViewIndex") {
+                return subview
+            }
+            let tableViewIndex = Common.findTableViewIndex(subview)
+            if (tableViewIndex != nil) {
+                return tableViewIndex
+            }
+        }
+        return nil
+    }
+    
     class func toUppercase(c: Character) -> Character {
         let up = String(c).uppercaseString
         return up[up.startIndex]

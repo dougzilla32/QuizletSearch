@@ -515,7 +515,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             return 0
         }
         
-        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(), CGRectGetHeight(sizingCell.bounds));
+        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(true), CGRectGetHeight(sizingCell.bounds));
         headerSizingCell.setNeedsLayout()
         headerSizingCell.layoutIfNeeded()
         
@@ -530,7 +530,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             headerSizingCell.headerLabel!.font = preferredSearchFont
             headerSizingCell.headerLabel!.text = "Header"
             
-            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(), CGRectGetHeight(sizingCell.bounds));
+            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(false), CGRectGetHeight(sizingCell.bounds));
             headerSizingCell.setNeedsLayout()
             headerSizingCell.layoutIfNeeded()
             
@@ -539,7 +539,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
         
         return estimatedHeaderHeight!
-        
     }
     
     lazy var highlightForegroundColor = UIColor(red: 25.0 / 255.0, green: 86.0 / 255.0, blue: 204.0 / 255.0, alpha: 1.0)
@@ -586,7 +585,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         configureCell(sizingCell, atIndexPath:indexPath)
         
-        sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(), CGRectGetHeight(sizingCell.bounds));
+        sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(true), CGRectGetHeight(sizingCell.bounds));
         sizingCell.setNeedsLayout()
         sizingCell.layoutIfNeeded()
         
@@ -606,7 +605,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             sizingCell.definitionLabel!.font = preferredSearchFont
             sizingCell.definitionLabel!.text = "Definition"
             
-            sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(), CGRectGetHeight(sizingCell.bounds));
+            sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(false), CGRectGetHeight(sizingCell.bounds));
             sizingCell.setNeedsLayout()
             sizingCell.layoutIfNeeded()
             
@@ -660,24 +659,57 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return index
     }
     
-    func getIndexViewWidth() -> CGFloat {
-        var width: CGFloat
+    // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus : 15
+    // iPad Air, Air 2, Retina : 30
+    lazy var hardcodedTableIndexViewWidth: CGFloat = {
+        let screenWidth = CGRectGetWidth(UIScreen.mainScreen().bounds)
+        let screenHeight = CGRectGetHeight(UIScreen.mainScreen().bounds)
         
-        // TODO: this width changes for different hardware configurations.  "15" works for iPhone 6.
-        switch (currentSortSelection()) {
-        case .AtoZ:
-            // From experimenting I know the correct value to be 15
+        let minDimension = min(screenWidth, screenHeight)
+        let maxDimension = max(screenWidth, screenHeight)
+        
+        if (maxDimension < 850) {
+            // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus
+            
+            // From experimenting on iPhone I know the correct value to be 15
             // smaller values fail for "used... 를" (2nd largest font size)
             // width = 14: fails for "comes after the *noun*..." (2nd largest font size)
-            width = 15 // OK!
-            // width = 16 // fails for "attached to a place and indicates going to a destination" (largest font size)
+            // width = 15: OK!
+            // width = 16: fails for "attached to a place and indicates going to a destination" (largest font size)
             // width = 17: fails for "we went to the zoo..." (2nd largest font size)
+            
+            // From experimenting on iPhone Plus I know the correct value to be 15
+            // width = 19, 20, 21, 22, 23: fails for "I also traveled to..."
+            // width = 18: fails for user 'overlordb', term "the Chinese dynasty (from 246 BC to 206 BC)..."
+            
+            return 15
+        }
+        else {
+            // iPad Air, Air 2, Retina
+            return 30
+        }
+    }()
+    
+    var observedTableIndexViewWidth: CGFloat?
+    
+    func getIndexViewWidth(checkTableIndex: Bool) -> CGFloat {
+        if (checkTableIndex && observedTableIndexViewWidth == nil) {
+            let tableViewIndex = Common.findTableViewIndex(tableView)
+            if (tableViewIndex != nil) {
+                observedTableIndexViewWidth = CGRectGetWidth(tableViewIndex!.bounds)
+            }
+            else {
+                observedTableIndexViewWidth = 0
+            }
+        }
+        
+        var width: CGFloat
+        switch (currentSortSelection()) {
+        case .AtoZ, .BySetAtoZ:
+            width = (observedTableIndexViewWidth != nil && observedTableIndexViewWidth! != 0) ? observedTableIndexViewWidth! : hardcodedTableIndexViewWidth
         case .BySet:
             width = 0
-        case .BySetAtoZ:
-            width = 0
         }
-
         return width
     }
 

@@ -117,10 +117,14 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return false
     }
     
-    func proceedAsGuest(username: String?) {
+    func proceedAsGuest(var username: String?) {
+        if (username == nil) {
+            username = ""
+        }
+        
         self.setRootViewControllerWithIdentifier("SearchViewController")
 
-        let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: "dougzilla32", userId: "")
+        let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: username!, userId: "")
         self.dataModel.addOrUpdateUser(userAccount)
         self.saveContext()
         self.refreshAndRestartTimer(allowCellularAccess: true)

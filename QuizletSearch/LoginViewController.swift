@@ -30,7 +30,6 @@ class LoginViewController: UIViewController {
                 if let textFields = alertController?.textFields {
                     let theTextFields = textFields
                     let enteredText = theTextFields[0].text
-                    print("Text: \(enteredText)")
                     (UIApplication.sharedApplication().delegate as! AppDelegate).proceedAsGuest(enteredText)
                 }
         })
