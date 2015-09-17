@@ -636,10 +636,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
                 titles!.append(section.title)
             }
         case .BySet:
-            titles = []
-            for _ in searchTerms.bySetAtoZ {
-                titles!.append(".")
-            }
+            titles = nil
         case .BySetAtoZ:
             titles = []
             for section in searchTerms.bySetAtoZ {
