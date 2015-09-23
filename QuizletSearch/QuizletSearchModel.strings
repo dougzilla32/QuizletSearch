@@ -9,9 +9,9 @@
 "Entity/User" = "User";
 "Property/name" = "Name";
 "Property/id" = "ID";
-"Property/filters" = "Filters";
+"Property/queries" = "Queries";
 
-"Entity/Filter" = "Filter";
+"Entity/Query" = "Query";
 "Property/query" = "Query";
 "Property/title" = "Title";
 "Property/user" = "User";
@@ -23,7 +23,7 @@
 "Property/id" = "ID";
 "Property/title" = "Title";
 "Property/url" = "URL";
-"Property/filters" = "Filters";
+"Property/queries" = "Queries";
 
 "Entity/QuizletTerm" = "Quizlet Term";
 "Property/definition" = "Definition";

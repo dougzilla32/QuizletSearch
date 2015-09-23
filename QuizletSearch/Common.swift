@@ -136,6 +136,54 @@ class Common {
         return nil
     }
     
+    class func getIndexWidthForTableView(tableView: UITableView, inout observedTableIndexViewWidth: CGFloat?, checkTableIndex: Bool) -> CGFloat {
+        if (checkTableIndex && observedTableIndexViewWidth == nil) {
+            let tableViewIndex = Common.findTableViewIndex(tableView)
+            if (tableViewIndex != nil) {
+                observedTableIndexViewWidth = CGRectGetWidth(tableViewIndex!.bounds)
+            }
+            else {
+                observedTableIndexViewWidth = 0
+            }
+        }
+        
+        if let width = observedTableIndexViewWidth {
+            return (width != 0) ? width: Common.hardcodedTableIndexViewWidth
+        }
+        return Common.hardcodedTableIndexViewWidth
+    }
+    
+    // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus : 15
+    // iPad Air, Air 2, Retina : 30
+    static var hardcodedTableIndexViewWidth: CGFloat = {
+        let screenWidth = CGRectGetWidth(UIScreen.mainScreen().bounds)
+        let screenHeight = CGRectGetHeight(UIScreen.mainScreen().bounds)
+        
+        let minDimension = min(screenWidth, screenHeight)
+        let maxDimension = max(screenWidth, screenHeight)
+        
+        if (maxDimension < 850) {
+            // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus
+            
+            // From experimenting on iPhone I know the correct value to be 15
+            // smaller values fail for "used... 를" (2nd largest font size)
+            // width = 14: fails for "comes after the *noun*..." (2nd largest font size)
+            // width = 15: OK!
+            // width = 16: fails for "attached to a place and indicates going to a destination" (largest font size)
+            // width = 17: fails for "we went to the zoo..." (2nd largest font size)
+            
+            // From experimenting on iPhone Plus I know the correct value to be 15
+            // width = 19, 20, 21, 22, 23: fails for "I also traveled to..."
+            // width = 18: fails for user 'overlordb', term "the Chinese dynasty (from 246 BC to 206 BC)..."
+            
+            return 15
+        }
+        else {
+            // iPad Air, Air 2, Retina
+            return 30
+        }
+        }()
+    
     class func toUppercase(c: Character) -> Character {
         let up = String(c).uppercaseString
         return up[up.startIndex]

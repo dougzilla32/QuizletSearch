@@ -14,15 +14,13 @@ enum SortSelection: Int {
     case AtoZ = 0, BySet, BySetAtoZ
 }
 
-class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDataSource, UISearchBarDelegate {
-    
-    @IBOutlet weak var tableView: UITableView!
+class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     @IBOutlet weak var sortStyle: UISegmentedControl!
     
     @IBOutlet weak var searchBar: UISearchBar!
     
-    var refreshControl: UIRefreshControl!
+    var observedTableIndexViewWidth: CGFloat?
     
     // MARK: - Sorting
     
@@ -66,7 +64,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
     override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
         return UIInterfaceOrientationMask.All
     }
-
+    
     override func loadView() {
         super.loadView()
         (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
@@ -90,12 +88,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             object: nil)
         resetFonts()
         
-        // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
-        refreshControl = UIRefreshControl()
-        refreshControl.addTarget(self, action: "refreshTable", forControlEvents: UIControlEvents.ValueChanged)
-        tableView.addSubview(refreshControl)
-        tableView.sendSubviewToBack(refreshControl)
-
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
@@ -117,6 +109,25 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
         tableView.keyboardDismissMode = .Interactive
+        
+        // Workaround to make the search bar background non-translucent
+        searchBar.translucent = true
+        searchBar.translucent = false
+        if let searchBarColor = searchBar.barTintColor {
+            searchBar.layer.borderWidth = 1.0
+            searchBar.layer.borderColor = searchBarColor.CGColor
+            searchBar.backgroundColor = searchBarColor
+        }
+        
+        // Set the placeholder text to the name of the current set
+        let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
+        if (dataModel.currentQuery != nil) {
+            searchBar.placeholder = "Search \(dataModel.currentQuery!.title)"
+        }
+    }
+    
+    override func preferredStatusBarStyle() -> UIStatusBarStyle {
+        return UIStatusBarStyle.LightContent
     }
     
     var preferredSearchFont: UIFont?
@@ -205,7 +216,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         if (termsChanged) {
             /*
-            println("termsChanged: contextDidSaveNotification --"
+            print("termsChanged: contextDidSaveNotification --"
                 + " inserted: \((info[NSInsertedObjectsKey] as? NSSet)?.count)"
                 + " deleted: \((info[NSDeletedObjectsKey] as? NSSet)?.count)"
                 + " updated: \((info[NSUpdatedObjectsKey] as? NSSet)?.count)")
@@ -213,19 +224,19 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             if let inserted = info[NSInsertedObjectsKey] as? NSSet {
                 for obj in inserted {
                     let managedObj = obj as! NSManagedObject
-                    println("insert: \(managedObj)")
+                    print("insert: \(managedObj)")
                 }
             }
             if let deleted = info[NSDeletedObjectsKey] as? NSSet {
                 for obj in deleted {
                     let managedObj = obj as! NSManagedObject
-                    println("delete: \(managedObj)")
+                    print("delete: \(managedObj)")
                 }
             }
             if let updated = info[NSUpdatedObjectsKey] as? NSSet {
                 for obj in updated {
                     let managedObj = obj as! NSManagedObject
-                    println("update: \(managedObj)")
+                    print("update: \(managedObj)")
                 }
             }
             */
@@ -261,8 +272,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         var bySet: [SortSet<SortTerm>] = []
         var bySetAtoZ: [SortSet<SortTerm>] = []
         
-        if let filter = dataModel.currentUser?.currentFilter {
-            for set in filter.sets {
+        if let query = dataModel.currentQuery {
+            for set in query.sets {
                 let quizletSet = set as! QuizletSet
                 var termsForSet = [SortTerm]()
                 
@@ -399,29 +410,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         // TODO: Dispose of any data model resources that can be refetched
     }
     
-    // MARK: - Table view controller
-    
-    // The UITableViewController deselects the currently selected row when the table becomes visible.  We are not subclassing UITableViewController because we want to add a custom filter bar, and the UITableViewController does not allow for this.
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        if let path = tableView.indexPathForSelectedRow {
-            tableView.deselectRowAtIndexPath(path, animated: true)
-        }
-    }
-    
-    // The UITableViewController flashes the scrollbar when the table becomes visible.
-    override func viewDidAppear(animated: Bool) {
-        super.viewDidAppear(animated)
-        tableView.flashScrollIndicators()
-    }
-    
-    // The UITableViewController invokes setEditing when startEditing is called.
-    func startEditing() {
-        setEditing(true, animated: true)
-    }
-    
     // MARK: - Table view data source
+
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
         // Return the number of sections.
         var numberOfSections: Int
@@ -445,7 +435,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return numberOfSections
     }
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // Return the number of rows in the section.
         var numberOfRows: Int
         switch (currentSortSelection()) {
@@ -515,7 +505,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             return 0
         }
         
-        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(true), CGRectGetHeight(sizingCell.bounds));
+        let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: true)
+        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
         headerSizingCell.setNeedsLayout()
         headerSizingCell.layoutIfNeeded()
         
@@ -530,7 +521,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             headerSizingCell.headerLabel!.font = preferredSearchFont
             headerSizingCell.headerLabel!.text = "Header"
             
-            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(false), CGRectGetHeight(sizingCell.bounds));
+            let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: false)
+            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
             headerSizingCell.setNeedsLayout()
             headerSizingCell.layoutIfNeeded()
             
@@ -571,7 +563,7 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         }
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell", forIndexPath: indexPath) as! SearchTableViewCell
         configureCell(cell, atIndexPath: indexPath)
         return cell
@@ -585,7 +577,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
 
         configureCell(sizingCell, atIndexPath:indexPath)
         
-        sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(true), CGRectGetHeight(sizingCell.bounds));
+        let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: true)
+        sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
         sizingCell.setNeedsLayout()
         sizingCell.layoutIfNeeded()
         
@@ -605,7 +598,8 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
             sizingCell.definitionLabel!.font = preferredSearchFont
             sizingCell.definitionLabel!.text = "Definition"
             
-            sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - getIndexViewWidth(false), CGRectGetHeight(sizingCell.bounds));
+            let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: false)
+            sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
             sizingCell.setNeedsLayout()
             sizingCell.layoutIfNeeded()
             
@@ -656,60 +650,6 @@ class SearchViewController: UIViewController, UITableViewDelegate, UITableViewDa
         return index
     }
     
-    // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus : 15
-    // iPad Air, Air 2, Retina : 30
-    lazy var hardcodedTableIndexViewWidth: CGFloat = {
-        let screenWidth = CGRectGetWidth(UIScreen.mainScreen().bounds)
-        let screenHeight = CGRectGetHeight(UIScreen.mainScreen().bounds)
-        
-        let minDimension = min(screenWidth, screenHeight)
-        let maxDimension = max(screenWidth, screenHeight)
-        
-        if (maxDimension < 850) {
-            // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus
-            
-            // From experimenting on iPhone I know the correct value to be 15
-            // smaller values fail for "used... 를" (2nd largest font size)
-            // width = 14: fails for "comes after the *noun*..." (2nd largest font size)
-            // width = 15: OK!
-            // width = 16: fails for "attached to a place and indicates going to a destination" (largest font size)
-            // width = 17: fails for "we went to the zoo..." (2nd largest font size)
-            
-            // From experimenting on iPhone Plus I know the correct value to be 15
-            // width = 19, 20, 21, 22, 23: fails for "I also traveled to..."
-            // width = 18: fails for user 'overlordb', term "the Chinese dynasty (from 246 BC to 206 BC)..."
-            
-            return 15
-        }
-        else {
-            // iPad Air, Air 2, Retina
-            return 30
-        }
-    }()
-    
-    var observedTableIndexViewWidth: CGFloat?
-    
-    func getIndexViewWidth(checkTableIndex: Bool) -> CGFloat {
-        if (checkTableIndex && observedTableIndexViewWidth == nil) {
-            let tableViewIndex = Common.findTableViewIndex(tableView)
-            if (tableViewIndex != nil) {
-                observedTableIndexViewWidth = CGRectGetWidth(tableViewIndex!.bounds)
-            }
-            else {
-                observedTableIndexViewWidth = 0
-            }
-        }
-        
-        var width: CGFloat
-        switch (currentSortSelection()) {
-        case .AtoZ, .BySetAtoZ:
-            width = (observedTableIndexViewWidth != nil && observedTableIndexViewWidth! != 0) ? observedTableIndexViewWidth! : hardcodedTableIndexViewWidth
-        case .BySet:
-            width = 0
-        }
-        return width
-    }
-
     /*
     // MARK: - Navigation
     

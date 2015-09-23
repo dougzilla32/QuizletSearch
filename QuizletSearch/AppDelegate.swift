@@ -55,7 +55,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
         // Refresh the data model
-        self.dataModel.refreshModelForCurrentFilter(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?) in
+        self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?) in
             if (completionHandler != nil) {
                 completionHandler!(qsets)
             }
@@ -79,7 +79,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     func refresh() {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
-        self.dataModel.refreshModelForCurrentFilter(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?) in
+        self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?) in
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         })
     }
@@ -122,12 +122,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
             username = ""
         }
         
-        self.setRootViewControllerWithIdentifier("SearchViewController")
-
         let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: username!, userId: "")
         self.dataModel.addOrUpdateUser(userAccount)
         self.saveContext()
         self.refreshAndRestartTimer(allowCellularAccess: true)
+
+        self.setRootViewControllerWithIdentifier("SearchViewController")
     }
     
     func applicationWillResignActive(application: UIApplication) {

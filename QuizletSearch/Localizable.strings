@@ -7,7 +7,7 @@
 */
 
 "Initialization error" = "Initialization error";
-"Model load error" = "There was an error creating or loading the application's saved data. %@.";
+"Model load error" = "There was an error loading the application's saved data. %@.\n\nI do my best to ensure that this never happens, but unfortunately it looks like the app has hit a bug while updating your app data to match the current version of the app.  Regretably in this situation either a fix for the bug must be installed with a subsequent version of the app, or else the app must be deleted and then reinstalled from the App Store. Please accept my sincerest apologies. If you comment on the app store then I will attempt to fix this issue in an upcoming version.";
 "Exit" = "Exit";
 
 "Save error" = "Save error";

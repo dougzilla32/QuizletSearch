@@ -19,7 +19,7 @@ class QuizletSet: NSManagedObject {
     @NSManaged var createdDate: Int64
     @NSManaged var modifiedDate: Int64
     @NSManaged var terms: NSOrderedSet
-    @NSManaged var filters: NSSet
+    @NSManaged var queries: NSSet
 
     func initFrom(qset: QSet, moc: NSManagedObjectContext) {
         self.id = qset.id
@@ -39,7 +39,7 @@ class QuizletSet: NSManagedObject {
             newTerms.append(term)
         }
         self.terms = NSOrderedSet(array: newTerms)
-        self.filters = NSSet()
+        self.queries = NSSet()
     }
     
     func copyFrom(qset: QSet, moc: NSManagedObjectContext) {

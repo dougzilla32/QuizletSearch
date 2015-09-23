@@ -13,15 +13,8 @@ class DataModel: NSObject {
     var moc: NSManagedObjectContext
     
     var quizletSession: QuizletSession
-    
-    var currentUser: User? {
-        didSet {
-            // if set to different user then clear the current filter (if any)
-            // and release the filters and sets for the previous user
-            // 1) unfetch them
-            // 2) remove references (necessary?)
-        }
-    }
+    var currentUser: User?
+    var currentQuery: Query?
     
     lazy var root: Root = {
         // Set up root model object
@@ -63,9 +56,9 @@ class DataModel: NSObject {
         println("ROOT USERS:")
         for user in userResult! {
             println("  \(user.name)")
-            println("  FILTERS:")
-            for filter in user.filters {
-                var f: Filter = filter as! Filter
+            println("  QUERIES:")
+            for query in user.queries {
+                var f: Query = query as! Query
                 println("    \(f.title)")
             }
         }
@@ -75,9 +68,9 @@ class DataModel: NSObject {
     }()
 
     /*
-    var filters: [Filter]?
+    var queries: [Query]?
     
-    var currentFilter: Filter? {
+    var currentQuery: Query? {
         willSet {
             var newUser = newValue?.user
             if (newUser != currentUser) {
@@ -86,7 +79,7 @@ class DataModel: NSObject {
         }
         
         didSet {
-            // clear the existing filter, if any
+            // clear the existing query, if any
         }
     }
     */
@@ -102,6 +95,7 @@ class DataModel: NSObject {
         if let userId = NSUserDefaults.standardUserDefaults().stringForKey("currentUser") {
             currentUser = fetchUserWithId(userId)
             if (currentUser != nil) {
+                currentQuery = currentUser!.queries.firstObject as? Query
                 self.quizletSession.currentUser = UserAccount(accessToken: currentUser!.accessToken, expiresIn: currentUser!.expiresIn(), userName: currentUser!.name, userId: currentUser!.id)
             }
         }
@@ -124,7 +118,7 @@ class DataModel: NSObject {
     func fetchUserWithId(userId: String) -> User? {
         let request = NSFetchRequest(entityName: "User")
         request.predicate = NSPredicate(format: "id == %@", userId)
-        request.relationshipKeyPathsForPrefetching = ["filters"]
+        request.relationshipKeyPathsForPrefetching = ["queries"]
         
         var users: [User]?
         do {
@@ -146,9 +140,8 @@ class DataModel: NSObject {
             let newUser = NSEntityDescription.insertNewObjectForEntityForName("User",
                 inManagedObjectContext: moc) as! User
             newUser.root = self.root
-            newUser.currentFilter = createDefaultFilterForUser(newUser)
-            newUser.currentFilter.currentFilter = newUser
-            newUser.filters = NSOrderedSet(object: newUser.currentFilter)
+            newUser.copyFrom(userAccount)
+            newUser.queries = NSOrderedSet(object: createDefaultQueryForUser(newUser))
 
             let mutableUsers = root.users.mutableCopy() as! NSMutableOrderedSet
             mutableUsers.addObject(newUser)
@@ -156,7 +149,9 @@ class DataModel: NSObject {
 
             user = newUser
         }
-        user!.copyFrom(userAccount)
+        else {
+            user!.copyFrom(userAccount)
+        }
         
         if (currentUser != user) {
             currentUser = user
@@ -164,59 +159,97 @@ class DataModel: NSObject {
             NSUserDefaults.standardUserDefaults().setObject(user!.id, forKey: "currentUser")
         }
         
+        currentQuery = currentUser?.queries.firstObject as? Query
         return user!
     }
     
-    func createDefaultFilterForUser(user: User) -> Filter {
-        let filter = NSEntityDescription.insertNewObjectForEntityForName("Filter",
-            inManagedObjectContext: moc) as! Filter
-        filter.type = FilterType.CurrentUserAllSets.rawValue
-        filter.title = "My Sets"
-        filter.query = ""
-        filter.queryTerm = ""
-        filter.queryCreator = ""
-        filter.user = user
-        filter.sets = NSSet()
-        return filter
+    func createDefaultQueryForUser(user: User) -> Query {
+        let query = NSEntityDescription.insertNewObjectForEntityForName("Query",
+            inManagedObjectContext: moc) as! Query
+        query.title = "My Sets"
+        query.query = ""
+        query.creators = user.name
+        query.classes = ""
+        query.includedSets = ""
+        query.excludedSets = ""
+        query.maxModifiedDate = 0
+        query.user = user
+        query.sets = NSSet()
+        return query
     }
     
-    func refreshModelForCurrentFilter(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
-        if (currentUser == nil) {
+    func refreshModelForCurrentQuery(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+        guard let q = currentQuery else {
             return
         }
         
-        let currentFilter = currentUser!.currentFilter
-        let filterType = FilterType(rawValue: currentFilter.type)
-        if (filterType == nil) {
-            NSLog("Invalid filter type found in data store: \(currentFilter.type)")
-            completionHandler(nil)
-            return
+        if (!q.query.isEmpty) {
         }
-        
-        switch (filterType!) {
-        case .CurrentUserAllSets:
-            var getAllSetsForUserFunction = quizletSession.getAllSetsForUser
-            if (Common.isSampleMode) {
-                getAllSetsForUserFunction = quizletSession.getAllSampleSetsForUser
+        else if (!q.creators.isEmpty) {
+            var creators = DataModel.parseCreators(q.creators)
+            // TODO: handle multiple creators
+            // TODO: handle classes
+
+            if (creators[0].isFavoritesFolder()) {
+                quizletSession.getFavoriteSetsForUser(currentUser!.name, modifiedSince: 0, allowCellularAccess: allowCellularAccess,
+                    completionHandler: { (qsets: [QSet]?) in
+                        if (qsets != nil) {
+                            self.updateTermsForQuery(q, qsets: qsets)
+                        }
+                        completionHandler(qsets)
+                })
             }
-            
-            getAllSetsForUserFunction(currentUser!.name, modifiedSince: currentFilter.maxModifiedDate, allowCellularAccess: allowCellularAccess,
-                completionHandler: { (qsets: [QSet]?) in
-                    if (qsets != nil) {
-                        self.updateTermsForFilter(currentFilter, qsets: qsets)
-                    }
-                    completionHandler(qsets)
-            })
-        case .CurrentUserFavorites:
-            quizletSession.getFavoriteSetsForUser(currentUser!.name, modifiedSince: 0, allowCellularAccess: allowCellularAccess,
-                completionHandler: { (qsets: [QSet]?) in
-            })
-        case .GeneralQuery:
-            print("General Query")
+            else {
+                var getAllSetsForUserFunction = quizletSession.getAllSetsForUser
+                if (Common.isSampleMode) {
+                    getAllSetsForUserFunction = quizletSession.getAllSampleSetsForUser
+                }
+                
+                getAllSetsForUserFunction(creators[0].username, modifiedSince: q.maxModifiedDate, allowCellularAccess: allowCellularAccess,
+                    completionHandler: { (qsets: [QSet]?) in
+                        if (qsets != nil) {
+                            self.updateTermsForQuery(q, qsets: qsets)
+                        }
+                        completionHandler(qsets)
+                })
+            }
+        }
+        else if (!q.classes.isEmpty) {
+            // TODO: handle classes
         }
     }
     
-    func updateTermsForFilter(filter: Filter, qsets: [QSet]?) {
+    class Creator {
+        let username: String
+        let folder: String?
+        
+        init(username: String, folder: String?) {
+            self.username = username
+            self.folder = folder
+        }
+        
+        func isFavoritesFolder() -> Bool {
+            return folder == "favorites"
+        }
+    }
+    
+    class func parseCreators(creatorsString: String) -> [Creator] {
+        var creators = [Creator]()
+        for c in creatorsString.componentsSeparatedByString(",") {
+            let parts = c.componentsSeparatedByString(":")
+            switch (parts.count) {
+            case 1:
+                creators.append(Creator(username: parts[0], folder: nil))
+            case 2:
+                creators.append(Creator(username: parts[0], folder: parts[1]))
+            default:
+                abort()
+            }
+        }
+        return creators
+    }
+    
+    func updateTermsForQuery(query: Query, qsets: [QSet]?) {
         if (qsets == nil || qsets!.count == 0) {
             return
         }
@@ -225,14 +258,14 @@ class DataModel: NSObject {
             saveChanges()
         }
         
-        // Put all of the filter's sets into a dictionary
+        // Put all of the queries' sets into a dictionary
         var existingSetsMap = [Int64: QuizletSet]()
-        for set in filter.sets {
+        for set in query.sets {
             let quizletSet = set as! QuizletSet
             existingSetsMap[quizletSet.id] = quizletSet
         }
         
-        // UPDATE: Update sets that are already members of the filter and make a list of the sets that are not, to be fetched from other filters if they exist elsewhere in the cache or else created
+        // UPDATE: Update sets that are already members of the query and make a list of the sets that are not, to be fetched from other queries if they exist elsewhere in the cache or else created
         var setsToFetch = [QSet]()
         var idsToFetch = [NSNumber]()
         var maxModifiedDate: Int64 = 0
@@ -246,30 +279,30 @@ class DataModel: NSObject {
             }
             maxModifiedDate = max(qset.modifiedDate, maxModifiedDate)
         }
-        if (filter.maxModifiedDate != maxModifiedDate) {
-            filter.maxModifiedDate = maxModifiedDate
+        if (query.maxModifiedDate != maxModifiedDate) {
+            query.maxModifiedDate = maxModifiedDate
         }
         
         if (existingSetsMap.count == 0 && setsToFetch.count == 0) {
-            // Unnecessary to update the 'filter.sets' relationships where there are no sets to add and no sets to delete
+            // Unnecessary to update the 'query.sets' relationships where there are no sets to add and no sets to delete
             return
         }
         
-        let mutableFilterSets = filter.sets.mutableCopy() as! NSMutableSet
+        let mutableQuerySets = query.sets.mutableCopy() as! NSMutableSet
 
-        // DELETE: Remove the filter reference from the sets remaining in 'existingSetsMap' (that have either been deleted from quizlet.com or no longer match this filter) and delete them from the cache if they are not referenced by any other filter
+        // DELETE: Remove the query reference from the sets remaining in 'existingSetsMap' (that have either been deleted from quizlet.com or no longer match this query) and delete them from the cache if they are not referenced by any other query
         for set in existingSetsMap.values {
-            let mutableSet = set.filters.mutableCopy() as! NSMutableSet
-            mutableSet.removeObject(filter)
-            set.filters = mutableSet.copy() as! NSSet
-            if (set.filters.count == 0) {
+            let mutableSet = set.queries.mutableCopy() as! NSMutableSet
+            mutableSet.removeObject(query)
+            set.queries = mutableSet.copy() as! NSSet
+            if (set.queries.count == 0) {
                 moc.deleteObject(set)
             }
 
-            mutableFilterSets.removeObject(set)
+            mutableQuerySets.removeObject(set)
         }
         
-        // ADD: The 'setsToFetch' are to be fetched -- if a set already exists because it has been cached by a different filter, then update its terms and add  'filter' to its list of filters.  Otherwise create a new set.
+        // ADD: The 'setsToFetch' are to be fetched -- if a set already exists because it has been cached by a different query, then update its terms and add  'query' to its list of queries.  Otherwise create a new set.
         if (setsToFetch.count > 0) {
             let updateSetsRequest = NSFetchRequest(entityName: "QuizletSet")
             updateSetsRequest.predicate = NSPredicate(format: "id IN %@", idsToFetch)
@@ -291,42 +324,42 @@ class DataModel: NSObject {
                 if let quizletSet = updateSetsMap[qset.id] {
                     quizletSet.copyFrom(qset, moc: moc)
                     
-                    let mutableSet = quizletSet.filters.mutableCopy() as! NSMutableSet
-                    mutableSet.addObject(filter)
-                    quizletSet.filters = mutableSet.copy() as! NSSet
+                    let mutableSet = quizletSet.queries.mutableCopy() as! NSMutableSet
+                    mutableSet.addObject(query)
+                    quizletSet.queries = mutableSet.copy() as! NSSet
                     
-                    mutableFilterSets.addObject(quizletSet)
+                    mutableQuerySets.addObject(quizletSet)
                 } else {
                     let quizletSet = NSEntityDescription.insertNewObjectForEntityForName("QuizletSet", inManagedObjectContext: moc) as! QuizletSet
                     quizletSet.initFrom(qset, moc: moc)
-                    quizletSet.filters = NSSet(object: filter)
+                    quizletSet.queries = NSSet(object: query)
                     
-                    mutableFilterSets.addObject(quizletSet)
+                    mutableQuerySets.addObject(quizletSet)
                 }
             }
         }
         
-        filter.sets = mutableFilterSets.copy() as! NSSet
+        query.sets = mutableQuerySets.copy() as! NSSet
     }
     
     /*
-    func fetchFiltersForCurrentUser() {
+    func fetchQueriesForCurrentUser() {
         if (currentUser == nil) {
             NSLog("Invalid call to 'fetchUsers': currentUser is not set")
             return
         }
 
-        let fetchRequest = NSFetchRequest(entityName: "Filter")
+        let fetchRequest = NSFetchRequest(entityName: "Query")
         fetchRequest.predicate = NSPredicate(format: "user == %@", currentUser!)
         
         var error: NSError?
-        let filters = moc.executeFetchRequest(fetchRequest, error: &error) as? [Filter]
+        let queries = moc.executeFetchRequest(fetchRequest, error: &error) as? [Query]
         if (users == nil) {
-            NSLog("An error occurred while fetching the list of filters for user \(currentUser!.name): \(error), \(error?.userInfo)")
+            NSLog("An error occurred while fetching the list of queries for user \(currentUser!.name): \(error), \(error?.userInfo)")
         }
         
-        self.filters = filters
-        return filters
+        self.queries = queries
+        return queries
     }
     */
     

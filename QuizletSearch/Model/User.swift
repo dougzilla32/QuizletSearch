@@ -17,8 +17,7 @@ class User: NSManagedObject {
     @NSManaged var id: String
 
     @NSManaged var root: Root
-    @NSManaged var filters: NSOrderedSet
-    @NSManaged var currentFilter: Filter
+    @NSManaged var queries: NSOrderedSet
 
     func copyFrom(userAccount: UserAccount) {
         self.accessToken = userAccount.accessToken
