@@ -81,6 +81,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         gestureRecognizer.cancelsTouchesInView = false
         tableView.addGestureRecognizer(gestureRecognizer)
         
+        // Dismiss the keyboard as soon as the user drags the table
+        // tableView.keyboardDismissMode = .OnDrag
+        
+        // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
+        tableView.keyboardDismissMode = .Interactive
+        
         // Respond to dynamic type font changes
         NSNotificationCenter.defaultCenter().addObserver(self,
             selector: "preferredContentSizeChanged:",
@@ -104,13 +110,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             name: NSManagedObjectContextDidSaveNotification,
             object: moc)
 
-        // Dismiss the keyboard as soon as the user drags the table
-        // tableView.keyboardDismissMode = .OnDrag
-
-        // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
-        tableView.keyboardDismissMode = .Interactive
-        
-        // Workaround to make the search bar background non-translucent
+        // Workaround to make the search bar background non-translucent, eliminates some drawing artifacts
         searchBar.translucent = true
         searchBar.translucent = false
         if let searchBarColor = searchBar.barTintColor {
@@ -154,8 +154,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         // if #available(iOS 9.0, *) {
         //     searchTextField = UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])
         // } else {
-            // Fallback on earlier versions
-            searchTextField = Common.findTextField(self.searchBar)!
+        // Fallback on earlier versions
+        searchTextField = Common.findTextField(self.searchBar)!
         // }
         searchTextField.font = preferredSearchFont
         searchTextField.autocapitalizationType = UITextAutocapitalizationType.None

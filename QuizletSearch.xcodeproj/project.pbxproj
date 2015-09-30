@@ -26,6 +26,9 @@
 		9126FDC31B1D0E1000642E56 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDC21B1D0E1000642E56 /* Images.xcassets */; };
 		9126FDC61B1D0E1000642E56 /* LaunchScreen.xib in Resources */ = {isa = PBXBuildFile; fileRef = 9126FDC41B1D0E1000642E56 /* LaunchScreen.xib */; };
 		9126FDD21B1D0E1100642E56 /* QuizletSearchTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9126FDD11B1D0E1100642E56 /* QuizletSearchTests.swift */; };
+		912DFCF71BBAD106002D67FA /* SetPager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912DFCF61BBAD106002D67FA /* SetPager.swift */; settings = {ASSET_TAGS = (); }; };
+		912DFCF91BBAD3BD002D67FA /* QueryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912DFCF81BBAD3BD002D67FA /* QueryResult.swift */; settings = {ASSET_TAGS = (); }; };
+		912DFCFB1BBAD5F4002D67FA /* UnexpectedResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */; settings = {ASSET_TAGS = (); }; };
 		914D0AE01B6AA4ED0025C585 /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADB1B6AA4ED0025C585 /* Query.swift */; };
 		914D0AE11B6AA4ED0025C585 /* QuizletSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */; };
 		914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADD1B6AA4ED0025C585 /* Root.swift */; };
@@ -76,6 +79,9 @@
 		9126FDCB1B1D0E1100642E56 /* QuizletSearchTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = QuizletSearchTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9126FDD01B1D0E1100642E56 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		9126FDD11B1D0E1100642E56 /* QuizletSearchTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuizletSearchTests.swift; sourceTree = "<group>"; };
+		912DFCF61BBAD106002D67FA /* SetPager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetPager.swift; sourceTree = "<group>"; };
+		912DFCF81BBAD3BD002D67FA /* QueryResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryResult.swift; sourceTree = "<group>"; };
+		912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnexpectedResponse.swift; sourceTree = "<group>"; };
 		914D0ADB1B6AA4ED0025C585 /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Query.swift; path = Model/Query.swift; sourceTree = "<group>"; };
 		914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QuizletSet.swift; path = Model/QuizletSet.swift; sourceTree = "<group>"; };
 		914D0ADD1B6AA4ED0025C585 /* Root.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Root.swift; path = Model/Root.swift; sourceTree = "<group>"; };
@@ -117,6 +123,8 @@
 				91EDA1451B3161A600E1152D /* QuizletSession.swift */,
 				91EDA17E1B334CDF00E1152D /* UserAccount.swift */,
 				910722F51B35FE200066DC87 /* QSet.swift */,
+				912DFCF81BBAD3BD002D67FA /* QueryResult.swift */,
+				912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */,
 				9187F47E1B69FECC00FA528F /* Resources */,
 			);
 			name = Session;
@@ -165,6 +173,7 @@
 				911A0D4C1B41264200B219D7 /* LoginViewController.swift */,
 				910AAEB21BAB67E100655131 /* QueriesViewController.swift */,
 				91EA7CFD1BB0BD3C00273996 /* AddQueryViewController.swift */,
+				912DFCF61BBAD106002D67FA /* SetPager.swift */,
 				911A0D501B41772C00B219D7 /* SearchViewController.swift */,
 				911C41041B9F7A7C007E0AEE /* SearchTableViewCell.swift */,
 				911C410A1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift */,
@@ -348,6 +357,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				910AAEB11BAB612000655131 /* TableContainerController.swift in Sources */,
+				912DFCF91BBAD3BD002D67FA /* QueryResult.swift in Sources */,
 				911A0D511B41772C00B219D7 /* SearchViewController.swift in Sources */,
 				914D0AE01B6AA4ED0025C585 /* Query.swift in Sources */,
 				91EDA1461B3161A600E1152D /* QuizletSession.swift in Sources */,
@@ -356,6 +366,8 @@
 				9187F47B1B68AD1500FA528F /* Common.swift in Sources */,
 				91B4AB581B6845EB0043675A /* StringScore.swift in Sources */,
 				91EA7CFE1BB0BD3C00273996 /* AddQueryViewController.swift in Sources */,
+				912DFCF71BBAD106002D67FA /* SetPager.swift in Sources */,
+				912DFCFB1BBAD5F4002D67FA /* UnexpectedResponse.swift in Sources */,
 				91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */,
 				91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */,
 				911C41091BA10A21007E0AEE /* SearchOperation.swift in Sources */,
