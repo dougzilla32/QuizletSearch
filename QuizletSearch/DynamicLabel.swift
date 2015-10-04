@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SearchLabel: UILabel {
+class DynamicLabel: UILabel {
     override var bounds : CGRect {
         didSet {
             // If this is a multiline label, need to make sure

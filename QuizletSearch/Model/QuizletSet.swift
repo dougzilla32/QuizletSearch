@@ -13,6 +13,7 @@ class QuizletSet: NSManagedObject {
 
     @NSManaged var id: Int64
     @NSManaged var title: String
+    @NSManaged var setDescription: String
     @NSManaged var url: String
     @NSManaged var createdBy: String
     @NSManaged var creatorId: Int64
@@ -24,6 +25,7 @@ class QuizletSet: NSManagedObject {
     func initFrom(qset: QSet, moc: NSManagedObjectContext) {
         self.id = qset.id
         self.title = qset.title
+        self.setDescription = qset.description
         self.url = qset.url
         self.createdBy = qset.createdBy
         self.creatorId = qset.creatorId
@@ -48,6 +50,9 @@ class QuizletSet: NSManagedObject {
         }
         if (self.title != qset.title) {
             self.title = qset.title
+        }
+        if (self.setDescription != qset.description) {
+            self.setDescription = qset.description
         }
         if (self.url != qset.url) {
             self.url = qset.url

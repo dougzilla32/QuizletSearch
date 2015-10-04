@@ -342,6 +342,14 @@ extension String {
         return true
     }
     
+    func trimInlineWhitespace() -> String {
+        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+    }
+    
+    func trimWhitespace() -> String {
+        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+    }
+    
     // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
     static func characterRangesOfUnichars(sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSStringCompareOptions = NSStringCompareOptions(rawValue: 0)) -> [NSRange] {
         

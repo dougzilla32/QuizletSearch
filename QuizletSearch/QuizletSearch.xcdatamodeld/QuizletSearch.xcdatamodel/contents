@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="8195" systemVersion="14F27" minimumToolsVersion="Xcode 4.3">
+<model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="9053" systemVersion="14F27" minimumToolsVersion="Xcode 4.3">
     <entity name="Query" representedClassName=".Query" syncable="YES">
         <attribute name="classes" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="creators" optional="YES" attributeType="String" syncable="YES"/>
@@ -17,6 +17,7 @@
         <attribute name="creatorId" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="id" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="modifiedDate" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
+        <attribute name="setDescription" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="url" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="queries" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="Query" inverseName="sets" inverseEntity="Query" syncable="YES"/>
@@ -41,7 +42,7 @@
     </entity>
     <elements>
         <element name="Query" positionX="0" positionY="81" width="128" height="180"/>
-        <element name="QuizletSet" positionX="-63" positionY="-18" width="128" height="180"/>
+        <element name="QuizletSet" positionX="-63" positionY="-18" width="128" height="195"/>
         <element name="Root" positionX="-27" positionY="72" width="128" height="60"/>
         <element name="Term" positionX="-54" positionY="27" width="128" height="105"/>
         <element name="User" positionX="-18" positionY="72" width="128" height="135"/>

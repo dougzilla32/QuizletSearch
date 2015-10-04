@@ -28,6 +28,7 @@ class SetPager {
     func getQSetForRow(row: Int) -> QSet? {
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
+        // TODO: fatal error: Array index out of range (when scrolling after searching for "dogs")
         return qsets?[pageIndex]?[pageOffset]
     }
     
@@ -59,38 +60,40 @@ class SetPager {
         
         quizletSession.searchSetsWithQuery(query, creator: creator, imagesOnly: nil, modifiedSince: nil, page: page, perPage: paginationSize, allowCellularAccess: true, completionHandler: { (result: QueryResult?) in
             
-            guard page > 0 else {
-                NSLog("Negative page value: \(page)")
-                abort()
-            }
-            guard result != nil else {
-                completionHandler(pageLoaded: nil)
-                return
-            }
-            if (result!.page != page) {
-                NSLog("Expected page number \(page) does not match actual page number \(result!.page)")
-            }
-            
-            if (self.qsets == nil) {
-                let expectedPages = (result!.totalResults + self.paginationSize - 1) / self.paginationSize
-                if (expectedPages != result!.totalPages) {
-                    NSLog("Expected number of pages \(expectedPages) does not match actual number of pages \(result!.totalPages)")
+            dispatch_async(dispatch_get_main_queue(), {
+                guard page > 0 else {
+                    NSLog("Negative page value: \(page)")
+                    abort()
+                }
+                guard result != nil else {
+                    completionHandler(pageLoaded: nil)
+                    return
+                }
+                if (result!.page != page) {
+                    NSLog("Expected page number \(page) does not match actual page number \(result!.page)")
                 }
                 
-                self.qsets = [[QSet]?](count: result!.totalPages, repeatedValue: nil)
-            }
-            
-            guard page <= self.qsets!.count else {
-                NSLog("Page \(page) is greater than the number of pages \(self.qsets!.count)")
-                return
-            }
-            
-            // TODO: handle case where the number of qsets in the result is less than what we expected (test case: search for "hello" and scroll down to page 8 and page 9
-            self.qsets![page-1] = result!.qsets
-            self.totalResults = result!.totalResults
-            self.loadingPages.remove(page)
-            
-            completionHandler(pageLoaded: page)
+                if (self.qsets == nil) {
+                    let expectedPages = (result!.totalResults + self.paginationSize - 1) / self.paginationSize
+                    if (expectedPages != result!.totalPages) {
+                        NSLog("Expected number of pages \(expectedPages) does not match actual number of pages \(result!.totalPages)")
+                    }
+                    
+                    self.qsets = [[QSet]?](count: result!.totalPages, repeatedValue: nil)
+                }
+                
+                guard page <= self.qsets!.count else {
+                    NSLog("Page \(page) is greater than the number of pages \(self.qsets!.count)")
+                    return
+                }
+                
+                // TODO: handle case where the number of qsets in the result is less than what we expected (test case: search for "hello" and scroll down to page 8 and page 9
+                self.qsets![page-1] = result!.qsets
+                self.totalResults = result!.totalResults
+                self.loadingPages.remove(page)
+                
+                completionHandler(pageLoaded: page)
+            })
         })
     }
 }

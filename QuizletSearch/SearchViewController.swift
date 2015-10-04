@@ -573,6 +573,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return self.tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell") as! SearchTableViewCell
     }()
     
+    /**
+     * This method should make dynamically sizing table view cells work with iOS 7.  I have not been able
+     * to test this because Xcode 7 does not support the iOS 7 simulator.
+     */
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
 
         configureCell(sizingCell, atIndexPath:indexPath)
