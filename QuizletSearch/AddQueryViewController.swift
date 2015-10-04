@@ -299,18 +299,18 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             let owner = qset.createdBy.trimWhitespace()
             let description = qset.description.trimWhitespace()
             
-            let titleCount = title.characters.count
-            let ownerCount = owner.characters.count
-            let descriptionCount = description.characters.count
+            let titleLength = (title as NSString).length
+            let ownerLength = (owner as NSString).length
+            let descriptionLength = (description as NSString).length
             
             var labelText: String = "\(title)\n\(owner)"
             let titleIndex = 0
-            let ownerIndex = titleCount + 1
+            let ownerIndex = titleLength + 1
             
             let descriptionIndex: Int
             if (!description.isEmpty) {
                 labelText += "\n\(description)"
-                descriptionIndex = titleCount + ownerCount + 2
+                descriptionIndex = titleLength + ownerLength + 2
             }
             else {
                 descriptionIndex = 0
@@ -336,17 +336,17 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             */
             
             let attributedText = NSMutableAttributedString(string: labelText)
-            attributedText.addAttribute(NSFontAttributeName, value: italicFont, range: NSMakeRange(ownerIndex, ownerCount))
-            attributedText.addAttribute(NSFontAttributeName, value: preferredFont, range: NSMakeRange(titleIndex, titleCount))
+            attributedText.addAttribute(NSFontAttributeName, value: italicFont, range: NSMakeRange(ownerIndex, ownerLength))
+            attributedText.addAttribute(NSFontAttributeName, value: preferredFont, range: NSMakeRange(titleIndex, titleLength))
             if (!description.isEmpty) {
-                attributedText.addAttribute(NSFontAttributeName, value: smallerFont, range: NSMakeRange(descriptionIndex, descriptionCount))
+                attributedText.addAttribute(NSFontAttributeName, value: smallerFont, range: NSMakeRange(descriptionIndex, descriptionLength))
             }
             
             // Only apply paragraph spacing for title and owner newlines, not the newlines in the description
-            let paragraphCount = description.isEmpty
-                ? titleCount + ownerCount + 1
-                : titleCount + ownerCount + 2
-            attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(0, paragraphCount))
+            let paragraphLength = description.isEmpty
+                ? titleLength + ownerLength + 1
+                : titleLength + ownerLength + 2
+            attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(0, paragraphLength))
             
             let label = (cell as! LabelTableViewCell).label
             label.attributedText = attributedText

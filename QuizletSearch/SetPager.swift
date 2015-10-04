@@ -72,6 +72,11 @@ class SetPager {
                 if (result!.page != page) {
                     NSLog("Expected page number \(page) does not match actual page number \(result!.page)")
                 }
+                if (result!.totalPages == 0) {
+                    self.qsets = nil
+                    completionHandler(pageLoaded: nil)
+                    return
+                }
                 
                 if (self.qsets == nil) {
                     let expectedPages = (result!.totalResults + self.paginationSize - 1) / self.paginationSize
@@ -87,7 +92,7 @@ class SetPager {
                     return
                 }
                 
-                // TODO: handle case where the number of qsets in the result is less than what we expected (test case: search for "hello" and scroll down to page 8 and page 9
+                // TODO: handle case where the number of qsets in the result is less than what we expected (test case: search for "hello" and scroll down to page 8 and page 9                
                 self.qsets![page-1] = result!.qsets
                 self.totalResults = result!.totalResults
                 self.loadingPages.remove(page)
