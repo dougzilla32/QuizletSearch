@@ -15,14 +15,18 @@ class SetPager {
     let paginationSize = 30
     let query: String?
     let creator: String?
-    var totalResults: Int?
-    
+
     var qsets: [[QSet]?]?
     var loadingPages = Set<Int>()
+    var totalResults: Int?
     
     init(query: String?, creator: String?) {
         self.query = query
         self.creator = creator
+    }
+    
+    func isLoading() -> Bool {
+        return loadingPages.count > 0
     }
     
     func getQSetForRow(row: Int) -> QSet? {
@@ -61,14 +65,21 @@ class SetPager {
         quizletSession.searchSetsWithQuery(query, creator: creator, imagesOnly: nil, modifiedSince: nil, page: page, perPage: paginationSize, allowCellularAccess: true, completionHandler: { (result: QueryResult?) in
             
             dispatch_async(dispatch_get_main_queue(), {
+                self.loadingPages.remove(page)
+
                 guard page > 0 else {
                     NSLog("Negative page value: \(page)")
-                    abort()
+                    self.totalResults = nil
+                    return
                 }
                 guard result != nil else {
+                    self.totalResults = nil
                     completionHandler(pageLoaded: nil)
                     return
                 }
+
+                self.totalResults = result!.totalResults
+
                 if (result!.page != page) {
                     NSLog("Expected page number \(page) does not match actual page number \(result!.page)")
                 }
@@ -88,14 +99,13 @@ class SetPager {
                 }
                 
                 guard page <= self.qsets!.count else {
-                    NSLog("Page \(page) is greater than the number of pages \(self.qsets!.count)")
+                    NSLog("Page requested \(page) is greater than the number of pages received \(self.qsets!.count)")
                     return
                 }
                 
                 // TODO: handle case where the number of qsets in the result is less than what we expected (test case: search for "hello" and scroll down to page 8 and page 9                
                 self.qsets![page-1] = result!.qsets
                 self.totalResults = result!.totalResults
-                self.loadingPages.remove(page)
                 
                 completionHandler(pageLoaded: page)
             })

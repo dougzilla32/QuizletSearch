@@ -102,6 +102,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             self.tableView.reloadData()
             self.scrollToResults()
         })
+
+        self.tableView.reloadData()
     }
     
     func scrollToResults() {
@@ -230,25 +232,41 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var numRows = tableRows[section].count
-        if (section == resultsSection && setPager?.totalResults != nil) {
-            numRows += (setPager?.totalResults)!
+        if (section == resultsSection && setPager != nil) {
+            if (setPager!.totalResults != nil) {
+                numRows += setPager!.totalResults!
+            }
+            else if (setPager!.isLoading()) {
+                // Activity Indicator row
+                numRows++
+            }
         }
         return numRows
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifierForPath(indexPath), forIndexPath: indexPath)
+        configureCell(cell, atIndexPath: indexPath)
+        return cell
+    }
+    
+    func cellIdentifierForPath(indexPath: NSIndexPath) -> String {
         var cellIdentifier: String
         if (indexPath.row < tableRows[indexPath.section].count) {
             cellIdentifier = tableRows[indexPath.section][indexPath.row].cellIdentifier()
         }
         else {
-            cellIdentifier = "Result Cell"
+            // result row
+            let resultRow = indexPath.row - tableRows[indexPath.section].count
+            cellIdentifier = isActivityRow(resultRow) ? "Activity Cell" : "Result Cell"
         }
-        let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier, forIndexPath: indexPath)
-        configureCell(cell, atIndexPath: indexPath)
-        return cell
+        return cellIdentifier
     }
     
+    func isActivityRow(row: Int) -> Bool {
+        return (setPager == nil || setPager!.totalResults == nil || row >= setPager!.totalResults)
+    }
+
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
         let qset: QSet?
         if (indexPath.row < tableRows[indexPath.section].count) {
@@ -257,17 +275,22 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         else {
             // result row
             let resultRow = indexPath.row - tableRows[indexPath.section].count
-            qset = setPager!.getQSetForRow(resultRow)
-            if (qset == nil) {
-                setPager!.loadRow(resultRow, completionHandler: { (pageLoaded: Int?) -> Void in
-                    dispatch_async(dispatch_get_main_queue(), {
-                        self.tableView.reloadData()
+            if (isActivityRow(resultRow)) {
+                qset = nil
+            }
+            else {
+                qset = setPager!.getQSetForRow(resultRow)
+                if (qset == nil) {
+                    setPager!.loadRow(resultRow, completionHandler: { (pageLoaded: Int?) -> Void in
+                        dispatch_async(dispatch_get_main_queue(), {
+                            self.tableView.reloadData()
+                        })
                     })
-                })
-                return
+                    return
+                }
             }
         }
-        
+    
         configureCell(cell, atIndexPath: indexPath, qset: qset)
     }
     
@@ -277,6 +300,27 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             if (row.isHeader()) {
                 let label = cell.contentView.viewWithTag(100) as! UILabel
                 label.font = preferredFont
+                if (row.type == .Result) {
+                    if (setPager?.totalResults != nil) {
+                        switch (setPager!.totalResults!) {
+                        case 0:
+                            label.text = "0 results"
+                        case 1:
+                            label.text = "1 result"
+                        case 5000:
+                            // The Quizlet hardcoded upper limit on the number of search results is 5,000
+                            label.text = "Over 5,000 results:"
+                        default:
+                            let numberFormatter = NSNumberFormatter()
+                            numberFormatter.numberStyle = .DecimalStyle
+                            let formattedTotalResults = numberFormatter.stringFromNumber(setPager!.totalResults!)
+                            label.text = "\(formattedTotalResults!) results:"
+                        }
+                    }
+                    else {
+                        label.text = "Search results:"
+                    }
+                }
             }
             else {
                 cell.textLabel!.text = (row as! QueryRowValue).value
@@ -284,16 +328,13 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             }
         }
         else {
-            /* TODO: remove debugging code
-            if (true) {
-                let text = "The quick brown fox jumped over the lazy dog.  The quick brown fox jumped over the lazy dog.  The quick brown fox jumped over the lazy dog."
-                // let label = cell.contentView.viewWithTag(100) as! SearchLabel
-                let label = (cell as! LabelTableViewCell).label!
-                label.text = text
-                label.font = preferredFont
+            // result row
+            let resultRow = indexPath.row - tableRows[indexPath.section].count
+            if (isActivityRow(resultRow)) {
+                let activityIndicator = cell.contentView.viewWithTag(100) as! UIActivityIndicatorView
+                activityIndicator.startAnimating()
                 return
             }
-            */
             
             let title = qset.title.trimWhitespace()
             let owner = qset.createdBy.trimWhitespace()
@@ -307,8 +348,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             let titleIndex = 0
             let ownerIndex = titleLength + 1
             
+            let hasDescription = !description.isEmpty && description.lowercaseString != title.lowercaseString
             let descriptionIndex: Int
-            if (!description.isEmpty) {
+            if (hasDescription) {
                 labelText += "\n\(description)"
                 descriptionIndex = titleLength + ownerLength + 2
             }
@@ -316,12 +358,15 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
                 descriptionIndex = 0
             }
             
-            // TODO: remove debugging statement
-            // print("[ \(labelText) ]")
+            let attributedText = NSMutableAttributedString(string: labelText)
+            attributedText.addAttribute(NSFontAttributeName, value: preferredFont, range: NSMakeRange(titleIndex, titleLength))
+            attributedText.addAttribute(NSFontAttributeName, value: italicFont, range: NSMakeRange(ownerIndex, ownerLength))
+            if (hasDescription) {
+                attributedText.addAttribute(NSFontAttributeName, value: smallerFont, range: NSMakeRange(descriptionIndex, descriptionLength))
+            }
             
             let paragraphStyle = NSMutableParagraphStyle()
             paragraphStyle.paragraphSpacing += 10.0
-            // paragraphStyle.minimumLineHeight += 10.0
             
             /* Alternatively could use tabs and tab stops in combination with newlines for formatting the title, owner and description in the cell
             let frameWidth = CGRectGetWidth(self.tableView.frame)
@@ -335,18 +380,15 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             ]
             */
             
-            let attributedText = NSMutableAttributedString(string: labelText)
-            attributedText.addAttribute(NSFontAttributeName, value: italicFont, range: NSMakeRange(ownerIndex, ownerLength))
-            attributedText.addAttribute(NSFontAttributeName, value: preferredFont, range: NSMakeRange(titleIndex, titleLength))
-            if (!description.isEmpty) {
-                attributedText.addAttribute(NSFontAttributeName, value: smallerFont, range: NSMakeRange(descriptionIndex, descriptionLength))
-            }
-            
-            // Only apply paragraph spacing for title and owner newlines, not the newlines in the description
-            let paragraphLength = description.isEmpty
-                ? titleLength + ownerLength + 1
-                : titleLength + ownerLength + 2
-            attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(0, paragraphLength))
+            // Only apply paragraph spacing for last paragraph in title and last paragraph in owner.  Do not apply to paragraphs elsewhere.
+            var start: Int = 0
+            var end: Int = 0
+
+            (title as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, forRange: NSMakeRange(titleLength, 0))
+            attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(titleIndex + start, end - start))
+
+            (owner as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, forRange: NSMakeRange(ownerLength, 0))
+            attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
             
             let label = (cell as! LabelTableViewCell).label
             label.attributedText = attributedText
@@ -370,14 +412,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
      * to test this because Xcode 7 does not support the iOS 7 simulator.
      */
     override func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        let cellIdentifier: String
-        if (indexPath.row < tableRows[indexPath.section].count) {
-            cellIdentifier = tableRows[indexPath.section][indexPath.row].cellIdentifier()
-        }
-        else {
-            cellIdentifier = "Result Cell"
-        }
-
+        let cellIdentifier = cellIdentifierForPath(indexPath)
         var cell = sizingCells[cellIdentifier]
         if (cell == nil) {
             cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
@@ -442,24 +477,33 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     
     override func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+            let height: CGFloat
             if (indexPath.row < tableRows[indexPath.section].count) {
-                return self.tableView(tableView, heightForRowAtIndexPath: indexPath)
+                height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
             }
-
-            if (estimatedHeightForResultCell == nil) {
-                let cellIdentifier = "Result Cell"
-                var sizingCell = sizingCells[cellIdentifier]
-                if (sizingCell == nil) {
-                    sizingCell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
-                    sizingCells[cellIdentifier] = sizingCell!
+            else {
+                let resultRow = indexPath.row - tableRows[indexPath.section].count
+                if (isActivityRow(resultRow)) {
+                    height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
                 }
-            
-                let qset = QSet(id: 0, url: "", title: "Title", description: "", createdBy: "Owner", creatorId: 0, createdDate: 0, modifiedDate: 0)
-                configureCell(sizingCell!, atIndexPath: indexPath, qset: qset)
-                estimatedHeightForResultCell = calculateHeight(sizingCell!)
+                else {
+                    if (estimatedHeightForResultCell == nil) {
+                        let cellIdentifier = "Result Cell"
+                        var sizingCell = sizingCells[cellIdentifier]
+                        if (sizingCell == nil) {
+                            sizingCell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
+                            sizingCells[cellIdentifier] = sizingCell!
+                        }
+                        
+                        let qset = QSet(id: 0, url: "", title: "Title", description: "", createdBy: "Owner", creatorId: 0, createdDate: 0, modifiedDate: 0)
+                        configureCell(sizingCell!, atIndexPath: indexPath, qset: qset)
+                        estimatedHeightForResultCell = calculateHeight(sizingCell!)
+                    }
+                    height = estimatedHeightForResultCell!
+                }
             }
             
-            return estimatedHeightForResultCell!
+            return height
     }
 
     override func tableView(tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
