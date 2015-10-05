@@ -41,9 +41,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id)
     }
     
-    func application(application: UIApplication,
-        didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
-        // Tells the delegate that the launch process is almost done and the app is almost ready to run.
+    // Tells the delegate that the launch process is almost done and the app is almost ready to run.
+    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
         return true
     }
     
