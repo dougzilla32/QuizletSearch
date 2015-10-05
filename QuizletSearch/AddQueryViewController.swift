@@ -252,24 +252,41 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     
     func cellIdentifierForPath(indexPath: NSIndexPath) -> String {
         var cellIdentifier: String
-        if (indexPath.row < tableRows[indexPath.section].count) {
+        if (!isResultRow(indexPath)) {
             cellIdentifier = tableRows[indexPath.section][indexPath.row].cellIdentifier()
         }
         else {
             // result row
             let resultRow = indexPath.row - tableRows[indexPath.section].count
-            cellIdentifier = isActivityRow(resultRow) ? "Activity Cell" : "Result Cell"
+            
+            if (isActivityRow(resultRow)) {
+                cellIdentifier = "Activity Cell"
+            }
+            else {
+                // Use zero height cell for empty qsets.  We insert empty qsets if the Quitlet paging query returns fewer pages than expected (this happens occasionally).
+                let qset = setPager?.getQSetForRow(resultRow)
+                if (qset != nil && qset!.title.isEmpty && qset!.createdBy.isEmpty && qset!.description.isEmpty) {
+                    cellIdentifier = "Empty Cell"
+                }
+                else {
+                    cellIdentifier = "Result Cell"
+                }
+            }
         }
         return cellIdentifier
+    }
+    
+    func isResultRow(indexPath: NSIndexPath) -> Bool {
+        return (indexPath.row >= tableRows[indexPath.section].count)
     }
     
     func isActivityRow(row: Int) -> Bool {
         return (setPager == nil || setPager!.totalResults == nil || row >= setPager!.totalResults)
     }
-
+    
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
         let qset: QSet?
-        if (indexPath.row < tableRows[indexPath.section].count) {
+        if (!isResultRow(indexPath)) {
             qset = nil
         }
         else {
@@ -295,7 +312,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     }
     
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath, qset: QSet!) {
-        if (indexPath.row < tableRows[indexPath.section].count) {
+        if (!isResultRow(indexPath)) {
             let row = tableRows[indexPath.section][indexPath.row]
             if (row.isHeader()) {
                 let label = cell.contentView.viewWithTag(100) as! UILabel
@@ -336,6 +353,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
                 return
             }
             
+            if (qset.title.isEmpty && qset.createdBy.isEmpty && qset.description.isEmpty) {
+                // Empty cell
+                return
+            }
+            
             let title = qset.title.trimWhitespace()
             let owner = qset.createdBy.trimWhitespace()
             let description = qset.description.trimWhitespace()
@@ -344,15 +366,33 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             let ownerLength = (owner as NSString).length
             let descriptionLength = (description as NSString).length
             
-            var labelText: String = "\(title)\n\(owner)"
+            var labelText: String = ""
+            
             let titleIndex = 0
-            let ownerIndex = titleLength + 1
+            if (titleLength > 0) {
+                labelText += title
+            }
+            
+            let ownerIndex: Int
+            if (ownerLength > 0) {
+                ownerIndex = (labelText as NSString).length
+                if (ownerIndex > 0) {
+                    labelText += "\n"
+                }
+                labelText += owner
+            }
+            else {
+                ownerIndex = 0
+            }
             
             let hasDescription = !description.isEmpty && description.lowercaseString != title.lowercaseString
             let descriptionIndex: Int
             if (hasDescription) {
-                labelText += "\n\(description)"
-                descriptionIndex = titleLength + ownerLength + 2
+                descriptionIndex = (labelText as NSString).length
+                if (descriptionIndex > 0) {
+                    labelText += "\n"
+                }
+                labelText += description
             }
             else {
                 descriptionIndex = 0
@@ -478,7 +518,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     override func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
             let height: CGFloat
-            if (indexPath.row < tableRows[indexPath.section].count) {
+            if (!isResultRow(indexPath)) {
                 height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
             }
             else {

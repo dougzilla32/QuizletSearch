@@ -650,6 +650,14 @@
                                     </constraints>
                                 </tableViewCellContentView>
                             </tableViewCell>
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Empty Cell" rowHeight="0.0" id="ChA-QJ-k4S" customClass="LabelTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="650" width="600" height="0.0"/>
+                                <autoresizingMask key="autoresizingMask"/>
+                                <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ChA-QJ-k4S" id="PDZ-l0-3eG">
+                                    <rect key="frame" x="0.0" y="-0.5" width="600" height="0.5"/>
+                                    <autoresizingMask key="autoresizingMask"/>
+                                </tableViewCellContentView>
+                            </tableViewCell>
                         </prototypes>
                         <connections>
                             <outlet property="dataSource" destination="cC7-u2-ics" id="J84-tj-wnb"/>
