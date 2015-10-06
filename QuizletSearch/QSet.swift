@@ -9,14 +9,14 @@
 import Foundation
 
 class QSet {
-    var id: Int64
-    var url: String
-    var title: String
-    var description: String
-    var createdBy: String
-    var creatorId: Int64
-    var createdDate: Int64
-    var modifiedDate: Int64
+    let id: Int64
+    let url: String
+    let title: String
+    let description: String
+    let createdBy: String
+    let creatorId: Int64
+    let createdDate: Int64
+    let modifiedDate: Int64
     
     var terms: [QTerm]
     

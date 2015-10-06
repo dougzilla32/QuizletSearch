@@ -15,6 +15,14 @@ class QueryResult {
     let imageSetCount: Int
     let qsets: [QSet]
     
+    init(copyFrom: QueryResult, qsets: [QSet]) {
+        self.page = copyFrom.page
+        self.totalPages = copyFrom.totalPages
+        self.totalResults = copyFrom.totalResults
+        self.imageSetCount = copyFrom.imageSetCount
+        self.qsets = qsets
+    }
+    
     init(jsonAny: AnyObject) throws {
         if let json = jsonAny as? NSDictionary,
             page = json["page"] as? Int,

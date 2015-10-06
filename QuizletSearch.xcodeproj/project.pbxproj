@@ -36,7 +36,7 @@
 		914D0AE41B6AA4ED0025C585 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADF1B6AA4ED0025C585 /* User.swift */; };
 		9187F47B1B68AD1500FA528F /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9187F47A1B68AD1500FA528F /* Common.swift */; };
 		9187F4801B69FECC00FA528F /* SampleQuizletData.json in Resources */ = {isa = PBXBuildFile; fileRef = 9187F47F1B69FECC00FA528F /* SampleQuizletData.json */; };
-		91AEE1421BBEFBDA00AC41D6 /* LabelTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AEE1411BBEFBDA00AC41D6 /* LabelTableViewCell.swift */; };
+		91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */; };
 		91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B4AB511B683D2F0043675A /* LevenshteinDistance.swift */; };
 		91B4AB581B6845EB0043675A /* StringScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B4AB571B6845EB0043675A /* StringScore.swift */; };
 		91D4DCCB1B43A83500F545A3 /* Localizable.strings in Resources */ = {isa = PBXBuildFile; fileRef = 91D4DCCA1B43A83500F545A3 /* Localizable.strings */; };
@@ -90,7 +90,7 @@
 		914D0ADF1B6AA4ED0025C585 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = User.swift; path = Model/User.swift; sourceTree = "<group>"; };
 		9187F47A1B68AD1500FA528F /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		9187F47F1B69FECC00FA528F /* SampleQuizletData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SampleQuizletData.json; sourceTree = "<group>"; };
-		91AEE1411BBEFBDA00AC41D6 /* LabelTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabelTableViewCell.swift; sourceTree = "<group>"; };
+		91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetTableViewCell.swift; sourceTree = "<group>"; };
 		91B4AB511B683D2F0043675A /* LevenshteinDistance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LevenshteinDistance.swift; sourceTree = "<group>"; };
 		91B4AB571B6845EB0043675A /* StringScore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringScore.swift; sourceTree = "<group>"; };
 		91D4DCCA1B43A83500F545A3 /* Localizable.strings */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.strings; path = Localizable.strings; sourceTree = "<group>"; };
@@ -176,7 +176,7 @@
 				911A0D4C1B41264200B219D7 /* LoginViewController.swift */,
 				910AAEB21BAB67E100655131 /* QueriesViewController.swift */,
 				91EA7CFD1BB0BD3C00273996 /* AddQueryViewController.swift */,
-				91AEE1411BBEFBDA00AC41D6 /* LabelTableViewCell.swift */,
+				91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */,
 				912DFCF61BBAD106002D67FA /* SetPager.swift */,
 				911A0D501B41772C00B219D7 /* SearchViewController.swift */,
 				911C41041B9F7A7C007E0AEE /* SearchTableViewCell.swift */,
@@ -385,7 +385,7 @@
 				910AAEB31BAB67E100655131 /* QueriesViewController.swift in Sources */,
 				911C410B1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift in Sources */,
 				91EDA14A1B3161D300E1152D /* DropboxSession.swift in Sources */,
-				91AEE1421BBEFBDA00AC41D6 /* LabelTableViewCell.swift in Sources */,
+				91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */,
 				914D0AE41B6AA4ED0025C585 /* User.swift in Sources */,
 				910722F61B35FE200066DC87 /* QSet.swift in Sources */,
 				914D0AE31B6AA4ED0025C585 /* Term.swift in Sources */,
@@ -467,7 +467,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
 				MTL_ENABLE_DEBUG_INFO = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
@@ -506,7 +506,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -520,7 +520,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = QuizletSearch/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.douglas.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -534,7 +534,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				INFOPLIST_FILE = QuizletSearch/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 9.1;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.douglas.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";

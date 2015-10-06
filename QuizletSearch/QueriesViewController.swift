@@ -44,19 +44,20 @@ class QueriesViewController: TableContainerController {
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("My label", forIndexPath: indexPath) as! LabelTableViewCell
+        let cell = tableView.dequeueReusableCellWithIdentifier("My label", forIndexPath: indexPath)
         configureCell(cell, atIndexPath: indexPath)
         return cell
     }
     
-    func configureCell(cell: LabelTableViewCell, atIndexPath indexPath: NSIndexPath) {
+    func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
         let text = "Sets created by: dougzilla32"
-        cell.label.text = text
-        // cell.label.font = preferredSearchFont
+        let label = cell.contentView.viewWithTag(100) as! UILabel
+        label.text = text
+        // label.font = preferredSearchFont
     }
     
-    lazy var sizingCell: LabelTableViewCell = {
-        return self.tableView.dequeueReusableCellWithIdentifier("My label") as! LabelTableViewCell
+    lazy var sizingCell: UITableViewCell = {
+        return self.tableView.dequeueReusableCellWithIdentifier("My label")!
     }()
     
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {

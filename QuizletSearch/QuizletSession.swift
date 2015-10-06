@@ -268,11 +268,11 @@ class QuizletSession {
         }
     }
     
-    class func queryItemsForModifiedSince(modifiedSince: Int64) -> [NSURLQueryItem]? {
-        let queryItems: [NSURLQueryItem]? = nil
+    class func queryItemsForModifiedSince(modifiedSince: Int64?) -> [NSURLQueryItem] {
+        let queryItems: [NSURLQueryItem] = []
         
         /** The following code is commented out because the "modified_since" parameter does not work in all cases.  If the user has edited a term or moved a term, the "modified_date" for the set is not updated.  If the user inserts or deletes a term then the "modified_date" is updated as expected.
-        if (modifiedSince != 0) {
+        if (modifiedSince != nil) {
             if queryItems == nil { queryItems = [] }
             queryItems!.append(NSURLQueryItem(name: "modified_since", value: String(modifiedSince)))
         }
@@ -331,7 +331,26 @@ class QuizletSession {
         })
     }
     
-    func getSetsInClass(classId: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+    func getSetsForIds(setIds: [Int64], modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+        
+        var stringIds = [String]()
+        for id in setIds {
+            stringIds.append(String(id))
+        }
+        
+        var queryItems = [NSURLQueryItem]()
+        queryItems += QuizletSession.queryItemsForModifiedSince(modifiedSince)
+        queryItems.append(NSURLQueryItem(name: "set_ids", value: stringIds.joinWithSeparator(",")))
+        
+        self.invokeQuery("/2.0/sets",
+            queryItems: queryItems,
+            allowCellularAccess: allowCellularAccess,
+            jsonCallback: { (jsonAny: AnyObject?) in
+                QuizletSession.qsetsFromJSONAny(jsonAny, functionName: "getSets", completionHandler: completionHandler)
+        })
+    }
+    
+    func getSetsInClass(classId: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuery("/2.0/classes/\(classId)/sets",
             queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince),
             allowCellularAccess: allowCellularAccess,
@@ -341,21 +360,21 @@ class QuizletSession {
         })
     }
     
-    func getFavoriteSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+    func getFavoriteSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuery("/2.0/users/\(user)/favorites", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: AnyObject?) in
 
             QuizletSession.qsetsFromJSONAny(jsonAny, functionName: "getFavoriteSetsForUser", completionHandler: completionHandler)
         })
     }
     
-    func getStudiedSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+    func getStudiedSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
         self.invokeQuery("/2.0/users/\(user)/studied", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: AnyObject?) in
 
             QuizletSession.qsetsFromJSONAny(jsonAny, functionName: "getStudiedSetsForUser", completionHandler: completionHandler)
         })
     }
     
-    func getAllSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+    func getAllSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
 
         self.invokeQuery("/2.0/users/\(user)/sets", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: AnyObject?) in
 
@@ -363,7 +382,7 @@ class QuizletSession {
         })
     }
     
-    func getAllSampleSetsForUser(user: String, modifiedSince: Int64, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+    func getAllSampleSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
 
         let sampleFilePath = NSBundle.mainBundle().pathForResource("SampleQuizletData", ofType: "json")
         if (sampleFilePath == nil) {

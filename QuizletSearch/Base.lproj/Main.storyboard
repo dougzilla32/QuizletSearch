@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
 <document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="9052" systemVersion="14F27" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="RWF-r3-wqn">
     <dependencies>
-        <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9040"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
@@ -250,8 +249,8 @@
                                             <segue destination="9AA-5U-TvR" kind="show" id="lgk-TH-teV"/>
                                         </connections>
                                     </button>
-                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" misplaced="YES" text="Quizlet Search" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Az0-7N-gFN">
-                                        <rect key="frame" x="234" y="30" width="132" height="24"/>
+                                    <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Quizlet Search" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Az0-7N-gFN">
+                                        <rect key="frame" x="241" y="30" width="117" height="24"/>
                                         <color key="backgroundColor" red="0.0" green="0.47450980390000003" blue="0.74901960779999999" alpha="1" colorSpace="calibratedRGB"/>
                                         <fontDescription key="fontDescription" name="Noteworthy-Bold" family="Noteworthy" pointSize="19"/>
                                         <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -280,7 +279,7 @@
                                 </constraints>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="c5b-uN-go6">
-                                <rect key="frame" x="0.0" y="63.5" width="600" height="536"/>
+                                <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <searchBar key="tableHeaderView" contentMode="redraw" placeholder="Sets" id="xKg-5t-Tv9">
                                     <rect key="frame" x="0.0" y="0.0" width="600" height="44"/>
@@ -289,14 +288,14 @@
                                     <textInputTraits key="textInputTraits"/>
                                 </searchBar>
                                 <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="My label" id="Cbj-eg-505" customClass="LabelTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="My label" id="Cbj-eg-505">
                                         <rect key="frame" x="0.0" y="72" width="600" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Cbj-eg-505" id="TNr-yV-nom">
                                             <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="My label" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="e5n-0l-AeS" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
+                                                <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="My label" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="e5n-0l-AeS" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
                                                     <rect key="frame" x="15" y="10" width="570" height="23.5"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
@@ -309,17 +308,6 @@
                                                 <constraint firstItem="e5n-0l-AeS" firstAttribute="leading" secondItem="TNr-yV-nom" secondAttribute="leading" constant="15" id="M0C-VX-a9S"/>
                                                 <constraint firstAttribute="trailing" secondItem="e5n-0l-AeS" secondAttribute="trailing" constant="15" id="jSd-H3-B8M"/>
                                             </constraints>
-                                        </tableViewCellContentView>
-                                        <connections>
-                                            <outlet property="label" destination="e5n-0l-AeS" id="NB7-Hn-PFb"/>
-                                        </connections>
-                                    </tableViewCell>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="roM-hE-fDu">
-                                        <rect key="frame" x="0.0" y="116" width="600" height="44"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="roM-hE-fDu" id="aW1-eb-m5e">
-                                            <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
-                                            <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                 </prototypes>
@@ -398,8 +386,8 @@
                                     <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <searchBar tag="100" contentMode="redraw" misplaced="YES" placeholder="Search" translatesAutoresizingMaskIntoConstraints="NO" id="IE2-Ms-6aY">
-                                            <rect key="frame" x="0.0" y="-1" width="600" height="44"/>
+                                        <searchBar tag="100" contentMode="redraw" placeholder="Search" translatesAutoresizingMaskIntoConstraints="NO" id="IE2-Ms-6aY">
+                                            <rect key="frame" x="0.0" y="0.0" width="600" height="43"/>
                                             <textInputTraits key="textInputTraits"/>
                                             <connections>
                                                 <outlet property="delegate" destination="cC7-u2-ics" id="1Pf-tt-sok"/>
@@ -606,33 +594,100 @@
                                 </tableViewCellContentView>
                                 <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="calibratedRGB"/>
                             </tableViewCell>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Result Cell" rowHeight="44" id="Vho-Fc-cHR" customClass="LabelTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="556" width="600" height="44"/>
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Result Cell" rowHeight="119" id="Vho-Fc-cHR" customClass="SetTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
+                                <rect key="frame" x="0.0" y="556" width="600" height="119"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Vho-Fc-cHR" id="MIn-IR-17E">
-                                    <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="600" height="118.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title, Owner and Description" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YUd-hh-DbE" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
-                                            <rect key="frame" x="15" y="10" width="570" height="23.5"/>
+                                        <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title, Owner and Description" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YUd-hh-DbE" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
+                                            <rect key="frame" x="15" y="10" width="570" height="20.5"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                             <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
                                             <nil key="highlightedColor"/>
                                         </label>
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="Dbx-Er-ZwW" userLabel="Term Stack">
+                                            <rect key="frame" x="15" y="41" width="280" height="68"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Term 110" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bd3-GU-T6T">
+                                                    <rect key="frame" x="0.0" y="0.0" width="280" height="20.5"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Term 120" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="CA2-Vb-VsF">
+                                                    <rect key="frame" x="0.0" y="23.5" width="280" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Term 130" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="jmy-hp-aOa">
+                                                    <rect key="frame" x="0.0" y="47.5" width="280" height="20.5"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                        </stackView>
+                                        <stackView opaque="NO" contentMode="scaleToFill" axis="vertical" spacing="3" translatesAutoresizingMaskIntoConstraints="NO" id="txl-qo-Mlv" userLabel="Definition Stack">
+                                            <rect key="frame" x="304.5" y="41" width="280" height="68"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Definition 210" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="gN8-bp-BIp">
+                                                    <rect key="frame" x="0.0" y="0.0" width="280" height="20.5"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Definition 220" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="l8t-yq-AAL">
+                                                    <rect key="frame" x="0.0" y="23.5" width="280" height="20.5"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" text="Definition 230" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eVH-tW-W4X">
+                                                    <rect key="frame" x="0.0" y="47" width="280" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstAttribute="width" constant="84" id="2es-mH-lRg"/>
+                                            </constraints>
+                                            <variation key="default">
+                                                <mask key="constraints">
+                                                    <exclude reference="2es-mH-lRg"/>
+                                                </mask>
+                                            </variation>
+                                        </stackView>
                                     </subviews>
                                     <constraints>
+                                        <constraint firstItem="txl-qo-Mlv" firstAttribute="top" secondItem="YUd-hh-DbE" secondAttribute="bottom" constant="10.5" id="0KC-Ei-dFk"/>
+                                        <constraint firstAttribute="bottom" secondItem="txl-qo-Mlv" secondAttribute="bottom" constant="10" id="5Ay-eO-zYw"/>
                                         <constraint firstItem="YUd-hh-DbE" firstAttribute="top" secondItem="MIn-IR-17E" secondAttribute="top" constant="10" id="5XR-oW-yIQ"/>
-                                        <constraint firstAttribute="bottom" secondItem="YUd-hh-DbE" secondAttribute="bottom" constant="10" id="SAz-ZX-AcX"/>
+                                        <constraint firstItem="txl-qo-Mlv" firstAttribute="leading" secondItem="Dbx-Er-ZwW" secondAttribute="trailing" constant="10" id="6Ht-XU-XbW"/>
+                                        <constraint firstItem="txl-qo-Mlv" firstAttribute="width" secondItem="Dbx-Er-ZwW" secondAttribute="width" id="CQh-wU-GCA"/>
+                                        <constraint firstItem="Dbx-Er-ZwW" firstAttribute="leading" secondItem="MIn-IR-17E" secondAttribute="leading" constant="15" id="Ko0-ah-XuH"/>
+                                        <constraint firstAttribute="trailing" secondItem="txl-qo-Mlv" secondAttribute="trailing" constant="15" id="LRn-8U-hbY"/>
                                         <constraint firstAttribute="trailing" secondItem="YUd-hh-DbE" secondAttribute="trailing" constant="15" id="ami-uM-i58"/>
                                         <constraint firstItem="YUd-hh-DbE" firstAttribute="leading" secondItem="MIn-IR-17E" secondAttribute="leading" constant="15" id="qph-0F-0n1"/>
+                                        <constraint firstAttribute="bottom" secondItem="Dbx-Er-ZwW" secondAttribute="bottom" constant="10" id="rW8-3d-irH"/>
+                                        <constraint firstItem="Dbx-Er-ZwW" firstAttribute="top" secondItem="YUd-hh-DbE" secondAttribute="bottom" constant="10" id="wDM-DS-fzO"/>
                                     </constraints>
                                 </tableViewCellContentView>
                                 <connections>
+                                    <outlet property="definition0" destination="gN8-bp-BIp" id="hB5-UA-RA3"/>
+                                    <outlet property="definition1" destination="l8t-yq-AAL" id="FEO-WA-3kF"/>
+                                    <outlet property="definition2" destination="eVH-tW-W4X" id="eFh-nX-bXt"/>
                                     <outlet property="label" destination="YUd-hh-DbE" id="hzY-8M-Cjx"/>
+                                    <outlet property="term0" destination="bd3-GU-T6T" id="Gge-mX-HTt"/>
+                                    <outlet property="term1" destination="CA2-Vb-VsF" id="Pjt-99-mnh"/>
+                                    <outlet property="term2" destination="jmy-hp-aOa" id="wXE-Et-XqO"/>
                                 </connections>
                             </tableViewCell>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Activity Cell" rowHeight="50" id="VaR-Gc-nPX" customClass="LabelTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="600" width="600" height="50"/>
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Activity Cell" rowHeight="50" id="VaR-Gc-nPX">
+                                <rect key="frame" x="0.0" y="675" width="600" height="50"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="VaR-Gc-nPX" id="XGP-Oh-1FZ">
                                     <rect key="frame" x="0.0" y="0.0" width="600" height="49.5"/>
@@ -650,8 +705,8 @@
                                     </constraints>
                                 </tableViewCellContentView>
                             </tableViewCell>
-                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Empty Cell" rowHeight="0.0" id="ChA-QJ-k4S" customClass="LabelTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
-                                <rect key="frame" x="0.0" y="650" width="600" height="0.0"/>
+                            <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Empty Cell" rowHeight="0.0" id="ChA-QJ-k4S">
+                                <rect key="frame" x="0.0" y="725" width="600" height="0.0"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ChA-QJ-k4S" id="PDZ-l0-3eG">
                                     <rect key="frame" x="0.0" y="-0.5" width="600" height="0.5"/>

@@ -8,9 +8,15 @@
 
 import UIKit
 
-class LabelTableViewCell: UITableViewCell {
+class SetTableViewCell: UITableViewCell {
     
     @IBOutlet weak var label: DynamicLabel!
+    @IBOutlet weak var term0: UILabel!
+    @IBOutlet weak var term1: UILabel!
+    @IBOutlet weak var term2: UILabel!
+    @IBOutlet weak var definition0: UILabel!
+    @IBOutlet weak var definition1: UILabel!
+    @IBOutlet weak var definition2: UILabel!
 
     override func awakeFromNib() {
         super.awakeFromNib()

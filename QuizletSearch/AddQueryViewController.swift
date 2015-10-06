@@ -430,18 +430,50 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             (owner as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, forRange: NSMakeRange(ownerLength, 0))
             attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
             
-            let label = (cell as! LabelTableViewCell).label
-            label.attributedText = attributedText
+            let setCell = (cell as! SetTableViewCell)
+            setCell.label.attributedText = attributedText
             
             /* Alternatively could use three labels instead of one label to position the title, owner and description in the cell
             let title = cell.contentView.viewWithTag(100) as! UILabel
             let owner = cell.contentView.viewWithTag(110) as! UILabel
             let description = cell.contentView.viewWithTag(120) as! UILabel
             
-            title.text = qset?.title
-            owner.text = qset?.createdBy
-            description.text = qset?.description
+            title.text = qset.title
+            owner.text = qset.createdBy
+            description.text = qset.description
             */
+            
+            // Terms
+            let termLabels = [ setCell.term0, setCell.term1, setCell.term2 ]
+            let definitionLabels = [ setCell.definition0, setCell.definition1, setCell.definition2 ]
+            
+            for i in 0...2 {
+                if (i < qset.terms.count) {
+                    var term: String! = qset.terms[i].term.trimWhitespace()
+                    var definition: String! = qset.terms[i].definition.trimWhitespace()
+                    
+                    // Make sure term and definition always line up horizontally in the cell even if one or the other is empty
+                    if (term.isEmpty && definition.isEmpty) {
+                        term = nil
+                        definition = nil
+                    }
+                    else if (term.isEmpty) {
+                        term = "\u{200B}"
+                    }
+                    else if (definition.isEmpty) {
+                        definition = "\u{200B}"
+                    }
+                    
+                    termLabels[i].text = term
+                    definitionLabels[i].text = definition
+                }
+                else {
+                    termLabels[i].text = nil
+                    definitionLabels[i].text = nil
+                }
+                termLabels[i].font = smallerFont
+                definitionLabels[i].font = smallerFont
+            }
         }
     }
     
@@ -536,6 +568,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
                         }
                         
                         let qset = QSet(id: 0, url: "", title: "Title", description: "", createdBy: "Owner", creatorId: 0, createdDate: 0, modifiedDate: 0)
+                        qset.terms = [
+                            QTerm(id: 0, term: "Term 1", definition: "Definition 1"),
+                            QTerm(id: 0, term: "Term 2", definition: "Definition 2"),
+                            QTerm(id: 0, term: "Term 3", definition: "Definition 3"),
+                        ]
                         configureCell(sizingCell!, atIndexPath: indexPath, qset: qset)
                         estimatedHeightForResultCell = calculateHeight(sizingCell!)
                     }
