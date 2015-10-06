@@ -9,6 +9,10 @@
 import Foundation
 import AVFoundation
 
+func ==(lhs: QuizletSession.Task, rhs: QuizletSession.Task) -> Bool {
+    return (lhs.task == rhs.task && lhs.description == rhs.description)
+}
+
 //
 // Note: NSURLComponents does not percent-escape the following characters which causes
 // problems while parsing the response: '&' ';'
@@ -28,28 +32,35 @@ class QuizletSession {
     
     var currentUser: UserAccount?
     
-    class Task {
-        let task: NSURLSessionDataTask
-        let description: String
+    class Task: Hashable {
+        var task: NSURLSessionDataTask!
+        var description: String!
+        
+        init() { }
         
         init(task: NSURLSessionDataTask, description: String) {
             self.task = task
             self.description = description
         }
+        
+        var hashValue: Int {
+            return task.hashValue + description.hashValue
+        }
     }
     
     private var currentTokenTask: Task?
-    private var currentQueryTask: Task?
+    private var currentQueryTasks = Set<Task>()
 
     func close() {
-        for task in [ currentTokenTask, currentQueryTask ] {
-            if (task != nil) {
-                NSLog("Canceling task: \(task!.description)")
-                task!.task.cancel()
-            }
+        for task in currentQueryTasks {
+            NSLog("Canceling task: \(task.description)")
+            task.task.cancel()
         }
-        currentTokenTask = nil
-        currentQueryTask = nil
+        
+        if let task = currentTokenTask {
+            NSLog("Canceling task: \(task.description)")
+            task.task.cancel()
+        }
     }
     
     // Quizlet authorize parameters:
@@ -431,16 +442,12 @@ class QuizletSession {
         request.HTTPMethod = "GET"
         request.timeoutInterval = 15 // default is 60 seconds, timeout is the limit on a period of inactivity
         
-        if (currentQueryTask != nil) {
-            NSLog("Task already running: \(currentQueryTask!.description)")
-            // TODO: determine what should happen for more than one task running at a time
-            // currentQueryTask!.task.cancel()
-            currentQueryTask = nil
-        }
-        
+        let queryTask = Task()
         let task = session.dataTaskWithRequest(request,
             completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
-                self.currentQueryTask = nil
+                dispatch_async(dispatch_get_main_queue(), {
+                    self.currentQueryTasks.remove(queryTask)
+                })
                 
                 /** Print the result
                 println(path)
@@ -450,8 +457,10 @@ class QuizletSession {
                 let jsonData: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)
                 jsonCallback(jsonData)
         })
-        
-        currentQueryTask = Task(task: task, description: String(url.URL!))
+
+        queryTask.task = task
+        queryTask.description = String(url.URL!)
+        currentQueryTasks.insert(queryTask)
         task.resume()
     }
 }

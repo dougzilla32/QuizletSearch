@@ -119,7 +119,7 @@ class SetPager {
                 let remaining = result.totalResults - (result.page - 1) * self.paginationSize
                 let expectedNumberOfQSets = min(remaining, self.paginationSize)
                 if (result.qsets.count != expectedNumberOfQSets) {
-                    NSLog("Expected \(expectedNumberOfQSets) in page \(result.page) but got \(result.qsets.count)")
+                    // NSLog("Expected \(expectedNumberOfQSets) in page \(result.page) but got \(result.qsets.count)")
                     self.qsets![page-1] = result.qsets
                     for _ in result.qsets.count...expectedNumberOfQSets {
                         self.qsets![page-1]!.append(QSet(id: 0, url: "", title: "", description: "", createdBy: "", creatorId: 0, createdDate: 0, modifiedDate: 0))
