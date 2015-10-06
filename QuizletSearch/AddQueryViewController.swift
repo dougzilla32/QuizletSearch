@@ -98,9 +98,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         }
         
         setPager = SetPager(query: query!, creator: nil)
-        setPager!.loadPage(1, completionHandler: { (pageLoaded: Int?) -> Void in
+        setPager!.loadPage(1, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
             self.tableView.reloadData()
-            self.scrollToResults()
+            if (response == .First) {
+                self.scrollToResults()
+            }
         })
 
         self.tableView.reloadData()
@@ -298,7 +300,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             else {
                 qset = setPager!.getQSetForRow(resultRow)
                 if (qset == nil) {
-                    setPager!.loadRow(resultRow, completionHandler: { (pageLoaded: Int?) -> Void in
+                    setPager!.loadRow(resultRow, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
                         dispatch_async(dispatch_get_main_queue(), {
                             self.tableView.reloadData()
                         })
@@ -494,9 +496,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         configureCell(cell!, atIndexPath: indexPath)
         return calculateHeight(cell!)
     }
-
+    
     func calculateHeight(cell: UITableViewCell) -> CGFloat {
         cell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(cell.bounds))
+        // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called 
+        if let setCell = cell as? SetTableViewCell {
+            setCell.label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        }
+        
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         
@@ -504,7 +511,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         height = height + 1.0 // Add 1.0 for the cell separator height
         return height
     }
-    
+
     var searchCell: UITableViewCell?
 
     override func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
