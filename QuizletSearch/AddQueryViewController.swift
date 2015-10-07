@@ -507,9 +507,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         
-        var height = cell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize).height
-        height = height + 1.0 // Add 1.0 for the cell separator height
-        return height
+        let height = cell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize).height
+        return height + 1.0 // Add 1.0 for the cell separator height
     }
 
     var searchCell: UITableViewCell?

@@ -461,6 +461,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return numberOfRows
     }
 
+    //
+    // Row
+    //
+    
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell", forIndexPath: indexPath) as! SearchTableViewCell
         configureCell(cell, atIndexPath: indexPath)
@@ -510,16 +514,26 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
      * to test this because Xcode 7 does not support the iOS 7 simulator.
      */
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        
         configureCell(sizingCell, atIndexPath:indexPath)
-        
+        return calculateRowHeight(sizingCell)
+    }
+    
+    func calculateRowHeight(cell: SearchTableViewCell) -> CGFloat {
+        // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
+        sizingCell.termLabel!.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        sizingCell.definitionLabel!.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+
+        return calculateHeight(sizingCell)
+    }
+    
+    func calculateHeight(cell: UITableViewCell) -> CGFloat {
         let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: true)
-        sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
-        sizingCell.setNeedsLayout()
-        sizingCell.layoutIfNeeded()
+        cell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(cell.bounds));
+        cell.setNeedsLayout()
+        cell.layoutIfNeeded()
         
-        let size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
-        return size.height + 1.0 // Add 1.0 for the cell separator height
+        let height = cell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize).height
+        return height + 1.0 // Add 1.0 for the cell separator height
     }
     
     var estimatedHeight: CGFloat?
@@ -534,13 +548,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 sizingCell.definitionLabel!.font = preferredSearchFont
                 sizingCell.definitionLabel!.text = "Definition"
                 
-                let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: false)
-                sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
-                sizingCell.setNeedsLayout()
-                sizingCell.layoutIfNeeded()
-                
-                let size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
-                estimatedHeight = size.height + 1.0 // Add 1.0 for the cell separator height
+                estimatedHeight = calculateRowHeight(sizingCell)
             }
             
             return estimatedHeight!
@@ -594,17 +602,19 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         configureHeaderCell(headerSizingCell, section: section)
+        return calculateHeaderHeight(headerSizingCell)
+    }
+    
+    func calculateHeaderHeight(cell: SearchTableViewHeaderCell) -> CGFloat {
+        // Use zero height for empty cells
         if (headerSizingCell.headerLabel!.text == nil) {
             return 0
         }
         
-        let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: true)
-        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(headerSizingCell.bounds));
-        headerSizingCell.setNeedsLayout()
-        headerSizingCell.layoutIfNeeded()
+        // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
+        cell.headerLabel!.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
         
-        let size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
-        return size.height + 1.0 // Add 1.0 for the cell separator height
+        return calculateHeight(cell)
     }
 
     var estimatedHeaderHeight: CGFloat?
@@ -613,14 +623,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         if (estimatedHeaderHeight == nil) {
             headerSizingCell.headerLabel!.font = preferredSearchFont
             headerSizingCell.headerLabel!.text = "Header"
-            
-            let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: false)
-            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(headerSizingCell.bounds));
-            headerSizingCell.setNeedsLayout()
-            headerSizingCell.layoutIfNeeded()
-            
-            let size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
-            estimatedHeaderHeight = size.height + 1.0 // Add 1.0 for the cell separator height
+            estimatedHeaderHeight = calculateHeaderHeight(headerSizingCell)
         }
         
         return estimatedHeaderHeight!
