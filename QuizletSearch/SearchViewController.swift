@@ -461,76 +461,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return numberOfRows
     }
 
-    func configureHeaderCell(cell: SearchTableViewHeaderCell, section: Int) {
-        var title: String?
-        switch (currentSortSelection()) {
-        case .AtoZ:
-            title = searchTerms.AtoZ[section].title
-            /*
-            switch (section) {
-            case 0:
-                title = nil
-            case 1:
-                title = (searchTerms.levenshteinMatch.count > 0) ? "Levenshtein Matches" : "String Score Matches"
-            case 2:
-                title = "String Score Matches"
-            default:
-                title = nil
-            }
-            */
-        case .BySet:
-            title = searchTerms.bySet[section].title
-        case .BySetAtoZ:
-            title = searchTerms.bySetAtoZ[section].title
-        }
-        
-        cell.headerLabel!.font = preferredSearchFont
-        cell.headerLabel!.text = title
-        cell.backgroundColor = UIColor(red: 239, green: 239, blue: 239, alpha: 1.0)
-    }
-    
-    func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
-        configureHeaderCell(cell, section: section)
+    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell", forIndexPath: indexPath) as! SearchTableViewCell
+        configureCell(cell, atIndexPath: indexPath)
         return cell
-    }
-    
-    lazy var headerSizingCell: SearchTableViewHeaderCell = {
-        return self.tableView.dequeueReusableCellWithIdentifier("SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
-        }()
-    
-    func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        configureHeaderCell(headerSizingCell, section: section)
-        if (headerSizingCell.headerLabel!.text == nil) {
-            return 0
-        }
-        
-        let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: true)
-        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
-        headerSizingCell.setNeedsLayout()
-        headerSizingCell.layoutIfNeeded()
-        
-        let size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
-        return size.height + 1.0 // Add 1.0 for the cell separator height
-    }
-
-    var estimatedHeaderHeight: CGFloat?
-    
-    func tableView(tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
-        if (estimatedHeaderHeight == nil) {
-            headerSizingCell.headerLabel!.font = preferredSearchFont
-            headerSizingCell.headerLabel!.text = "Header"
-            
-            let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: false)
-            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
-            headerSizingCell.setNeedsLayout()
-            headerSizingCell.layoutIfNeeded()
-            
-            let size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
-            estimatedHeaderHeight = size.height + 1.0 // Add 1.0 for the cell separator height
-        }
-        
-        return estimatedHeaderHeight!
     }
     
     lazy var highlightForegroundColor = UIColor(red: 25.0 / 255.0, green: 86.0 / 255.0, blue: 204.0 / 255.0, alpha: 1.0)
@@ -563,11 +497,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell", forIndexPath: indexPath) as! SearchTableViewCell
-        configureCell(cell, atIndexPath: indexPath)
-        return cell
-    }
+    //
+    // Row height
+    //
     
     lazy var sizingCell: SearchTableViewCell = {
         return self.tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell") as! SearchTableViewCell
@@ -578,7 +510,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
      * to test this because Xcode 7 does not support the iOS 7 simulator.
      */
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-
+        
         configureCell(sizingCell, atIndexPath:indexPath)
         
         let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: true)
@@ -589,40 +521,115 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         let size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
         return size.height + 1.0 // Add 1.0 for the cell separator height
     }
-
+    
     var estimatedHeight: CGFloat?
     
     func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+            
+            if (estimatedHeight == nil) {
+                sizingCell.termLabel!.font = preferredSearchFont
+                sizingCell.termLabel!.text = "Term"
+                
+                sizingCell.definitionLabel!.font = preferredSearchFont
+                sizingCell.definitionLabel!.text = "Definition"
+                
+                let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: false)
+                sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
+                sizingCell.setNeedsLayout()
+                sizingCell.layoutIfNeeded()
+                
+                let size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+                estimatedHeight = size.height + 1.0 // Add 1.0 for the cell separator height
+            }
+            
+            return estimatedHeight!
+    }
 
-        if (estimatedHeight == nil) {
-            sizingCell.termLabel!.font = preferredSearchFont
-            sizingCell.termLabel!.text = "Term"
-            
-            sizingCell.definitionLabel!.font = preferredSearchFont
-            sizingCell.definitionLabel!.text = "Definition"
-            
-            let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: false)
-            sizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(sizingCell.bounds));
-            sizingCell.setNeedsLayout()
-            sizingCell.layoutIfNeeded()
-            
-            let size = sizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
-            estimatedHeight = size.height + 1.0 // Add 1.0 for the cell separator height
-        }
-            
-        return estimatedHeight!
+    //
+    // Header
+    //
+    
+    func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
+        configureHeaderCell(cell, section: section)
+        return cell
     }
     
-    class func truncateText(var text: String, toLength: Int) -> String {
-        let index = text.startIndex.advancedBy(toLength, limit: text.endIndex)
-        if (index != text.endIndex) {
-            text = text.substringToIndex(index)
-            text = "\(text)..."
+    func configureHeaderCell(cell: SearchTableViewHeaderCell, section: Int) {
+        var title: String?
+        switch (currentSortSelection()) {
+        case .AtoZ:
+            title = searchTerms.AtoZ[section].title
+            /*
+            switch (section) {
+            case 0:
+            title = nil
+            case 1:
+            title = (searchTerms.levenshteinMatch.count > 0) ? "Levenshtein Matches" : "String Score Matches"
+            case 2:
+            title = "String Score Matches"
+            default:
+            title = nil
+            }
+            */
+        case .BySet:
+            title = searchTerms.bySet[section].title
+        case .BySetAtoZ:
+            title = searchTerms.bySetAtoZ[section].title
         }
-        return text
+        
+        cell.headerLabel!.font = preferredSearchFont
+        cell.headerLabel!.text = title
+        cell.backgroundColor = UIColor(red: 239, green: 239, blue: 239, alpha: 1.0)
+    }
+    
+    //
+    // Header height
+    //
+    
+    lazy var headerSizingCell: SearchTableViewHeaderCell = {
+        return self.tableView.dequeueReusableCellWithIdentifier("SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
+        }()
+    
+    func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        configureHeaderCell(headerSizingCell, section: section)
+        if (headerSizingCell.headerLabel!.text == nil) {
+            return 0
+        }
+        
+        let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: true)
+        headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(headerSizingCell.bounds));
+        headerSizingCell.setNeedsLayout()
+        headerSizingCell.layoutIfNeeded()
+        
+        let size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+        return size.height + 1.0 // Add 1.0 for the cell separator height
     }
 
+    var estimatedHeaderHeight: CGFloat?
+    
+    func tableView(tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
+        if (estimatedHeaderHeight == nil) {
+            headerSizingCell.headerLabel!.font = preferredSearchFont
+            headerSizingCell.headerLabel!.text = "Header"
+            
+            let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: false)
+            headerSizingCell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(headerSizingCell.bounds));
+            headerSizingCell.setNeedsLayout()
+            headerSizingCell.layoutIfNeeded()
+            
+            let size = headerSizingCell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+            estimatedHeaderHeight = size.height + 1.0 // Add 1.0 for the cell separator height
+        }
+        
+        return estimatedHeaderHeight!
+    }
+    
+    //
+    // Table index
+    //
+    
     // returns the indexed titles that appear in the index list on the right side of the table view. For example, you can return an array of strings containing “A” to “Z”.
     func sectionIndexTitlesForTableView(tableView: UITableView) -> [String]? {
         var titles: [String]?
