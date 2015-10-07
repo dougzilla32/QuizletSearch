@@ -10,7 +10,7 @@ import UIKit
 
 class SearchTableViewHeaderCell: UITableViewCell {
     
-    @IBOutlet weak var headerLabel: DynamicLabel?
+    @IBOutlet weak var headerLabel: DynamicLabel!
 
     override func awakeFromNib() {
         super.awakeFromNib()

@@ -141,8 +141,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         preferredSearchFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
         preferredBoldSearchFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleHeadline)
         
-        sizingCell.termLabel!.font = preferredSearchFont
-        sizingCell.definitionLabel!.font = preferredSearchFont
+        sizingCell.termLabel.font = preferredSearchFont
+        sizingCell.definitionLabel.font = preferredSearchFont
         estimatedHeaderHeight = nil
         estimatedHeight = nil
        
@@ -483,8 +483,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             termText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
             termText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
         }
-        cell.termLabel!.font = preferredSearchFont
-        cell.termLabel!.attributedText = termText
+        cell.termLabel.font = preferredSearchFont
+        cell.termLabel.attributedText = termText
         
         let definitionForDisplay = searchTerm.sortTerm.definitionForDisplay.string
         let definitionText = NSMutableAttributedString(string: definitionForDisplay)
@@ -492,8 +492,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             definitionText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
             definitionText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
         }
-        cell.definitionLabel!.font = preferredSearchFont
-        cell.definitionLabel!.attributedText = definitionText
+        cell.definitionLabel.font = preferredSearchFont
+        cell.definitionLabel.attributedText = definitionText
         
         let hasImage = false || false
         if (hasImage) {
@@ -520,8 +520,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     func calculateRowHeight(cell: SearchTableViewCell) -> CGFloat {
         // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
-        sizingCell.termLabel!.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        sizingCell.definitionLabel!.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        sizingCell.termLabel.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        sizingCell.definitionLabel.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
 
         return calculateHeight(sizingCell)
     }
@@ -541,17 +541,24 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
             
-            if (estimatedHeight == nil) {
-                sizingCell.termLabel!.font = preferredSearchFont
-                sizingCell.termLabel!.text = "Term"
-                
-                sizingCell.definitionLabel!.font = preferredSearchFont
-                sizingCell.definitionLabel!.text = "Definition"
-                
+            /* TODO: make sure performance is ok for large sets, may need to go back to quicker estimates
+             if (estimatedHeight == nil) {
+                sizingCell.termLabel.font = preferredSearchFont
+                sizingCell.termLabel.text = "Term"
+                sizingCell.definitionLabel.font = preferredSearchFont
+                sizingCell.definitionLabel.text = "Definition"
                 estimatedHeight = calculateRowHeight(sizingCell)
-            }
+             }
+            */
             
-            return estimatedHeight!
+            let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+            sizingCell.termLabel.text = searchTerm.sortTerm.termForDisplay.string
+            sizingCell.termLabel.font = preferredSearchFont
+            
+            sizingCell.definitionLabel.text = searchTerm.sortTerm.definitionForDisplay.string
+            sizingCell.definitionLabel.font = preferredSearchFont
+
+            return calculateRowHeight(sizingCell)
     }
 
     //
@@ -587,8 +594,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             title = searchTerms.bySetAtoZ[section].title
         }
         
-        cell.headerLabel!.font = preferredSearchFont
-        cell.headerLabel!.text = title
+        cell.headerLabel.font = preferredSearchFont
+        cell.headerLabel.text = title
         cell.backgroundColor = UIColor(red: 239, green: 239, blue: 239, alpha: 1.0)
     }
     
@@ -607,12 +614,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     func calculateHeaderHeight(cell: SearchTableViewHeaderCell) -> CGFloat {
         // Use zero height for empty cells
-        if (headerSizingCell.headerLabel!.text == nil) {
+        if (headerSizingCell.headerLabel.text == nil) {
             return 0
         }
         
         // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
-        cell.headerLabel!.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        cell.headerLabel.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
         
         return calculateHeight(cell)
     }
@@ -621,8 +628,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     func tableView(tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
         if (estimatedHeaderHeight == nil) {
-            headerSizingCell.headerLabel!.font = preferredSearchFont
-            headerSizingCell.headerLabel!.text = "Header"
+            headerSizingCell.headerLabel.font = preferredSearchFont
+            headerSizingCell.headerLabel.text = "Header"
             estimatedHeaderHeight = calculateHeaderHeight(headerSizingCell)
         }
         
