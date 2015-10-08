@@ -375,11 +375,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
                 labelText += title
             }
             
-            let ownerIndex: Int
+            var ownerIndex: Int
             if (ownerLength > 0) {
                 ownerIndex = (labelText as NSString).length
                 if (ownerIndex > 0) {
                     labelText += "\n"
+                    ownerIndex++
                 }
                 labelText += owner
             }
@@ -388,11 +389,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             }
             
             let hasDescription = !description.isEmpty && description.lowercaseString != title.lowercaseString
-            let descriptionIndex: Int
+            var descriptionIndex: Int
             if (hasDescription) {
                 descriptionIndex = (labelText as NSString).length
                 if (descriptionIndex > 0) {
                     labelText += "\n"
+                    descriptionIndex++
                 }
                 labelText += description
             }
