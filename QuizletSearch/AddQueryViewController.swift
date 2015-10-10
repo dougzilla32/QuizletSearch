@@ -44,6 +44,8 @@ class QueryRowValue: QueryRow {
 
 class AddQueryViewController: UITableViewController, UISearchBarDelegate {
 
+    let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
+    
     let queryLabelSection = 0
     let resultsSection = 1
     
@@ -63,13 +65,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     // called when text ends editing
     func searchBarTextDidEndEditing(searchBar: UISearchBar) {
         if (searchBar.text == "") {
-            executeSearchForQuery("")
+            executeSearchForQuery("", isSearchAssist: false)
         }
     }
     
     // called when text changes (including clear)
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
         self.searchBar = searchBar
+        executeSearchForQuery(searchBar.text, isSearchAssist: true)
     }
     
     // Have the keyboard close when 'Return' is pressed
@@ -77,7 +80,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     {
         if (text == "\n") {
             searchBar.resignFirstResponder()
-            executeSearchForQuery(searchBar.text)
+            executeSearchForQuery(searchBar.text, isSearchAssist: false)
         }
         return true
     }
@@ -86,31 +89,53 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         searchBar?.resignFirstResponder()
     }
     
-    func executeSearchForQuery(var query: String?) {
+    func executeSearchForQuery(var query: String?, isSearchAssist: Bool) {
         if (query == nil) {
             query = ""
         }
         query = query!.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
         if (query!.isEmpty) {
             setPager = nil
-            self.tableView.reloadData()
+            safelyReloadData()
             return
         }
         
-        setPager = SetPager(query: query!, creator: nil)
+        if (setPager != nil && isSearchAssist && setPager!.isSearchAssist) {
+            setPager!.resetForSearchAssist(query: query!, creator: nil)
+        }
+        else {
+            setPager = SetPager(query: query!, creator: nil, isSearchAssist: isSearchAssist)
+        }
+        
         setPager!.loadPage(1, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
-            self.tableView.reloadData()
+            self.safelyReloadData()
             if (response == .First) {
                 self.scrollToResults()
             }
         })
+    }
+    
+    // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
+    func safelyReloadData() {
+        let isFirstResponder = searchBar.isFirstResponder()
+        if (isFirstResponder) {
+            searchBar.resignFirstResponder()
+        }
 
-        self.tableView.reloadData()
+        tableView.reloadData()
+
+        if (isFirstResponder) {
+            searchBar.becomeFirstResponder()
+        }
     }
     
     func scrollToResults() {
-        let indexPath = NSIndexPath(forRow: self.tableRows[self.resultsSection].count-1, inSection: self.resultsSection)
-        self.tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.Top, animated: true)
+        // Workaround: when the keyboard is showing and there are only a few rows, scrollToRowAtIndexPath will leave some rows occluded by the keyboard and will not properly scroll the table.  Use dispatch_after to introduce a delay as a workaround -- for some reason it works when this delay is introduced.
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+            let indexPath = NSIndexPath(forRow: self.tableRows[self.resultsSection].count-1, inSection: self.resultsSection)
+            self.tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: UITableViewScrollPosition.Top, animated: true)
+            
+        })
     }
     
     // MARK: - View Controller
@@ -144,10 +169,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             object: nil)
         resetFonts()
         
-        // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
-        
         self.navigationController!.navigationBar.titleTextAttributes =
             [NSFontAttributeName: UIFont(name: "Noteworthy-Bold", size: 18)!]
         
@@ -176,30 +197,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         // Dispose of any resources that can be recreated.
     }
     
-    func keyboardWillShow(notification: NSNotification) {
-        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
-            
-            var contentInsets: UIEdgeInsets
-            if (UIInterfaceOrientationIsPortrait(UIApplication.sharedApplication().statusBarOrientation)) {
-                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.height, 0.0);
-            } else {
-                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.width, 0.0);
-            }
-            
-            self.tableView.contentInset = contentInsets;
-            self.tableView.scrollIndicatorInsets = contentInsets;
-        }
-    }
-    
-    func keyboardWillHide(notification: NSNotification) {
-        self.tableView.contentInset = UIEdgeInsetsZero
-        self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero
-    }
-    
     var preferredFont: UIFont!
     var preferredBoldFont: UIFont!
     var italicFont: UIFont!
     var smallerFont: UIFont!
+    var estimatedHeightForSearchAssistCell: CGFloat?
     var estimatedHeightForResultCell: CGFloat?
     
     func preferredContentSizeChanged(notification: NSNotification) {
@@ -215,6 +217,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         
         smallerFont = UIFont(descriptor: preferredFont.fontDescriptor(), size: preferredFont.pointSize - 3.0)
         
+        estimatedHeightForSearchAssistCell = nil
         estimatedHeightForResultCell = nil
         
         self.view.setNeedsLayout()
@@ -261,14 +264,17 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             // result row
             let resultRow = indexPath.row - tableRows[indexPath.section].count
             
-            if (isActivityRow(resultRow)) {
+            if (isActivityIndicatorRow(resultRow)) {
                 cellIdentifier = "Activity Cell"
             }
             else {
                 // Use zero height cell for empty qsets.  We insert empty qsets if the Quitlet paging query returns fewer pages than expected (this happens occasionally).
-                let qset = setPager?.getQSetForRow(resultRow)
+                let qset = setPager?.peekQSetForRow(resultRow)
                 if (qset != nil && qset!.title.isEmpty && qset!.createdBy.isEmpty && qset!.description.isEmpty) {
                     cellIdentifier = "Empty Cell"
+                }
+                else if (setPager != nil && setPager!.isSearchAssist) {
+                    cellIdentifier = "Search Assist Cell"
                 }
                 else {
                     cellIdentifier = "Result Cell"
@@ -282,7 +288,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         return (indexPath.row >= tableRows[indexPath.section].count)
     }
     
-    func isActivityRow(row: Int) -> Bool {
+    func isActivityIndicatorRow(row: Int) -> Bool {
         return (setPager == nil || setPager!.totalResults == nil || row >= setPager!.totalResults)
     }
     
@@ -294,17 +300,17 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         else {
             // result row
             let resultRow = indexPath.row - tableRows[indexPath.section].count
-            if (isActivityRow(resultRow)) {
+            if (isActivityIndicatorRow(resultRow)) {
                 qset = nil
             }
             else {
-                qset = setPager!.getQSetForRow(resultRow)
-                if (qset == nil) {
-                    setPager!.loadRow(resultRow, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
-                        dispatch_async(dispatch_get_main_queue(), {
-                            self.tableView.reloadData()
-                        })
+                qset = setPager!.getQSetForRow(resultRow, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
+                    dispatch_async(dispatch_get_main_queue(), {
+                        self.safelyReloadData()
                     })
+                })
+
+                if (qset == nil) {
                     return
                 }
             }
@@ -349,7 +355,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         else {
             // result row
             let resultRow = indexPath.row - tableRows[indexPath.section].count
-            if (isActivityRow(resultRow)) {
+            if (isActivityIndicatorRow(resultRow)) {
                 let activityIndicator = cell.contentView.viewWithTag(100) as! UIActivityIndicatorView
                 activityIndicator.startAnimating()
                 return
@@ -434,6 +440,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             (owner as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, forRange: NSMakeRange(ownerLength, 0))
             attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
             
+            if (setPager != nil && setPager!.isSearchAssist) {
+                let searchAssistCell = (cell as! LabelTableViewCell)
+                searchAssistCell.label.attributedText = attributedText
+                return
+            }
+            
             let setCell = (cell as! SetTableViewCell)
             setCell.label.attributedText = attributedText
             
@@ -501,7 +513,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     
     func calculateHeight(cell: UITableViewCell) -> CGFloat {
         cell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(cell.bounds))
-        // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called 
+
+        // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
+        if let labelCell = cell as? LabelTableViewCell {
+            labelCell.label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        }
         if let setCell = cell as? SetTableViewCell {
             setCell.label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
         }
@@ -554,7 +570,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         configureSearchCell(sizingCell)
         return calculateHeight(sizingCell)
     }
-    
+
     override func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
             let height: CGFloat
@@ -563,8 +579,23 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
             }
             else {
                 let resultRow = indexPath.row - tableRows[indexPath.section].count
-                if (isActivityRow(resultRow)) {
+                if (isActivityIndicatorRow(resultRow)) {
                     height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
+                }
+                else if (setPager != nil && setPager!.isSearchAssist) {
+                    if (estimatedHeightForSearchAssistCell == nil) {
+                        let cellIdentifier = "Search Assist Cell"
+                        var sizingCell = sizingCells[cellIdentifier]
+                        if (sizingCell == nil) {
+                            sizingCell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
+                            sizingCells[cellIdentifier] = sizingCell!
+                        }
+                        
+                        let qset = QSet(id: 0, url: "", title: "Title", description: "", createdBy: "Owner", creatorId: 0, createdDate: 0, modifiedDate: 0)
+                        configureCell(sizingCell!, atIndexPath: indexPath, qset: qset)
+                        estimatedHeightForSearchAssistCell = calculateHeight(sizingCell!)
+                    }
+                    height = estimatedHeightForSearchAssistCell!
                 }
                 else {
                     if (estimatedHeightForResultCell == nil) {

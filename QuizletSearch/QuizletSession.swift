@@ -53,12 +53,16 @@ class QuizletSession {
 
     func close() {
         for task in currentQueryTasks {
-            NSLog("Canceling task: \(task.description)")
             task.task.cancel()
         }
         
         if let task = currentTokenTask {
-            NSLog("Canceling task: \(task.description)")
+            task.task.cancel()
+        }
+    }
+    
+    func cancelQueryTasks() {
+        for task in currentQueryTasks {
             task.task.cancel()
         }
     }
@@ -209,7 +213,12 @@ class QuizletSession {
     
     class func checkJSONResponseFromUrl(url: NSURL, data: NSData?, response: NSURLResponse? , error: NSError?) -> AnyObject? {
         if (error != nil) {
-            NSLog("\(url)\n\(error!)")
+            if (error!.domain == "NSURLErrorDomain" && error!.code == NSURLErrorCancelled) {
+                // The task was cancelled -- no need to log a message
+            }
+            else {
+                NSLog("\(url)\n\(error!)")
+            }
             return nil
         }
         

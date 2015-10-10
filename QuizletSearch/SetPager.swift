@@ -17,27 +17,60 @@ class SetPager {
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession    
 
     let paginationSize = 30
-    let query: String?
-    let creator: String?
+    var query: String?
+    var creator: String?
 
     var qsets: [[QSet]?]?
+    var prevQSets: [[QSet]?]?
+    let isSearchAssist: Bool
+    
     var loadingPages = Set<Int>()
     var totalPages: Int?
     var totalResults: Int?
+    var validateTotals = true
     
-    init(query: String?, creator: String?) {
+    init(query: String?, creator: String?, isSearchAssist: Bool) {
+        quizletSession.cancelQueryTasks()
         self.query = query
         self.creator = creator
+        self.isSearchAssist = isSearchAssist
+    }
+    
+    func resetForSearchAssist(query query: String?, creator: String?) {
+        quizletSession.cancelQueryTasks()
+        loadingPages.removeAll()
+        
+        self.query = query
+        self.creator = creator
+
+        prevQSets = qsets
+        qsets = nil
+        validateTotals = false
     }
     
     func isLoading() -> Bool {
         return loadingPages.count > 0
     }
     
-    func getQSetForRow(row: Int) -> QSet? {
+    func peekQSetForRow(row: Int) -> QSet? {
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
-        return qsets?[pageIndex]?[pageOffset]
+        var qset = qsets?[pageIndex]?[pageOffset]
+        if (qset == nil) {
+            qset = prevQSets?[pageIndex]?[pageOffset]
+        }
+        return qset
+    }
+    
+    func getQSetForRow(row: Int, completionHandler: (pageLoaded: Int?, response: Response) -> Void) -> QSet? {
+        let pageIndex = row / paginationSize
+        let pageOffset = row % paginationSize
+        var qset = qsets?[pageIndex]?[pageOffset]
+        if (qset == nil) {
+            loadRow(row, completionHandler: completionHandler)
+            qset = prevQSets?[pageIndex]?[pageOffset]
+        }
+        return qset
     }
     
     func loadRow(row: Int, completionHandler: (pageLoaded: Int?, response: Response) -> Void) {
@@ -68,19 +101,29 @@ class SetPager {
         
         quizletSession.searchSetsWithQuery(query, creator: creator, imagesOnly: nil, modifiedSince: nil, page: page, perPage: paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
             
-            if (queryResult != nil && queryResult!.totalResults > 0) {
+            if (queryResult == nil) {
+                // Cancelled or error
+                return
+            }
+
+            if (!self.isSearchAssist && queryResult!.totalResults > 0) {
                 var setIds = [Int64]()
                 for qset in queryResult!.qsets {
                     setIds.append(qset.id)
                 }
                 
                 self.quizletSession.getSetsForIds(setIds, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
-                    if (qsets != nil) {
-                        queryResult = QueryResult(copyFrom: queryResult!, qsets: qsets!)
+                    if (qsets == nil) {
+                        // Cancelled or error
+                        return
                     }
                     
+                    queryResult = QueryResult(copyFrom: queryResult!, qsets: qsets!)
                     self.loadPageResult(queryResult, response: .First /* .Last */, page: page, completionHandler: completionHandler)
                 })
+            }
+            else {
+                self.loadPageResult(queryResult, response: .First /* .Last */, page: page, completionHandler: completionHandler)
             }
             
             // It is possible to display sets in the table as soon as we get a response from searchSetsWithQuery but before the terms are available via getSetsForIds.  This is desirable if getSetsForIds is slow. To get this behavior, change .First to .Last in the call to loadPageResult above and uncomment the following line.
@@ -103,22 +146,29 @@ class SetPager {
                 return
             }
             
-            // Check if 'result.totalPages' is consistent
-            if (self.totalPages != nil && self.totalPages != result.totalPages) {
-                NSLog("Total number of pages changed from \(self.totalPages!) to \(result.totalPages) in page \(result.page)")
+            if (self.validateTotals) {
+                // Check if 'result.totalPages' is consistent
+                if (self.totalPages != nil && self.totalPages != result.totalPages) {
+                    NSLog("Total number of pages changed from \(self.totalPages!) to \(result.totalPages) in page \(result.page)")
+                }
+                
+                // Check if 'result.totalResults' is consistent
+                if (self.totalResults != nil && self.totalResults != result.totalResults) {
+                    NSLog("Total number of results changed from \(self.totalResults!) to \(result.totalResults) in page \(result.page)")
+                }
             }
+            
             self.totalPages = result.totalPages
-            
-            // Check if 'result.totalResults' is consistent
-            if (self.totalResults != nil && self.totalResults != result.totalResults) {
-                NSLog("Total number of results changed from \(self.totalResults!) to \(result.totalResults) in page \(result.page)")
-            }
             self.totalResults = result.totalResults
-            
+            self.validateTotals = true
+
             // Check if 'result.page' is consistent
             if (result.page != page) {
                 NSLog("Expected page number \(page) does not match actual page number \(result.page)")
             }
+            
+            // Clear the previous search assist results
+            self.prevQSets = nil
             
             // If there are no pages then call completionHandler with 'nil'
             if (result.totalPages == 0) {
