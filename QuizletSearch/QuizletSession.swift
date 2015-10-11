@@ -294,7 +294,7 @@ class QuizletSession {
         return queryItems
     }
     
-    func searchSetsWithQuery(query: String?, creator: String?, imagesOnly: Bool?, modifiedSince: Int64?, page: Int?, perPage: Int?, allowCellularAccess: Bool, completionHandler: (QueryResult?) -> Void) {
+    func searchSetsWithQuery(query: String?, creator: String?, autocomplete: Bool?, imagesOnly: Bool?, modifiedSince: Int64?, page: Int?, perPage: Int?, allowCellularAccess: Bool, completionHandler: (QueryResult?) -> Void) {
         // perPage: between 1 and 50
         if (perPage < 1 || perPage > 50) {
             NSLog("Invalid perPage parameter")
@@ -307,6 +307,9 @@ class QuizletSession {
         }
         if (creator != nil) {
             params.append(NSURLQueryItem(name: "creator", value: creator!))
+        }
+        if (autocomplete != nil) {
+            params.append(NSURLQueryItem(name: "autocomplete", value: autocomplete! ? "1" : "0"))
         }
         if (imagesOnly != nil) {
             params.append(NSURLQueryItem(name: "images_only", value: String(imagesOnly! ? 1 : 0)))

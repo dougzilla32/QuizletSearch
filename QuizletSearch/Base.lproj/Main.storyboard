@@ -420,6 +420,9 @@
                                             <rect key="frame" x="544" y="1" width="41" height="42"/>
                                             <inset key="contentEdgeInsets" minX="10" minY="10" maxX="10" maxY="10"/>
                                             <state key="normal" image="Plus Button"/>
+                                            <connections>
+                                                <action selector="addUser:" destination="cC7-u2-ics" eventType="touchUpInside" id="99L-9g-hhX"/>
+                                            </connections>
                                         </button>
                                     </subviews>
                                     <constraints>
@@ -431,6 +434,7 @@
                                     </constraints>
                                 </tableViewCellContentView>
                                 <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="calibratedRGB"/>
+                                <gestureRecognizers/>
                             </tableViewCell>
                             <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="User Cell" textLabel="2fa-bN-Njt" style="IBUITableViewCellStyleDefault" id="vyr-P4-4MD">
                                 <rect key="frame" x="0.0" y="204" width="600" height="44"/>

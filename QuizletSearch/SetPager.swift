@@ -99,7 +99,7 @@ class SetPager {
         }
         loadingPages.insert(page)
         
-        quizletSession.searchSetsWithQuery(query, creator: creator, imagesOnly: nil, modifiedSince: nil, page: page, perPage: paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
+        quizletSession.searchSetsWithQuery(query, creator: creator, autocomplete: isSearchAssist, imagesOnly: nil, modifiedSince: nil, page: page, perPage: paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
             
             if (queryResult == nil) {
                 // Cancelled or error
