@@ -87,6 +87,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     
     func hideKeyboard(recognizer: UITapGestureRecognizer) {
         searchBar?.resignFirstResponder()
+        executeSearchForQuery(searchBar.text, isSearchAssist: false)
     }
     
     func executeSearchForQuery(var query: String?, isSearchAssist: Bool) {
