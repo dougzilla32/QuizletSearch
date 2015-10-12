@@ -106,11 +106,16 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     
     // MARK: - Gestures
     
-    
     @IBAction func addUser(sender: AnyObject) {
-        print("addUser")
+        let indexPath = model.appendUser("me user")
+        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
     }
 
+    @IBAction func addClass(sender: AnyObject) {
+        let indexPath = model.appendClass("", title: "me class")
+        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+    }
+    
     // MARK: - View Controller
     
     override func shouldAutorotate() -> Bool {

@@ -8,9 +8,40 @@
 
 import Foundation
 
+enum QueryRowType: Int {
+    case
+    QueryHeader, QueryCell,
+    UserHeader, UserCell,
+    ClassHeader, ClassCell,
+    IncludeHeader, IncludeCell,
+    ExcludeHeader, ExcludeCell,
+    ResultHeader, ResultCell
+    
+    static let Identifier = [
+        "Query Header", "Query Cell",
+        "User Header", "User Cell",
+        "Class Header", "Class Cell",
+        "Include Header", "Include Cell",
+        "Exclude Header", "Exclude Cell",
+        "Result Header", "Result Cell"]
+    
+    func id() -> String {
+        return QueryRowType.Identifier[rawValue]
+    }
+}
+
 class QuizletClass {
-    let id = ""
-    let title = ""
+    let id: String
+    let title: String
+    
+    init(id: String, title: String) {
+        self.id = id
+        self.title = title
+    }
+    
+    convenience init() {
+        self.init(id: "", title: "")
+    }
 }
 
 class AddQueryModel {
@@ -25,11 +56,11 @@ class AddQueryModel {
     var includedSets: [QuizletSet] = []
     var excludedSets: [QuizletSet] = []
     
-    var cellIds: [[String]] = [[],[]]
+    var rowTypes: [[QueryRowType]] = [[],[]]
     var rowItems: [[String]] = [[],[]]
     
     func cellIdentifierForPath(indexPath: NSIndexPath) -> String {
-        return cellIds[indexPath.section][indexPath.row]
+        return rowTypes[indexPath.section][indexPath.row].id()
     }
     
     func rowItemForPath(indexPath: NSIndexPath) -> String {
@@ -37,56 +68,78 @@ class AddQueryModel {
     }
     
     func resultHeaderPath() -> NSIndexPath {
-        return NSIndexPath(forRow: cellIds[1].count - 1, inSection: 1)
+        return NSIndexPath(forRow: rowTypes[1].count - 1, inSection: 1)
     }
     
     func numberOfRowsInSection(section: Int) -> Int {
-        return cellIds[section].count
+        return rowTypes[section].count
     }
     
     func isHeaderAtPath(indexPath: NSIndexPath) -> Bool {
         return (cellIdentifierForPath(indexPath) as NSString).hasSuffix(" Header")
     }
 
+    func appendUser(name: String) -> NSIndexPath {
+        usernames.append(name)
+
+        let path = NSIndexPath(forRow: usernames.count, inSection: 1)
+        insertAtPath(path, type: .UserCell, item: name)
+        return path
+    }
+    
+    func appendClass(id: String, title: String) -> NSIndexPath {
+        let qcls = QuizletClass(id: id, title: title)
+        classes.append(qcls)
+
+        let path = NSIndexPath(forRow: usernames.count + classes.count + 1, inSection: 1)
+        insertAtPath(path, type: .ClassCell, item: qcls.title)
+        return path
+    }
+    
+    func insertAtPath(path: NSIndexPath, type: QueryRowType, item: String) {
+        rowTypes[path.section].insert(type, atIndex: path.row)
+        rowItems[path.section].insert(item, atIndex: path.row)
+    }
+    
     func reloadData() {
         let Q = 0
         let R = 1
         
-        cellIds = [[],[]]
+        rowTypes = [[],[]]
         rowItems = [[],[]]
         
-        add(Q, "Query Header")
-        // add(Q, "Query Cell")
+        add(Q, .QueryHeader)
+        // add(Q, .QueryCell)
 
-        add(R, "User Header")
+        add(R, .UserHeader)
         for name in usernames {
-            add(R, "User Cell", name)
+            add(R, .UserCell, name)
         }
         
-        add(R, "Class Header")
+        add(R, .ClassHeader)
         for qcls in classes {
-            add(R, "Class Cell", qcls.title)
+            add(R, .ClassCell, qcls.title)
         }
         
         if (includedSets.count > 0) {
-            add(R, "Include Header")
+            add(R, .IncludeHeader)
             for set in includedSets {
-                add(R, "Include Cell", set.title)
+                add(R, .IncludeCell, set.title)
             }
         }
 
         if (excludedSets.count > 0) {
-            add(R, "Exclude Header")
+            add(R, .ExcludeHeader)
             for set in excludedSets {
-                add(R, "Exclude Cell", set.title)
+                add(R, .ExcludeCell, set.title)
             }
         }
         
-        add(R, "Result Header")
+        add(R, .ResultHeader)
     }
     
-    func add(section: Int, _ cellId: String, _ rowItem: String = "") {
-        cellIds[section].append(cellId)
+    func add(section: Int, _ type: QueryRowType, _ rowItem: String = "") {
+        rowTypes[section].append(type)
         rowItems[section].append(rowItem)
     }
     

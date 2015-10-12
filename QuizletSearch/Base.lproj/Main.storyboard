@@ -470,6 +470,9 @@
                                             <rect key="frame" x="544" y="1" width="41" height="42"/>
                                             <inset key="contentEdgeInsets" minX="10" minY="10" maxX="10" maxY="10"/>
                                             <state key="normal" image="Plus Button"/>
+                                            <connections>
+                                                <action selector="addClass:" destination="cC7-u2-ics" eventType="touchUpInside" id="G2P-Gz-Hc7"/>
+                                            </connections>
                                         </button>
                                     </subviews>
                                     <constraints>
