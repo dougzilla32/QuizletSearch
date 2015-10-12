@@ -29,14 +29,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     // called when text ends editing
     func searchBarTextDidEndEditing(searchBar: UISearchBar) {
         if (searchBar.text == "") {
-            executeSearchForQuery("", isSearchAssist: false)
+            executeSearchForQuery("", isSearchAssist: false, scrollToResults: false)
         }
     }
     
     // called when text changes (including clear)
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
         self.searchBar = searchBar
-        executeSearchForQuery(searchBar.text, isSearchAssist: true)
+        executeSearchForQuery(searchBar.text, isSearchAssist: true, scrollToResults: true)
     }
     
     // Have the keyboard close when 'Return' is pressed
@@ -44,7 +44,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     {
         if (text == "\n") {
             searchBar.resignFirstResponder()
-            executeSearchForQuery(searchBar.text, isSearchAssist: false)
+            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollToResults: true)
         }
         return true
     }
@@ -52,11 +52,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     func hideKeyboard(recognizer: UITapGestureRecognizer) {
         if (searchBar != nil) {
             searchBar.resignFirstResponder()
-            executeSearchForQuery(searchBar.text, isSearchAssist: false)
+            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollToResults: false)
         }
     }
     
-    func executeSearchForQuery(var query: String?, isSearchAssist: Bool) {
+    func executeSearchForQuery(var query: String?, isSearchAssist: Bool, scrollToResults: Bool) {
         if (query == nil) {
             query = ""
         }
@@ -76,7 +76,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         
         setPager!.loadPage(1, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
             self.safelyReloadData()
-            if (response == .First) {
+            if (response == .First && scrollToResults) {
                 self.scrollToResults()
             }
         })

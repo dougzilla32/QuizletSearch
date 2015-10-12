@@ -25,28 +25,23 @@ class AddQueryModel {
     var includedSets: [QuizletSet] = []
     var excludedSets: [QuizletSet] = []
     
-    var cellIds: [String] = []
-    var rowItems: [String] = []
+    var cellIds: [[String]] = [[],[]]
+    var rowItems: [[String]] = [[],[]]
     
     func cellIdentifierForPath(indexPath: NSIndexPath) -> String {
-        return cellIds[indexPath.section + indexPath.row]
+        return cellIds[indexPath.section][indexPath.row]
     }
     
     func rowItemForPath(indexPath: NSIndexPath) -> String {
-        return rowItems[indexPath.section + indexPath.row]
+        return rowItems[indexPath.section][indexPath.row]
     }
     
     func resultHeaderPath() -> NSIndexPath {
-        return pathForRow(cellIds.count - 1)
-    }
-    
-    func pathForRow(row: Int) -> NSIndexPath {
-        let section = (row == 0) ? 0 : 1
-        return NSIndexPath(forRow: row - section, inSection: section)
+        return NSIndexPath(forRow: cellIds[1].count - 1, inSection: 1)
     }
     
     func numberOfRowsInSection(section: Int) -> Int {
-        return (section == 0) ? 1 : (cellIds.count - 1)
+        return cellIds[section].count
     }
     
     func isHeaderAtPath(indexPath: NSIndexPath) -> Bool {
@@ -54,42 +49,45 @@ class AddQueryModel {
     }
 
     func reloadData() {
-        cellIds = []
-        rowItems = []
+        let Q = 0
+        let R = 1
         
-        add("Query Header")
-        // add("Query Cell")
+        cellIds = [[],[]]
+        rowItems = [[],[]]
+        
+        add(Q, "Query Header")
+        // add(Q, "Query Cell")
 
-        add("User Header")
+        add(R, "User Header")
         for name in usernames {
-            add("User Cell", name)
+            add(R, "User Cell", name)
         }
         
-        add("Class Header")
+        add(R, "Class Header")
         for qcls in classes {
-            add("Class Cell", qcls.title)
+            add(R, "Class Cell", qcls.title)
         }
         
         if (includedSets.count > 0) {
-            add("Include Header")
+            add(R, "Include Header")
             for set in includedSets {
-                add("Include Cell", set.title)
+                add(R, "Include Cell", set.title)
             }
         }
 
         if (excludedSets.count > 0) {
-            add("Exclude Header")
+            add(R, "Exclude Header")
             for set in excludedSets {
-                add("Exclude Cell", set.title)
+                add(R, "Exclude Cell", set.title)
             }
         }
         
-        add("Result Header")
+        add(R, "Result Header")
     }
     
-    func add(cellId: String, _ rowItem: String = "") {
-        cellIds.append(cellId)
-        rowItems.append(rowItem)
+    func add(section: Int, _ cellId: String, _ rowItem: String = "") {
+        cellIds[section].append(cellId)
+        rowItems[section].append(rowItem)
     }
     
     func loadFromDataModel(q: Query) {
