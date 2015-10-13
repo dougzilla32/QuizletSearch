@@ -36,6 +36,7 @@
 		914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADD1B6AA4ED0025C585 /* Root.swift */; };
 		914D0AE31B6AA4ED0025C585 /* Term.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADE1B6AA4ED0025C585 /* Term.swift */; };
 		914D0AE41B6AA4ED0025C585 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADF1B6AA4ED0025C585 /* User.swift */; };
+		9170E7C21BCC949500C70847 /* InsetTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9170E7C11BCC949500C70847 /* InsetTextField.swift */; };
 		9187F47B1B68AD1500FA528F /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9187F47A1B68AD1500FA528F /* Common.swift */; };
 		9187F4801B69FECC00FA528F /* SampleQuizletData.json in Resources */ = {isa = PBXBuildFile; fileRef = 9187F47F1B69FECC00FA528F /* SampleQuizletData.json */; };
 		91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */; };
@@ -93,6 +94,7 @@
 		914D0ADD1B6AA4ED0025C585 /* Root.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Root.swift; path = Model/Root.swift; sourceTree = "<group>"; };
 		914D0ADE1B6AA4ED0025C585 /* Term.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Term.swift; path = Model/Term.swift; sourceTree = "<group>"; };
 		914D0ADF1B6AA4ED0025C585 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = User.swift; path = Model/User.swift; sourceTree = "<group>"; };
+		9170E7C11BCC949500C70847 /* InsetTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsetTextField.swift; sourceTree = "<group>"; };
 		9187F47A1B68AD1500FA528F /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		9187F47F1B69FECC00FA528F /* SampleQuizletData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SampleQuizletData.json; sourceTree = "<group>"; };
 		91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetTableViewCell.swift; sourceTree = "<group>"; };
@@ -178,6 +180,7 @@
 				9126FDBF1B1D0E1000642E56 /* Main.storyboard */,
 				9187F47A1B68AD1500FA528F /* Common.swift */,
 				911C41061B9FB64F007E0AEE /* DynamicLabel.swift */,
+				9170E7C11BCC949500C70847 /* InsetTextField.swift */,
 				9126FDBB1B1D0E1000642E56 /* AppDelegate.swift */,
 				911A0D4C1B41264200B219D7 /* LoginViewController.swift */,
 				910AAEB21BAB67E100655131 /* QueriesViewController.swift */,
@@ -389,6 +392,7 @@
 				911C41051B9F7A7C007E0AEE /* SearchTableViewCell.swift in Sources */,
 				914D0AE11B6AA4ED0025C585 /* QuizletSet.swift in Sources */,
 				911A0D4D1B41264200B219D7 /* LoginViewController.swift in Sources */,
+				9170E7C21BCC949500C70847 /* InsetTextField.swift in Sources */,
 				910722FA1B360DC20066DC87 /* Boyer-Moore.swift in Sources */,
 				911A0D021B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld in Sources */,
 				914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */,

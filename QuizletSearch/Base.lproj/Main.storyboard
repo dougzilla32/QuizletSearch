@@ -460,8 +460,8 @@
                                     <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
-                                        <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="dougzilla32" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="S9o-2t-WXo">
-                                            <rect key="frame" x="15" y="10" width="570" height="24"/>
+                                        <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="dougzilla32" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="S9o-2t-WXo" customClass="InsetTextField" customModule="QuizletSearch" customModuleProvider="target">
+                                            <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                             <textInputTraits key="textInputTraits"/>
                                             <connections>
@@ -471,10 +471,10 @@
                                         </textField>
                                     </subviews>
                                     <constraints>
-                                        <constraint firstItem="S9o-2t-WXo" firstAttribute="leading" secondItem="Bw3-6p-hGY" secondAttribute="leading" constant="15" id="Zwi-hs-FI7"/>
-                                        <constraint firstAttribute="bottom" secondItem="S9o-2t-WXo" secondAttribute="bottom" constant="10" id="jmP-0K-Z67"/>
-                                        <constraint firstItem="S9o-2t-WXo" firstAttribute="top" secondItem="Bw3-6p-hGY" secondAttribute="top" constant="10" id="tw2-Jg-MuV"/>
-                                        <constraint firstAttribute="trailing" secondItem="S9o-2t-WXo" secondAttribute="trailing" constant="15" id="vh9-tE-zTX"/>
+                                        <constraint firstItem="S9o-2t-WXo" firstAttribute="leading" secondItem="Bw3-6p-hGY" secondAttribute="leading" id="Zwi-hs-FI7"/>
+                                        <constraint firstAttribute="bottom" secondItem="S9o-2t-WXo" secondAttribute="bottom" id="jmP-0K-Z67"/>
+                                        <constraint firstItem="S9o-2t-WXo" firstAttribute="top" secondItem="Bw3-6p-hGY" secondAttribute="top" id="tw2-Jg-MuV"/>
+                                        <constraint firstAttribute="trailing" secondItem="S9o-2t-WXo" secondAttribute="trailing" id="vh9-tE-zTX"/>
                                     </constraints>
                                 </tableViewCellContentView>
                                 <connections>
