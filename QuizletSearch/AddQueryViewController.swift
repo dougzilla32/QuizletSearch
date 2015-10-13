@@ -8,7 +8,7 @@
 
 import UIKit
 
-class AddQueryViewController: UITableViewController, UISearchBarDelegate {
+class AddQueryViewController: UITableViewController, UISearchBarDelegate, UITextFieldDelegate {
 
     let QueryLabelSection = 0
     let ResultsSection = 1
@@ -104,15 +104,38 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         })
     }
     
-    // MARK: - Gestures
+    // MARK: - Editable cells
     
-    @IBAction func addUser(sender: AnyObject) {
-        let indexPath = model.appendUser("me user")
-        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+    func textFieldDidBeginEditing(textField: UITextField) {
+        // became first responder
+    }
+    
+    func textFieldDidEndEditing(textField: UITextField) {
+        print("textFieldDidEndEditing")
+    }
+    
+    @IBAction func updateText(sender: AnyObject) {
+        (sender as! UITextField).resignFirstResponder()
+    }
+    
+    func onKeyboardHide(notification: NSNotification) {
+        // Causes the view (or one of its embedded text fields) to resign the first responder status
+        self.tableView.endEditing(false)
     }
 
+    // MARK: - Gestures
+    
+    var firstResponderIndexPath: NSIndexPath?
+    
+    @IBAction func addUser(sender: AnyObject) {
+        let indexPath = self.model.appendUser("user")
+        firstResponderIndexPath = indexPath
+        self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+    }
+    
     @IBAction func addClass(sender: AnyObject) {
-        let indexPath = model.appendClass("", title: "me class")
+        let indexPath = model.appendClass("id", title: "class")
+        firstResponderIndexPath = indexPath
         tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
@@ -140,6 +163,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
         tableView.keyboardDismissMode = .Interactive
         
+        // Notification when keyboard is fully hidden
+        NSNotificationCenter.defaultCenter().addObserver(self,  selector: "onKeyboardHide:", name:UIKeyboardDidHideNotification, object: nil)
+        
         // Respond to dynamic type font changes
         NSNotificationCenter.defaultCenter().addObserver(self,
             selector: "preferredContentSizeChanged:",
@@ -156,6 +182,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
+    }
+    
+    deinit {
+        // Remove all 'self' observers
+        NSNotificationCenter.defaultCenter().removeObserver(self)
     }
     
     var preferredFont: UIFont!
@@ -213,6 +244,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifierForPath(indexPath), forIndexPath: indexPath)
         configureCell(cell, atIndexPath: indexPath)
+
+        if let textInputCell = cell as? TextInputTableViewCell where indexPath == firstResponderIndexPath {
+            textInputCell.textField.becomeFirstResponder()
+            firstResponderIndexPath = nil
+        }
+
         return cell
     }
     
@@ -306,6 +343,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
                         label.text = "Search results:"
                     }
                 }
+            }
+            else if let textInputCell = cell as? TextInputTableViewCell {
+                textInputCell.textField.text = model.rowItemForPath(indexPath)
+                textInputCell.textField.font = preferredFont
             }
             else {
                 cell.textLabel!.text = model.rowItemForPath(indexPath)
@@ -478,8 +519,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate {
         if let labelCell = cell as? LabelTableViewCell {
             labelCell.label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
         }
-        if let setCell = cell as? SetTableViewCell {
+        else if let setCell = cell as? SetTableViewCell {
             setCell.label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        }
+        else if let textInputCell = cell as? TextInputTableViewCell {
+            textInputCell.textField.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
         }
         
         cell.setNeedsLayout()

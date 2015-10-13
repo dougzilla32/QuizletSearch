@@ -19,8 +19,8 @@ enum QueryRowType: Int {
     
     static let Identifier = [
         "Query Header", "Query Cell",
-        "User Header", "User Cell",
-        "Class Header", "Class Cell",
+        "User Header", "Text Input Cell",
+        "Class Header", "Text Input Cell",
         "Include Header", "Include Cell",
         "Exclude Header", "Exclude Cell",
         "Result Header", "Result Cell"]
