@@ -14,157 +14,19 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     let ResultsSection = 1
     
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
-    
     var model = AddQueryModel()
     var setPager: SetPager?
-    var searchBar: UISearchBar!
-    
-    // MARK: - Search Bar
-    
-    // called when text starts editing
-    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
-        self.searchBar = searchBar
-    }
-    
-    // called when text ends editing
-    func searchBarTextDidEndEditing(searchBar: UISearchBar) {
-        if (searchBar.text == "") {
-            executeSearchForQuery("", isSearchAssist: false, scrollToResults: false)
-        }
-    }
-    
-    // called when text changes (including clear)
-    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-        self.searchBar = searchBar
-        executeSearchForQuery(searchBar.text, isSearchAssist: true, scrollToResults: true)
-    }
-    
-    // Have the keyboard close when 'Return' is pressed
-    func searchBar(searchBar: UISearchBar, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool // called before text changes
-    {
-        if (text == "\n") {
-            searchBar.resignFirstResponder()
-            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollToResults: true)
-        }
-        return true
-    }
-    
-    func hideKeyboard(recognizer: UITapGestureRecognizer) {
-        if (searchBar != nil) {
-            searchBar.resignFirstResponder()
-            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollToResults: false)
-        }
-    }
-    
-    func executeSearchForQuery(var query: String?, isSearchAssist: Bool, scrollToResults: Bool) {
-        if (query == nil) {
-            query = ""
-        }
-        query = query!.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-        if (query!.isEmpty) {
-            setPager = nil
-            safelyReloadData()
-            return
-        }
-        
-        if (setPager != nil && isSearchAssist && setPager!.isSearchAssist) {
-            setPager!.resetForSearchAssist(query: query!, creator: nil)
-        }
-        else {
-            setPager = SetPager(query: query!, creator: nil, isSearchAssist: isSearchAssist)
-        }
-        
-        setPager!.loadPage(1, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
-            self.safelyReloadData()
-            if (response == .First && scrollToResults) {
-                self.scrollToResults()
-            }
-        })
-    }
-    
-    // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
-    func safelyReloadData() {
-        let isFirstResponder = searchBar.isFirstResponder()
-        if (isFirstResponder) {
-            searchBar.resignFirstResponder()
-        }
-
-        tableView.reloadData()
-
-        if (isFirstResponder) {
-            searchBar.becomeFirstResponder()
-        }
-    }
-    
-    func scrollToResults() {
-        // Workaround: when the keyboard is showing and there are only a few rows, scrollToRowAtIndexPath will leave some rows occluded by the keyboard and will not properly scroll the table.  Use dispatch_after to introduce a delay as a workaround -- for some reason it works when this delay is introduced.
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-            self.tableView.scrollToRowAtIndexPath(self.model.resultHeaderPath(), atScrollPosition: UITableViewScrollPosition.Top, animated: true)
-            
-        })
-    }
-    
-    // MARK: - Editable cells
-    
-    func textFieldDidBeginEditing(textField: UITextField) {
-        // became first responder
-    }
-    
-    func textFieldDidEndEditing(textField: UITextField) {
-        print("textFieldDidEndEditing")
-    }
-    
-    @IBAction func updateText(sender: AnyObject) {
-        (sender as! UITextField).resignFirstResponder()
-    }
-    
-    func onKeyboardHide(notification: NSNotification) {
-        // Causes the view (or one of its embedded text fields) to resign the first responder status
-        self.tableView.endEditing(false)
-    }
-
-    // MARK: - Gestures
-    
-    var firstResponderIndexPath: NSIndexPath?
-    
-    @IBAction func addUser(sender: AnyObject) {
-        let indexPath = self.model.appendUser("user")
-        firstResponderIndexPath = indexPath
-        self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-    }
-    
-    @IBAction func addClass(sender: AnyObject) {
-        let indexPath = model.appendClass("id", title: "class")
-        firstResponderIndexPath = indexPath
-        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-    }
     
     // MARK: - View Controller
     
-    override func shouldAutorotate() -> Bool {
-        return true
-    }
-    
-    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return UIInterfaceOrientationMask.All
-    }
-    
     override func viewDidLoad() {
         super.viewDidLoad()
-
+        
         // Disable selections in the table
         tableView.allowsSelection = false
         
-        // Dismiss keyboard when user touches the table
-        let gestureRecognizer = UITapGestureRecognizer(target: self,  action: "hideKeyboard:")
-        gestureRecognizer.cancelsTouchesInView = false
-        tableView.addGestureRecognizer(gestureRecognizer)
-        
         // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
         tableView.keyboardDismissMode = .Interactive
-        
-        // Notification when keyboard is fully hidden
-        NSNotificationCenter.defaultCenter().addObserver(self,  selector: "onKeyboardHide:", name:UIKeyboardDidHideNotification, object: nil)
         
         // Respond to dynamic type font changes
         NSNotificationCenter.defaultCenter().addObserver(self,
@@ -178,7 +40,15 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         
         model.reloadData()
     }
-
+    
+    override func shouldAutorotate() -> Bool {
+        return true
+    }
+    
+    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
+        return UIInterfaceOrientationMask.All
+    }
+    
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
@@ -187,6 +57,166 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     deinit {
         // Remove all 'self' observers
         NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
+    
+    // MARK: - Search Bar
+    
+    var searchBar: UISearchBar!
+    var searchBarCurrentText: String?
+    var mostRecentQuery = ("", false)
+    var disableSearchBarEndEdit = false
+    
+    // called when text starts editing
+    func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
+    }
+    
+    // called when text ends editing
+    func searchBarTextDidEndEditing(searchBar: UISearchBar) {
+        searchBarCurrentText = searchBar.text
+
+        if (!disableSearchBarEndEdit) {
+            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollToResults: false)
+        }
+    }
+    
+    // called when text changes (including clear)
+    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+        executeSearchForQuery(searchBar.text, isSearchAssist: true, scrollToResults: true)
+    }
+    
+    // Have the keyboard close when 'Return' is pressed
+    func searchBar(searchBar: UISearchBar, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool
+    {
+        if (text == "\n") {
+            // The user pressed 'Search', run a full query in this case
+            disableSearchBarEndEdit = true
+            searchBar.resignFirstResponder()
+            disableSearchBarEndEdit = false
+
+            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollToResults: true)
+        }
+        return true
+    }
+    
+    func executeSearchForQuery(var query: String?, isSearchAssist: Bool, scrollToResults: Bool) {
+        if (query == nil) {
+            query = ""
+        }
+        query = query!.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+
+        if (mostRecentQuery.0 == query && mostRecentQuery.1 == isSearchAssist) {
+            return
+        }
+        mostRecentQuery = (query!, isSearchAssist)
+        
+        if (query!.isEmpty) {
+            setPager = nil
+            isSearchAssist ? safelyReloadData() : resetSearchBar()
+            return
+        }
+        
+        let newSetPager: SetPager
+        if (setPager != nil && isSearchAssist && setPager!.isSearchAssist) {
+            setPager!.resetForSearchAssist(query: query!, creator: nil)
+            newSetPager = setPager!
+        }
+        else {
+            newSetPager = SetPager(query: query!, creator: nil, isSearchAssist: isSearchAssist)
+        }
+        
+        newSetPager.loadPage(1, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
+            self.setPager = newSetPager
+            isSearchAssist ? self.safelyReloadData() : self.resetSearchBar()
+            if (response == .First && scrollToResults) {
+                self.scrollToResults()
+            }
+        })
+    }
+    
+    // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
+    func safelyReloadData() {
+        disableSearchBarEndEdit = true
+        let searchBarFirstResponder = searchBar.isFirstResponder()
+        if (searchBarFirstResponder) {
+            searchBar.resignFirstResponder()
+        }
+        disableSearchBarEndEdit = false
+        
+        indexPathForDesiredFirstResponder = indexPathForCurrentFirstResponder
+        tableView.reloadData()
+
+        if (searchBarFirstResponder) {
+            searchBar.becomeFirstResponder()
+        }
+    }
+    
+    func scrollToResults() {
+        // Workaround: when the keyboard is showing and there are only a few rows, scrollToRowAtIndexPath will leave some rows occluded by the keyboard and will not properly scroll the table.  Use dispatch_after to introduce a delay as a workaround -- for some reason it works when this delay is introduced.
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+            self.tableView.scrollToRowAtIndexPath(self.model.resultHeaderPath(), atScrollPosition: UITableViewScrollPosition.Top, animated: true)
+            
+        })
+    }
+    
+    func resignAndResetSearchBar() {
+        if (searchBar.isFirstResponder()) {
+            searchBar.resignFirstResponder()
+        }
+        
+        resetSearchBar()
+    }
+
+    func resetSearchBar() {
+        searchBar.delegate = nil
+        searchBar = nil
+        
+        // Workaround: call reloadData to avoid a crash when insertRowsAtIndexPaths is called
+        indexPathForDesiredFirstResponder = indexPathForCurrentFirstResponder
+        tableView.reloadData()
+    }
+    
+    // MARK: - Editable cells
+    
+    func textFieldDidBeginEditing(textField: UITextField) {
+        // became first responder
+        
+        // Use indexPathForRowAtPoint rather than indexPathForCell because indexPathForCell returns nil if the cell is not yet visible (either scrolled off or not yet realized)
+        let textInputCell = textField.superview!.superview as! TextInputTableViewCell
+        indexPathForCurrentFirstResponder = tableView.indexPathForRowAtPoint(textInputCell.center)
+    }
+    
+    func textFieldDidEndEditing(textField: UITextField) {
+        indexPathForCurrentFirstResponder = nil
+    }
+    
+    // called when text changes (including clear)
+    func textField(textField: UITextField, textDidChange searchText: String) {
+    }
+    
+    @IBAction func updateText(sender: AnyObject) {
+        (sender as! UITextField).resignFirstResponder()
+    }
+    
+    // Restore the first responder textfield after reloadData is called on the table
+    var indexPathForCurrentFirstResponder: NSIndexPath?
+    
+    // Gives the newly added textfield the keyboard focus (it becomes the first responder when 'cellForRowAtIndexPath' is called with the firstResponderIndexPath index path)
+    var indexPathForDesiredFirstResponder: NSIndexPath?
+    
+    @IBAction func addUser(sender: AnyObject) {
+        resignAndResetSearchBar()
+        
+        let indexPath = self.model.appendUser("user")
+        indexPathForDesiredFirstResponder = indexPath
+        self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+    }
+    
+    @IBAction func addClass(sender: AnyObject) {
+        resignAndResetSearchBar()
+        
+        let indexPath = model.appendClass("id", title: "class")
+        indexPathForDesiredFirstResponder = indexPath
+        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
     }
     
     var preferredFont: UIFont!
@@ -244,10 +274,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifierForPath(indexPath), forIndexPath: indexPath)
         configureCell(cell, atIndexPath: indexPath)
-
-        if let textInputCell = cell as? TextInputTableViewCell where indexPath == firstResponderIndexPath {
-            textInputCell.textField.becomeFirstResponder()
-            firstResponderIndexPath = nil
+        if let textInputCell = cell as? TextInputTableViewCell where indexPath == indexPathForDesiredFirstResponder {
+            if (!textInputCell.textField.isFirstResponder()) {
+                textInputCell.textField.becomeFirstResponder()
+            }
+            indexPathForDesiredFirstResponder = nil
         }
 
         return cell
@@ -533,24 +564,27 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         return height + 1.0 // Add 1.0 for the cell separator height
     }
 
-    var searchCell: UITableViewCell?
-
     override func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         if (section == ResultsSection) {
-            if (searchCell == nil) {
-                searchCell = tableView.dequeueReusableCellWithIdentifier("Query Cell")
-                configureSearchCell(searchCell!)
+            if (searchBar == nil) {
+                searchBar = UISearchBar()
+                searchBar.text = searchBarCurrentText
+                configureSearchBar(searchBar)
+                searchBar.delegate = self
             }
-            return searchCell!.contentView
+
+            return searchBar
+         
         }
         else {
             return nil
         }
     }
     
-    func configureSearchCell(cell: UITableViewCell) {
+    func configureSearchBar(searchBar: UISearchBar) {
+        searchBar.placeholder = "Search"
+
         // Update the appearance of the search bar's textfield
-        let searchBar = cell.contentView.viewWithTag(100) as! UISearchBar
         let searchTextField = Common.findTextField(searchBar)!
         searchTextField.font = preferredFont
         searchTextField.autocapitalizationType = UITextAutocapitalizationType.None
@@ -558,23 +592,25 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     override func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        if (section == QueryLabelSection) {
-            return 0
+        return (section == ResultsSection) ? heightForSearchBar() : 0
+    }
+    
+    var sizingSearchBar: UISearchBar!
+
+    func heightForSearchBar() -> CGFloat {
+        if (sizingSearchBar == nil) {
+            sizingSearchBar = UISearchBar()
         }
         
-        return heightForSearchCell("Query Cell")
-    }
-
-    func heightForSearchCell(cellIdentifier: String) -> CGFloat {
-        if (sizingCells[cellIdentifier] == nil) {
-            sizingCells[cellIdentifier] = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
-        }
+        configureSearchBar(sizingSearchBar)
+        sizingSearchBar.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        sizingSearchBar.setNeedsLayout()
+        sizingSearchBar.layoutIfNeeded()
         
-        let sizingCell = sizingCells[cellIdentifier]!
-        configureSearchCell(sizingCell)
-        return calculateHeight(sizingCell)
+        let height = sizingSearchBar.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize).height
+        return height + 1.0 // Add 1.0 for the cell separator height
     }
-
+    
     override func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
             let height: CGFloat
@@ -629,15 +665,4 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     override func tableView(tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
         return self.tableView(tableView, heightForHeaderInSection: section)
     }
-    
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
-
 }
