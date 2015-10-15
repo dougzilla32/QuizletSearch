@@ -109,6 +109,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         }
         mostRecentQuery = (query!, isSearchAssist)
         
+        // Cancel previous queries
+        quizletSession.cancelQueryTasks()
+        
         if (query!.isEmpty) {
             setPager = nil
             isSearchAssist ? safelyReloadData() : resetSearchBar()

@@ -30,14 +30,12 @@ class SetPager {
     var validateTotals = true
     
     init(query: String?, creator: String?, isSearchAssist: Bool) {
-        quizletSession.cancelQueryTasks()
         self.query = query
         self.creator = creator
         self.isSearchAssist = isSearchAssist
     }
     
     func resetForSearchAssist(query query: String?, creator: String?) {
-        quizletSession.cancelQueryTasks()
         loadingPages.removeAll()
         
         self.query = query
