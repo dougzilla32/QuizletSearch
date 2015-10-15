@@ -381,6 +381,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             else if let textInputCell = cell as? TextInputTableViewCell {
                 textInputCell.textField.text = model.rowItemForPath(indexPath)
                 textInputCell.textField.font = preferredFont
+                textInputCell.textField.autocapitalizationType = UITextAutocapitalizationType.None
+                textInputCell.textField.autocorrectionType = UITextAutocorrectionType.No
+                textInputCell.textField.spellCheckingType = UITextSpellCheckingType.No
+                textInputCell.textField.returnKeyType = UIReturnKeyType.Search
             }
             else {
                 cell.textLabel!.text = model.rowItemForPath(indexPath)
@@ -595,7 +599,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     override func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return (section == ResultsSection) ? heightForSearchBar() : 0
+        return (section == ResultsSection) ? heightForSearchBar() - 3.0 : 0  // Subtract 3 to reduce borders to look better
     }
     
     var sizingSearchBar: UISearchBar!
