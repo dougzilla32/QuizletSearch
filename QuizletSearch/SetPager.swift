@@ -9,12 +9,22 @@
 import UIKit
 import Foundation
 
-class SetPager {
-    enum Response {
-        case First, Last
-    }
+protocol QSetPager {
+    var totalResults: Int? { get }
     
-    let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession    
+    func isLoading() -> Bool
+    
+    func peekQSetForRow(row: Int) -> QSet?
+
+    func getQSetForRow(row: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) -> QSet?
+}
+
+enum PagerResponse {
+    case First, Last
+}
+
+class SetPager: QSetPager {
+    let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
 
     let paginationSize = 30
     var query: String?
@@ -22,7 +32,7 @@ class SetPager {
 
     var qsets: [[QSet]?]?
     var prevQSets: [[QSet]?]?
-    let isSearchAssist: Bool
+    var isSearchAssist: Bool
     
     var loadingPages = Set<Int>()
     var totalPages: Int?
@@ -35,11 +45,12 @@ class SetPager {
         self.isSearchAssist = isSearchAssist
     }
     
-    func resetForSearchAssist(query query: String?, creator: String?) {
+    func resetQuery(query query: String?, creator: String?, isSearchAssist: Bool) {
         loadingPages.removeAll()
         
         self.query = query
         self.creator = creator
+        self.isSearchAssist = isSearchAssist
 
         prevQSets = qsets
         qsets = nil
@@ -60,7 +71,7 @@ class SetPager {
         return qset
     }
     
-    func getQSetForRow(row: Int, completionHandler: (pageLoaded: Int?, response: Response) -> Void) -> QSet? {
+    func getQSetForRow(row: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) -> QSet? {
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
         var qset = qsets?[pageIndex]?[pageOffset]
@@ -71,12 +82,12 @@ class SetPager {
         return qset
     }
     
-    func loadRow(row: Int, completionHandler: (pageLoaded: Int?, response: Response) -> Void) {
+    func loadRow(row: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
         let page = row / paginationSize + 1
         loadPage(page, completionHandler: completionHandler)
     }
     
-    func loadPage(page: Int, completionHandler: (pageLoaded: Int?, response: Response) -> Void) {
+    func loadPage(page: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
         guard (page > 0) else {
             NSLog("Page number is zero or less")
             return
@@ -129,7 +140,7 @@ class SetPager {
         })
     }
     
-    func loadPageResult(queryResult: QueryResult?, response: Response, page: Int, completionHandler: (pageLoaded: Int?, response: Response) -> Void) {
+    func loadPageResult(queryResult: QueryResult?, response: PagerResponse, page: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
         dispatch_async(dispatch_get_main_queue(), {
             if (response == .First) {
                 self.loadingPages.remove(page)

@@ -15,7 +15,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     var model = AddQueryModel()
-    var setPager: SetPager?
     
     // MARK: - View Controller
     
@@ -63,7 +62,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     var searchBar: UISearchBar!
     var searchBarCurrentText: String?
-    var mostRecentQuery = ("", false)
     var disableSearchBarEndEdit = false
     
     // called when text starts editing
@@ -103,35 +101,21 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             query = ""
         }
         query = query!.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-
-        if (mostRecentQuery.0 == query && mostRecentQuery.1 == isSearchAssist) {
-            return
-        }
-        mostRecentQuery = (query!, isSearchAssist)
+        model.query.query = query!
+        model.query.isSearchAssist = isSearchAssist
         
-        // Cancel previous queries
-        quizletSession.cancelQueryTasks()
+        executeQuery(scrollToResults: scrollToResults)
+    }
+    
+    func executeQuery(scrollToResults scrollToResults: Bool) {
+        var firstLoaded = true
+        let isSearchAssist = model.query.isSearchAssist
         
-        if (query!.isEmpty) {
-            setPager = nil
-            isSearchAssist ? safelyReloadData() : resetSearchBar()
-            return
-        }
-        
-        let newSetPager: SetPager
-        if (setPager != nil && isSearchAssist && setPager!.isSearchAssist) {
-            setPager!.resetForSearchAssist(query: query!, creator: nil)
-            newSetPager = setPager!
-        }
-        else {
-            newSetPager = SetPager(query: query!, creator: nil, isSearchAssist: isSearchAssist)
-        }
-        
-        newSetPager.loadPage(1, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
-            self.setPager = newSetPager
+        model.executeQuery(completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
             isSearchAssist ? self.safelyReloadData() : self.resetSearchBar()
-            if (response == .First && scrollToResults) {
+            if (pageLoaded != nil && response == .First && scrollToResults && firstLoaded) {
                 self.scrollToResults()
+                firstLoaded = false
             }
         })
     }
@@ -170,7 +154,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
 
     func resetSearchBar() {
-        searchBar.delegate = nil
+        if (searchBar != nil) {
+            searchBar.delegate = nil
+        }
         searchBar = nil
         
         // Workaround: call reloadData to avoid a crash when insertRowsAtIndexPaths is called
@@ -209,17 +195,23 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     @IBAction func addUser(sender: AnyObject) {
         resignAndResetSearchBar()
         
-        let indexPath = self.model.appendUser("user")
+        let indexPath = self.model.appendUser("dougzilla32")
         indexPathForDesiredFirstResponder = indexPath
         self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+
+        model.query.isSearchAssist = false
+        executeQuery(scrollToResults: false)
     }
     
     @IBAction func addClass(sender: AnyObject) {
         resignAndResetSearchBar()
         
-        let indexPath = model.appendClass("id", title: "class")
+        let indexPath = model.appendClass("669401")
         indexPathForDesiredFirstResponder = indexPath
         tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+        
+        model.query.isSearchAssist = false
+        executeQuery(scrollToResults: false)
     }
     
     var preferredFont: UIFont!
@@ -261,17 +253,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        var numRows = model.numberOfRowsInSection(section)
-        if (section == ResultsSection && setPager != nil) {
-            if (setPager!.totalResults != nil) {
-                numRows += setPager!.totalResults!
-            }
-            else if (setPager!.isLoading()) {
-                // Activity Indicator row
-                numRows++
-            }
-        }
-        return numRows
+        return model.numberOfRowsInSection(section)
     }
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
@@ -288,113 +270,40 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     func cellIdentifierForPath(indexPath: NSIndexPath) -> String {
-        var cellIdentifier: String
-        if (!isResultRow(indexPath)) {
-            cellIdentifier = model.cellIdentifierForPath(indexPath)
-        }
-        else {
-            // result row
-            let resultRow = indexPath.row - model.numberOfRowsInSection(indexPath.section)
-            
-            if (isActivityIndicatorRow(resultRow)) {
-                cellIdentifier = "Activity Cell"
-            }
-            else {
-                // Use zero height cell for empty qsets.  We insert empty qsets if the Quitlet paging query returns fewer pages than expected (this happens occasionally).
-                let qset = setPager?.peekQSetForRow(resultRow)
-                if (qset != nil && qset!.title.isEmpty && qset!.createdBy.isEmpty && qset!.description.isEmpty) {
-                    cellIdentifier = "Empty Cell"
-                }
-                else if (setPager != nil && setPager!.isSearchAssist) {
-                    cellIdentifier = "Search Assist Cell"
-                }
-                else {
-                    cellIdentifier = "Result Cell"
-                }
-            }
-        }
-        return cellIdentifier
-    }
-    
-    func isResultRow(indexPath: NSIndexPath) -> Bool {
-        return (indexPath.row >= model.numberOfRowsInSection(indexPath.section))
-    }
-    
-    func isActivityIndicatorRow(row: Int) -> Bool {
-        return (setPager == nil || setPager!.totalResults == nil || row >= setPager!.totalResults)
+        return model.cellIdentifierForPath(indexPath)
     }
     
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
         let qset: QSet?
-        if (!isResultRow(indexPath)) {
-            qset = nil
-        }
-        else {
+
+        if let resultRow = model.resultRowForIndexPath(indexPath) {
             // result row
-            let resultRow = indexPath.row - model.numberOfRowsInSection(indexPath.section)
-            if (isActivityIndicatorRow(resultRow)) {
+            if (model.isActivityIndicatorRow(resultRow)) {
                 qset = nil
             }
             else {
-                qset = setPager!.getQSetForRow(resultRow, completionHandler: { (pageLoaded: Int?, response: SetPager.Response) -> Void in
+                qset = model.pagers!.getQSetForRow(resultRow, completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
                     dispatch_async(dispatch_get_main_queue(), {
                         self.safelyReloadData()
                     })
                 })
-
+                
                 if (qset == nil) {
                     return
                 }
             }
+        }
+        else {
+            qset = nil
         }
     
         configureCell(cell, atIndexPath: indexPath, qset: qset)
     }
     
     func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath, qset: QSet!) {
-        if (!isResultRow(indexPath)) {
-            if (model.isHeaderAtPath(indexPath)) {
-                let label = cell.contentView.viewWithTag(100) as! UILabel
-                label.font = preferredFont
-                if (model.resultHeaderPath() == indexPath) {
-                    if (setPager?.totalResults != nil) {
-                        switch (setPager!.totalResults!) {
-                        case 0:
-                            label.text = "0 results"
-                        case 1:
-                            label.text = "1 result"
-                        case 5000:
-                            // The Quizlet hardcoded upper limit on the number of search results is 5,000
-                            label.text = "Over 5,000 results:"
-                        default:
-                            let numberFormatter = NSNumberFormatter()
-                            numberFormatter.numberStyle = .DecimalStyle
-                            let formattedTotalResults = numberFormatter.stringFromNumber(setPager!.totalResults!)
-                            label.text = "\(formattedTotalResults!) results:"
-                        }
-                    }
-                    else {
-                        label.text = "Search results:"
-                    }
-                }
-            }
-            else if let textInputCell = cell as? TextInputTableViewCell {
-                textInputCell.textField.text = model.rowItemForPath(indexPath)
-                textInputCell.textField.font = preferredFont
-                textInputCell.textField.autocapitalizationType = UITextAutocapitalizationType.None
-                textInputCell.textField.autocorrectionType = UITextAutocorrectionType.No
-                textInputCell.textField.spellCheckingType = UITextSpellCheckingType.No
-                textInputCell.textField.returnKeyType = UIReturnKeyType.Search
-            }
-            else {
-                cell.textLabel!.text = model.rowItemForPath(indexPath)
-                cell.textLabel!.font = preferredFont
-            }
-        }
-        else {
+        if let resultRow = model.resultRowForIndexPath(indexPath) {
             // result row
-            let resultRow = indexPath.row - model.numberOfRowsInSection(indexPath.section)
-            if (isActivityIndicatorRow(resultRow)) {
+            if (model.isActivityIndicatorRow(resultRow)) {
                 let activityIndicator = cell.contentView.viewWithTag(100) as! UIActivityIndicatorView
                 activityIndicator.startAnimating()
                 return
@@ -479,7 +388,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             (owner as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, forRange: NSMakeRange(ownerLength, 0))
             attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
             
-            if (setPager != nil && setPager!.isSearchAssist) {
+            if (model.query.isSearchAssist) {
                 let searchAssistCell = (cell as! LabelTableViewCell)
                 searchAssistCell.label.attributedText = attributedText
                 return
@@ -528,6 +437,45 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 }
                 termLabels[i].font = smallerFont
                 definitionLabels[i].font = smallerFont
+            }
+        }
+        else {
+            if (model.isHeaderAtPath(indexPath)) {
+                let label = cell.contentView.viewWithTag(100) as! UILabel
+                label.font = preferredFont
+                if (model.resultHeaderPath() == indexPath) {
+                    if let t = model.totalResults {
+                        switch (t) {
+                        case 0:
+                            label.text = "0 results"
+                        case 1:
+                            label.text = "1 result"
+                        case 5000:
+                            // The Quizlet hardcoded upper limit on the number of search results is 5,000
+                            label.text = "Over 5,000 results:"
+                        default:
+                            let numberFormatter = NSNumberFormatter()
+                            numberFormatter.numberStyle = .DecimalStyle
+                            let formattedTotalResults = numberFormatter.stringFromNumber(t)
+                            label.text = "\(formattedTotalResults!) results:"
+                        }
+                    }
+                    else {
+                        label.text = "Search results:"
+                    }
+                }
+            }
+            else if let textInputCell = cell as? TextInputTableViewCell {
+                textInputCell.textField.text = model.rowItemForPath(indexPath)
+                textInputCell.textField.font = preferredFont
+                textInputCell.textField.autocapitalizationType = UITextAutocapitalizationType.None
+                textInputCell.textField.autocorrectionType = UITextAutocorrectionType.No
+                textInputCell.textField.spellCheckingType = UITextSpellCheckingType.No
+                textInputCell.textField.returnKeyType = UIReturnKeyType.Search
+            }
+            else {
+                cell.textLabel!.text = model.rowItemForPath(indexPath)
+                cell.textLabel!.font = preferredFont
             }
         }
     }
@@ -621,15 +569,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     override func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
             let height: CGFloat
-            if (!isResultRow(indexPath)) {
-                height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
-            }
-            else {
-                let resultRow = indexPath.row - model.numberOfRowsInSection(indexPath.section)
-                if (isActivityIndicatorRow(resultRow)) {
+            if let resultRow = model.resultRowForIndexPath(indexPath) {
+                if (model.isActivityIndicatorRow(resultRow)) {
                     height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
                 }
-                else if (setPager != nil && setPager!.isSearchAssist) {
+                else if (model.query.isSearchAssist) {
                     if (estimatedHeightForSearchAssistCell == nil) {
                         let cellIdentifier = "Search Assist Cell"
                         var sizingCell = sizingCells[cellIdentifier]
@@ -664,6 +608,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                     }
                     height = estimatedHeightForResultCell!
                 }
+            }
+            else {
+                height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
             }
             
             return height

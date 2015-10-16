@@ -6,7 +6,7 @@
 //  Copyright © 2015 Doug Stein. All rights reserved.
 //
 
-import Foundation
+import UIKit
 
 enum QueryRowType: Int {
     case
@@ -30,37 +30,93 @@ enum QueryRowType: Int {
     }
 }
 
-class QuizletClass {
-    let id: String
-    let title: String
-    
-    init(id: String, title: String) {
-        self.id = id
-        self.title = title
-    }
-    
-    convenience init() {
-        self.init(id: "", title: "")
-    }
-}
+// TODO: Quizlet classes
+//func ==(lhs: QuizletClass, rhs: QuizletClass) -> Bool {
+//    return lhs.id == rhs.id && lhs.title == rhs.title
+//}
+//
+//class QuizletClass: Equatable {
+//    let id: String
+//    let title: String
+//    
+//    init(id: String, title: String) {
+//        self.id = id
+//        self.title = title
+//    }
+//    
+//    convenience init() {
+//        self.init(id: "", title: "")
+//    }
+//}
 
 class AddQueryModel {
-    let sep = ","
+    let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     
+    let QueryLabelSection = 0
+    let ResultsSection = 1
+    
+    let sep = ","
     var type: String = ""
     var title: String = ""
-    var query: String = ""
     
-    var usernames: [String] = []
-    var classes: [QuizletClass] = []
-    var includedSets: [QuizletSet] = []
-    var excludedSets: [QuizletSet] = []
+    var query = QueryInfo()
+    var pagers: QueryPagers?
+    var mostRecentQuery: QueryInfo?
+    var totalResults: Int? {
+        return pagers?.totalResults
+    }
     
     var rowTypes: [[QueryRowType]] = [[],[]]
     var rowItems: [[String]] = [[],[]]
+
+    func executeQuery(completionHandler completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
+        if (mostRecentQuery == query) {
+            return
+        }
+        mostRecentQuery = QueryInfo(qinfo: query)
+        
+        // Cancel previous queries
+        quizletSession.cancelQueryTasks()
+        
+        if (query.isEmpty()) {
+            pagers = nil
+            completionHandler(pageLoaded: nil, response: PagerResponse.Last)
+            return
+        }
+        
+        if (pagers != nil) {
+            pagers!.update(queryInfo: query)
+        }
+        else {
+            pagers = QueryPagers(queryInfo: query)
+        }
+        pagers!.loadFirstPages(completionHandler: completionHandler)
+    }
     
     func cellIdentifierForPath(indexPath: NSIndexPath) -> String {
-        return rowTypes[indexPath.section][indexPath.row].id()
+        var cellIdentifier: String
+        if let resultRow = resultRowForIndexPath(indexPath) {
+            if (isActivityIndicatorRow(resultRow)) {
+                cellIdentifier = "Activity Cell"
+            }
+            else {
+                // Use zero height cell for empty qsets.  We insert empty qsets if the Quitlet paging query returns fewer pages than expected (this happens occasionally).
+                let qset = pagers?.peekQSetForRow(resultRow)
+                if (qset != nil && qset!.title.isEmpty && qset!.createdBy.isEmpty && qset!.description.isEmpty) {
+                    cellIdentifier = "Empty Cell"
+                }
+                else if (query.isSearchAssist) {
+                    cellIdentifier = "Search Assist Cell"
+                }
+                else {
+                    cellIdentifier = "Result Cell"
+                }
+            }
+        }
+        else {
+            cellIdentifier = rowTypes[indexPath.section][indexPath.row].id()
+        }
+        return cellIdentifier
     }
     
     func rowItemForPath(indexPath: NSIndexPath) -> String {
@@ -72,27 +128,46 @@ class AddQueryModel {
     }
     
     func numberOfRowsInSection(section: Int) -> Int {
-        return rowTypes[section].count
+        var numRows = rowTypes[section].count
+        if (section == ResultsSection && pagers != nil) {
+            if let t = pagers?.totalResults {
+                numRows += t
+            }
+            else if (pagers!.isLoading()) {
+                // Activity Indicator row
+                numRows++                
+            }
+        }
+        return numRows
     }
     
     func isHeaderAtPath(indexPath: NSIndexPath) -> Bool {
         return (cellIdentifierForPath(indexPath) as NSString).hasSuffix(" Header")
     }
+    
+    func resultRowForIndexPath(indexPath: NSIndexPath) -> Int? {
+        return (indexPath.section == ResultsSection && indexPath.row >= rowTypes[indexPath.section].count)
+            ? indexPath.row - rowTypes[indexPath.section].count
+            : nil
+    }
 
+    func isActivityIndicatorRow(row: Int) -> Bool {
+        return totalResults == nil || row >= totalResults!
+    }
+    
     func appendUser(name: String) -> NSIndexPath {
-        usernames.append(name)
+        query.usernames.append(name)
 
-        let path = NSIndexPath(forRow: usernames.count, inSection: 1)
+        let path = NSIndexPath(forRow: query.usernames.count, inSection: 1)
         insertAtPath(path, type: .UserCell, item: name)
         return path
     }
     
-    func appendClass(id: String, title: String) -> NSIndexPath {
-        let qcls = QuizletClass(id: id, title: title)
-        classes.append(qcls)
+    func appendClass(id: String) -> NSIndexPath {
+        query.classes.append(id)
 
-        let path = NSIndexPath(forRow: usernames.count + classes.count + 1, inSection: 1)
-        insertAtPath(path, type: .ClassCell, item: qcls.title)
+        let path = NSIndexPath(forRow: query.usernames.count + query.classes.count + 1, inSection: 1)
+        insertAtPath(path, type: .ClassCell, item: id)
         return path
     }
     
@@ -112,26 +187,26 @@ class AddQueryModel {
         // add(Q, .QueryCell)
 
         add(R, .UserHeader)
-        for name in usernames {
+        for name in query.usernames {
             add(R, .UserCell, name)
         }
         
         add(R, .ClassHeader)
-        for qcls in classes {
-            add(R, .ClassCell, qcls.title)
+        for id in query.classes {
+            add(R, .ClassCell, id)
         }
         
-        if (includedSets.count > 0) {
+        if (query.includedSets.count > 0) {
             add(R, .IncludeHeader)
-            for set in includedSets {
-                add(R, .IncludeCell, set.title)
+            for set in query.includedSets {
+                add(R, .IncludeCell, set)
             }
         }
 
-        if (excludedSets.count > 0) {
+        if (query.excludedSets.count > 0) {
             add(R, .ExcludeHeader)
-            for set in excludedSets {
-                add(R, .ExcludeCell, set.title)
+            for set in query.excludedSets {
+                add(R, .ExcludeCell, set)
             }
         }
         
@@ -146,9 +221,9 @@ class AddQueryModel {
     func loadFromDataModel(q: Query) {
         type = q.type
         title = q.title
-        query = q.query
+        query.query = q.query
 
-        usernames = q.creators.characters.split{$0 == ","}.map(String.init)
+        query.usernames = q.creators.characters.split{$0 == ","}.map(String.init)
         
         var classIds = (q.classes as NSString).componentsSeparatedByString(sep)
         // TODO: load QuizletClasses using the Quizlet API
@@ -165,18 +240,18 @@ class AddQueryModel {
         if (q.title != title) {
             q.title = title
         }
-        if (q.query != query) {
-            q.query = query
+        if (q.query != query.query) {
+            q.query = query.query
         }
         
-        let creators = usernames.joinWithSeparator(sep)
+        let creators = query.usernames.joinWithSeparator(sep)
         if (q.creators != creators) {
             q.creators = creators
         }
         
         var ids = [String]()
-        for cls in classes {
-            ids.append(cls.id)
+        for cls in query.classes {
+            ids.append(cls)
         }
         let classIds = ids.joinWithSeparator(sep)
         if (q.classes != classIds) {
@@ -184,8 +259,8 @@ class AddQueryModel {
         }
         
         ids = []
-        for set in includedSets {
-            ids.append(String(set.id))
+        for set in query.includedSets {
+            ids.append(set)
         }
         let includedIds = ids.joinWithSeparator(sep)
         if (q.includedSets != includedIds) {
@@ -193,8 +268,8 @@ class AddQueryModel {
         }
         
         ids = []
-        for set in excludedSets {
-            ids.append(String(set.id))
+        for set in query.excludedSets {
+            ids.append(set)
         }
         let excludedIds = ids.joinWithSeparator(sep)
         if (q.excludedSets != excludedIds) {
