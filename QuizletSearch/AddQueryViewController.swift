@@ -63,6 +63,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     var searchBar: UISearchBar!
     var searchBarCurrentText: String?
     var disableSearchBarEndEdit = false
+    var searchBarDesiredFirstResponder = false
     
     // called when text starts editing
     func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
@@ -112,7 +113,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         let isSearchAssist = model.query.isSearchAssist
         
         model.executeQuery(completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
-            isSearchAssist ? self.safelyReloadData() : self.resetSearchBar()
+            self.safelyReloadData(resetSearchBar: !isSearchAssist)
             if (pageLoaded != nil && response == .First && scrollToResults && firstLoaded) {
                 self.scrollToResults()
                 firstLoaded = false
@@ -121,19 +122,26 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
-    func safelyReloadData() {
+    func safelyReloadData(resetSearchBar resetSearchBar: Bool) {
         disableSearchBarEndEdit = true
-        let searchBarFirstResponder = searchBar.isFirstResponder()
-        if (searchBarFirstResponder) {
+        if (searchBar != nil && searchBar.isFirstResponder()) {
             searchBar.resignFirstResponder()
+            searchBarDesiredFirstResponder = true
         }
         disableSearchBarEndEdit = false
         
+        if (searchBar != nil && resetSearchBar) {
+            searchBar.delegate = nil
+            searchBar = nil
+        }
+        
+        // Workaround: call reloadData to avoid a crash when insertRowsAtIndexPaths is called
         indexPathForDesiredFirstResponder = indexPathForCurrentFirstResponder
         tableView.reloadData()
 
-        if (searchBarFirstResponder) {
+        if (searchBar != nil && searchBarDesiredFirstResponder) {
             searchBar.becomeFirstResponder()
+            searchBarDesiredFirstResponder = false
         }
     }
     
@@ -143,25 +151,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             self.tableView.scrollToRowAtIndexPath(self.model.resultHeaderPath(), atScrollPosition: UITableViewScrollPosition.Top, animated: true)
             
         })
-    }
-    
-    func resignAndResetSearchBar() {
-        if (searchBar.isFirstResponder()) {
-            searchBar.resignFirstResponder()
-        }
-        
-        resetSearchBar()
-    }
-
-    func resetSearchBar() {
-        if (searchBar != nil) {
-            searchBar.delegate = nil
-        }
-        searchBar = nil
-        
-        // Workaround: call reloadData to avoid a crash when insertRowsAtIndexPaths is called
-        indexPathForDesiredFirstResponder = indexPathForCurrentFirstResponder
-        tableView.reloadData()
     }
     
     // MARK: - Editable cells
@@ -193,8 +182,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     var indexPathForDesiredFirstResponder: NSIndexPath?
     
     @IBAction func addUser(sender: AnyObject) {
-        resignAndResetSearchBar()
-        
         let indexPath = self.model.appendUser("dougzilla32")
         indexPathForDesiredFirstResponder = indexPath
         self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
@@ -204,8 +191,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     @IBAction func addClass(sender: AnyObject) {
-        resignAndResetSearchBar()
-        
         let indexPath = model.appendClass("669401")
         indexPathForDesiredFirstResponder = indexPath
         tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
@@ -284,7 +269,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             else {
                 qset = model.pagers!.getQSetForRow(resultRow, completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
                     dispatch_async(dispatch_get_main_queue(), {
-                        self.safelyReloadData()
+                        self.safelyReloadData(resetSearchBar: false)
                     })
                 })
                 
@@ -526,6 +511,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 searchBar.text = searchBarCurrentText
                 configureSearchBar(searchBar)
                 searchBar.delegate = self
+                if (searchBarDesiredFirstResponder) {
+                    searchBar.becomeFirstResponder()
+                    searchBarDesiredFirstResponder = false
+                }
             }
 
             return searchBar
