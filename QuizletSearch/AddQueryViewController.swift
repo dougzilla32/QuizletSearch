@@ -8,10 +8,16 @@
 
 import UIKit
 
-class AddQueryViewController: UITableViewController, UISearchBarDelegate, UITextFieldDelegate {
+enum AddQuerySection: Int {
+    case QueryLabel, Results
+}
 
-    let QueryLabelSection = 0
-    let ResultsSection = 1
+class AddQueryViewController: UITableViewController, UISearchBarDelegate, UITextFieldDelegate {
+    enum ScrollTarget: Int {
+        case None, UserHeader, ClassHeader, ResultsHeader
+        
+        static let RowType: [QueryRowType?] = [nil, .UserHeader, .ClassHeader, .ResultHeader]
+    }
     
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     var model = AddQueryModel()
@@ -74,13 +80,13 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         searchBarCurrentText = searchBar.text
 
         if (!disableSearchBarEndEdit) {
-            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollToResults: false)
+            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollTarget: .None)
         }
     }
     
     // called when text changes (including clear)
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
-        executeSearchForQuery(searchBar.text, isSearchAssist: true, scrollToResults: true)
+        executeSearchForQuery(searchBar.text, isSearchAssist: true, scrollTarget: .ResultsHeader)
     }
     
     // Have the keyboard close when 'Return' is pressed
@@ -92,12 +98,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             searchBar.resignFirstResponder()
             disableSearchBarEndEdit = false
 
-            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollToResults: true)
+            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollTarget: .ResultsHeader)
         }
         return true
     }
     
-    func executeSearchForQuery(var query: String?, isSearchAssist: Bool, scrollToResults: Bool) {
+    func executeSearchForQuery(var query: String?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
         if (query == nil) {
             query = ""
         }
@@ -105,17 +111,17 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         model.query.query = query!
         model.query.isSearchAssist = isSearchAssist
         
-        executeQuery(scrollToResults: scrollToResults)
+        executeQuery(scrollTarget: scrollTarget)
     }
     
-    func executeQuery(scrollToResults scrollToResults: Bool) {
+    func executeQuery(scrollTarget scrollTarget: ScrollTarget) {
         var firstLoaded = true
         let isSearchAssist = model.query.isSearchAssist
         
         model.executeQuery(completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
             self.safelyReloadData(resetSearchBar: !isSearchAssist)
-            if (pageLoaded != nil && response == .First && scrollToResults && firstLoaded) {
-                self.scrollToResults()
+            if (pageLoaded != nil && response == .First && firstLoaded) {
+                self.scrollTo(scrollTarget)
                 firstLoaded = false
             }
         })
@@ -123,6 +129,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
     func safelyReloadData(resetSearchBar resetSearchBar: Bool) {
+        // Prevent recursive call
         disableSearchBarEndEdit = true
         if (searchBar != nil && searchBar.isFirstResponder()) {
             searchBar.resignFirstResponder()
@@ -135,7 +142,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             searchBar = nil
         }
         
-        // Workaround: call reloadData to avoid a crash when insertRowsAtIndexPaths is called
+        // Workaround: call reloadData to avoid a crash involving the 'search bar' when insertRowsAtIndexPaths is called
         indexPathForDesiredFirstResponder = indexPathForCurrentFirstResponder
         tableView.reloadData()
 
@@ -145,11 +152,15 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         }
     }
     
-    func scrollToResults() {
+    func scrollTo(scrollTarget: ScrollTarget) {
+        if (scrollTarget == .None) {
+            return
+        }
+        
         // Workaround: when the keyboard is showing and there are only a few rows, scrollToRowAtIndexPath will leave some rows occluded by the keyboard and will not properly scroll the table.  Use dispatch_after to introduce a delay as a workaround -- for some reason it works when this delay is introduced.
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-            self.tableView.scrollToRowAtIndexPath(self.model.resultHeaderPath(), atScrollPosition: UITableViewScrollPosition.Top, animated: true)
-            
+            let scrollToIndexPath = self.model.topmostPathForType(ScrollTarget.RowType[scrollTarget.rawValue]!)!
+            self.tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: UITableViewScrollPosition.Top, animated: true)
         })
     }
     
@@ -187,7 +198,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
 
         model.query.isSearchAssist = false
-        executeQuery(scrollToResults: false)
+        executeQuery(scrollTarget: .UserHeader)
     }
     
     @IBAction func addClass(sender: AnyObject) {
@@ -196,7 +207,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
         
         model.query.isSearchAssist = false
-        executeQuery(scrollToResults: false)
+        executeQuery(scrollTarget: .ClassHeader)
     }
     
     var preferredFont: UIFont!
@@ -428,7 +439,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             if (model.isHeaderAtPath(indexPath)) {
                 let label = cell.contentView.viewWithTag(100) as! UILabel
                 label.font = preferredFont
-                if (model.resultHeaderPath() == indexPath) {
+                if (indexPath == model.topmostPathForType(.ResultHeader)) {
                     if let t = model.totalResults {
                         switch (t) {
                         case 0:
@@ -505,7 +516,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
 
     override func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if (section == ResultsSection) {
+        if (section == AddQuerySection.Results.rawValue) {
             if (searchBar == nil) {
                 searchBar = UISearchBar()
                 searchBar.text = searchBarCurrentText
@@ -536,7 +547,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     override func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return (section == ResultsSection) ? heightForSearchBar() - 3.0 : 0  // Subtract 3 to reduce borders to look better
+        return (section == AddQuerySection.Results.rawValue) ? heightForSearchBar() - 3.0 : 0  // Subtract 3 to reduce borders to look better
     }
     
     var sizingSearchBar: UISearchBar!

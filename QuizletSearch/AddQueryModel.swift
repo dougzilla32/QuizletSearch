@@ -52,9 +52,6 @@ enum QueryRowType: Int {
 class AddQueryModel {
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     
-    let QueryLabelSection = 0
-    let ResultsSection = 1
-    
     let sep = ","
     var type: String = ""
     var title: String = ""
@@ -123,13 +120,30 @@ class AddQueryModel {
         return rowItems[indexPath.section][indexPath.row]
     }
     
-    func resultHeaderPath() -> NSIndexPath {
-        return NSIndexPath(forRow: rowTypes[1].count - 1, inSection: 1)
+    func topmostPathForType(type: QueryRowType) -> NSIndexPath? {
+        var indexPath: NSIndexPath? = nil
+
+        switch (type) {
+        case .ResultHeader:
+            indexPath = NSIndexPath(forRow: rowTypes[1].count - 1, inSection: AddQuerySection.Results.rawValue)
+        default:
+            outerLoop:
+            for s in 0..<rowTypes.count {
+                for r in 0..<rowTypes[s].count {
+                    if (rowTypes[s][r] == type) {
+                        indexPath = NSIndexPath(forRow: r, inSection: s)
+                        break outerLoop
+                    }
+                }
+            }
+        }
+        
+        return indexPath
     }
     
     func numberOfRowsInSection(section: Int) -> Int {
         var numRows = rowTypes[section].count
-        if (section == ResultsSection && pagers != nil) {
+        if (section == AddQuerySection.Results.rawValue && pagers != nil) {
             if let t = pagers?.totalResults {
                 numRows += t
             }
@@ -146,7 +160,7 @@ class AddQueryModel {
     }
     
     func resultRowForIndexPath(indexPath: NSIndexPath) -> Int? {
-        return (indexPath.section == ResultsSection && indexPath.row >= rowTypes[indexPath.section].count)
+        return (indexPath.section == AddQuerySection.Results.rawValue && indexPath.row >= rowTypes[indexPath.section].count)
             ? indexPath.row - rowTypes[indexPath.section].count
             : nil
     }
