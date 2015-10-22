@@ -34,13 +34,11 @@ class SetPager: QSetPager {
     var qsets: [[QSet]?]?
     var qsetsToken = 0
     var resetCounter = 0
-//    var prevQSets: [[QSet]?]?
     var isSearchAssist = false
     
     var loadingPages = Set<Int>()
     var totalPages: Int?
     var totalResults: Int?
-//    var validateTotals = true
     
     // Indicates a duplicate pager (the user entered two or more identical usernames or class ids)
 //    var isDuplicate = false
@@ -66,13 +64,6 @@ class SetPager: QSetPager {
     func resetAllPages() {
         loadingPages.removeAll()
         resetCounter++
-        
-        //        if (qsets != nil) {
-        //            prevQSets = qsets
-        //        }
-        //        qsets = nil
-        //        validateTotals = false
-        //        isDuplicate = false
     }
     
     func reset(query query: String?, creator: String?, classId: String?) {
@@ -115,22 +106,11 @@ class SetPager: QSetPager {
         return /* !isDuplicate && */ loadingPages.count > 0
     }
     
-    /*
-    func firstPageActive() -> Bool {
-        return /* !isDuplicate && */ (loadingPages.contains(0) || (qsetsToken == resetCounter && qsets != nil && qsets![0] != nil))
-    }
-    */
-    
     func peekQSetForRow(row: Int) -> QSet? {
 //        if (isDuplicate) { return nil }
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
         return qsets?[pageIndex]?[pageOffset]
-//        var qset = qsets?[pageIndex]?[pageOffset]
-//        if (qset == nil) {
-//            qset = prevQSets?[pageIndex]?[pageOffset]
-//        }
-//        return qset
     }
     
     func getQSetForRow(row: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) -> QSet? {
@@ -140,7 +120,6 @@ class SetPager: QSetPager {
         let qset = qsets?[pageIndex]?[pageOffset]
         if (qset == nil || qsetsToken < resetCounter) {
             loadRow(row, completionHandler: completionHandler)
-//            qset = prevQSets?[pageIndex]?[pageOffset]
         }
         return qset
     }
@@ -221,7 +200,7 @@ class SetPager: QSetPager {
                 return
             }
             
-//            if (self.validateTotals) {
+            if (self.qsetsToken == resetToken) {
                 // Check if 'result.totalPages' is consistent
                 if (self.totalPages != nil && self.totalPages != result.totalPages) {
                     NSLog("Total number of pages changed from \(self.totalPages!) to \(result.totalPages) in page \(result.page)")
@@ -231,11 +210,10 @@ class SetPager: QSetPager {
                 if (self.totalResults != nil && self.totalResults != result.totalResults) {
                     NSLog("Total number of results changed from \(self.totalResults!) to \(result.totalResults) in page \(result.page)")
                 }
-//            }
+            }
             
             self.totalPages = result.totalPages
             self.totalResults = result.totalResults
-//            self.validateTotals = true
 
             // Check if 'result.page' is consistent
             if (result.page != page) {
@@ -243,7 +221,6 @@ class SetPager: QSetPager {
             }
             
             // Clear the previous search assist results
-//            self.prevQSets = nil
             if (self.qsetsToken < resetToken) {
                 self.qsets = nil
                 self.qsetsToken = resetToken

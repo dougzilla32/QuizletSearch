@@ -8,74 +8,6 @@
 
 import UIKit
 
-/*
-func ==(lhs: QueryInfo, rhs: QueryInfo) -> Bool {
-    return lhs.query == rhs.query
-        && lhs.isSearchAssist == rhs.isSearchAssist
-        && lhs.usernames == rhs.usernames
-        && lhs.classes == rhs.classes
-        && lhs.includedSets == rhs.includedSets
-        && lhs.excludedSets == rhs.excludedSets
-}
-
-class QueryInfo: Equatable {
-    var query: String = ""
-    var isSearchAssist = false
-    
-    var usernames: [String] = []
-    var classes: [String] = []
-    var includedSets: [String] = []
-    var excludedSets: [String] = []
-    
-    init() { }
-    
-    init(qinfo: QueryInfo) {
-        self.query = qinfo.query
-        self.isSearchAssist = qinfo.isSearchAssist
-        self.usernames = qinfo.usernames
-        self.classes = qinfo.classes
-        self.includedSets = qinfo.includedSets
-        self.excludedSets = qinfo.excludedSets
-    }
-    
-    func isEmpty() -> Bool {
-        return (query.isEmpty && usernames.count == 0 && classes.count == 0 && includedSets.count == 0)
-    }
-    
-    func uniqueInfo() -> QueryInfo {
-        let uniqueInfo = QueryInfo()
-        uniqueInfo.usernames = makeUnique(usernames)
-        uniqueInfo.classes = makeUnique(classes)
-        uniqueInfo.includedSets = makeUnique(includedSets)
-        uniqueInfo.excludedSets = makeUnique(excludedSets)
-        return uniqueInfo
-    }
-    
-    func makeUnique(list: [String]) -> [String] {
-        var set = Set<String>()
-        var uniqueList = [String]()
-        for item in list {
-            if (!set.contains(item)) {
-                uniqueList.append(item)
-                set.insert(item)
-            }
-        }
-        return uniqueList
-    }
-}
-
-struct AllPagers : SequenceType
-{
-    let pagers: QueryPagers
-    
-    init(pagers: QueryPagers)
-    {
-        self.pagers = pagers
-    }
-
-}
-*/
-
 class PagerIndex {
     enum PagerType {
         case Query, Username, Class, IncludedSets, End
@@ -112,7 +44,6 @@ class QueryPagers: QSetPager, SequenceType {
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     
     var queryPager: SetPager?
-//    var isSearchAssist = false
     
     var usernamePagers: [SetPager] = []
     var classPagers: [SetPager] = []
@@ -128,7 +59,6 @@ class QueryPagers: QSetPager, SequenceType {
         // Cancel previous queries
         quizletSession.cancelQueryTasks()
 
-//        self.isSearchAssist = isSearchAssist
         if (pagerIndex != nil && pagerIndex!.type == .Query) {
             changeQuery(isSearchAssist)
         }
@@ -200,7 +130,7 @@ class QueryPagers: QSetPager, SequenceType {
     }
     */
     
-    /*
+    /* Use this slower generate() function for testing purposes if the more complex generate() function is suspected of causing problems.
     func generate() -> AnyGenerator<SetPager> {
         var index = 0
         var all = [SetPager]()
@@ -254,102 +184,6 @@ class QueryPagers: QSetPager, SequenceType {
             }
         }
     }
-    
-    /*
-    init(queryInfo: QueryInfo) {
-        let q = queryInfo.uniqueInfo()
-        
-        if (q.usernames.count > 0) {
-            for username in q.usernames {
-                usernamePagers.append(SetPager(query: q.query, creator: username, isSearchAssist: q.isSearchAssist))
-            }
-        }
-        else {
-            queryPager = SetPager(query: q.query, creator: nil, isSearchAssist:  q.isSearchAssist)
-        }
-        
-        if (q.classes.count > 0) {
-            classPagers = []
-            for classId in q.classes {
-                // TODO: append class query pager
-                // classPagers!.append()
-            }
-        }
-        
-        // TODO: create query for all the ids of the included sets'
-        
-        resetAllPagers()
-    }
-    
-    func update(queryInfo queryInfo: QueryInfo) {
-        let q = queryInfo.uniqueInfo()
-        
-        for i in 0..<q.usernames.count {
-            if (i < usernamePagers.count) {
-                usernamePagers[i].resetQuery(query: q.query, creator: q.usernames[i], isSearchAssist: q.isSearchAssist)
-            }
-            else {
-                usernamePagers.append(SetPager(query: q.query, creator: q.usernames[i], isSearchAssist: q.isSearchAssist))
-            }
-        }
-        if (usernamePagers.count > q.usernames.count) {
-            usernamePagers.removeRange(q.usernames.count ..< usernamePagers.count)
-        }
-        
-        if (usernamePagers.count > 0) {
-            queryPager = nil
-        }
-        else {
-            if (queryPager != nil) {
-                queryPager?.resetQuery(query: q.query, creator: nil, isSearchAssist: q.isSearchAssist)
-            }
-            else {
-                queryPager = SetPager(query: q.query, creator: nil, isSearchAssist: q.isSearchAssist)
-            }
-        }
-        
-        if (q.classes.count > 0) {
-            for i in 0..<q.classes.count {
-                // TODO: create or reset class query pager
-                if (i < classPagers.count) {
-                    // classes[i].resetQuery(q.classes[i])
-                }
-                else {
-                    // classes[i].append(SetPager())
-                }
-            }
-            
-            if (classPagers.count > q.classes.count) {
-                classPagers.removeRange(q.classes.count ..< classPagers.count)
-            }
-        }
-        
-        if (q.includedSets.count > 0) {
-            // TODO: create or reset query for all the ids of the included sets
-            if (includedSetsPager != nil) {
-                // includedSetsPager?.resetQuery()
-            }
-            else {
-                // includedSetsPager = SetPager()
-            }
-        }
-        
-        resetAllPagers()
-    }
-
-    func resetAllPagers() {
-        var all = [SetPager]()
-        if (queryPager != nil) {
-            all.append(queryPager!)
-        }
-        all += usernamePagers
-        all += classPagers
-        if (includedSetsPager != nil) {
-            all.append(includedSetsPager!)
-        }
-        allPagers = all
-    }
-    */
     
     func loadFirstPages(completionHandler completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
         for pager in self {
