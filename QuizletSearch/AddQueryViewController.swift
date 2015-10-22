@@ -40,6 +40,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             object: nil)
         resetFonts()
         
+        // Delay "touches began" so that swipe to delete for textfield cells works properly
+        self.tableView.panGestureRecognizer.delaysTouchesBegan = true
+        
         self.navigationController!.navigationBar.titleTextAttributes =
             [NSFontAttributeName: UIFont(name: "Noteworthy-Bold", size: 18)!]
         
@@ -103,28 +106,33 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         return true
     }
     
-    func executeSearchForQuery(var query: String?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
+    // MARK: - Search
+    
+    func executeSearchForQuery(var query: String!, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
         if (query == nil) {
             query = ""
         }
-        query = query!.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-        model.query.query = query!
-        model.query.isSearchAssist = isSearchAssist
+        query = query.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
         
-        executeQuery(scrollTarget: scrollTarget)
+        model.pagers.queryPager = query.isEmpty ? nil: SetPager(query: query)
+        
+        executeSearch(PagerIndex(type: .Query, index: 0), isSearchAssist: isSearchAssist, scrollTarget: scrollTarget)
     }
     
-    func executeQuery(scrollTarget scrollTarget: ScrollTarget) {
+    func executeSearch(pagerIndex: PagerIndex?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
         var firstLoaded = true
-        let isSearchAssist = model.query.isSearchAssist
         
-        model.executeQuery(completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
+        model.pagers.executeSearch(pagerIndex, isSearchAssist: isSearchAssist, completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
             self.safelyReloadData(resetSearchBar: !isSearchAssist)
             if (pageLoaded != nil && response == .First && firstLoaded) {
                 self.scrollTo(scrollTarget)
                 firstLoaded = false
             }
         })
+    }
+    
+    func executeSearch(indexPath indexPath: NSIndexPath?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
+        executeSearch(model.indexPathToPagerIndex(indexPath), isSearchAssist: isSearchAssist, scrollTarget: scrollTarget)
     }
     
     // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
@@ -143,7 +151,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         }
         
         // Workaround: call reloadData to avoid a crash involving the 'search bar' when insertRowsAtIndexPaths is called
-        indexPathForDesiredFirstResponder = indexPathForCurrentFirstResponder
+        print("set desired first responder (reload): \(currentFirstResponder?.path)")
+        if (currentFirstResponder != nil) {
+            var range = currentFirstResponder!.target.selectedTextRange
+            if let r = range where r.start == r.end && r.start == currentFirstResponder!.target.endOfDocument {
+                range = nil
+            }
+            desiredFirstResponder = PathAndRange(path: currentFirstResponder!.path, range: range)
+        }
         tableView.reloadData()
 
         if (searchBar != nil && searchBarDesiredFirstResponder) {
@@ -166,48 +181,149 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     // MARK: - Editable cells
     
+    struct TargetAndPath {
+        let target: UITextField
+        let path: NSIndexPath
+    }
+    
+    // The currently active textfield (either username or class), restore the first responder textfield after reloadData is called on the table
+    var currentFirstResponder: TargetAndPath?
+    
+    struct PathAndRange {
+        let path: NSIndexPath
+        let range: UITextRange?
+    }
+    
+    // Gives the newly added textfield the keyboard focus (it becomes the first responder when 'cellForRowAtIndexPath' is called with the firstResponderIndexPath index path)
+    var desiredFirstResponder: PathAndRange?
+    
     func textFieldDidBeginEditing(textField: UITextField) {
-        // became first responder
-        
-        // Use indexPathForRowAtPoint rather than indexPathForCell because indexPathForCell returns nil if the cell is not yet visible (either scrolled off or not yet realized)
-        let textInputCell = textField.superview!.superview as! TextInputTableViewCell
-        indexPathForCurrentFirstResponder = tableView.indexPathForRowAtPoint(textInputCell.center)
+        print("didBeginEditing \(textField.text)")
+        currentFirstResponder = TargetAndPath(target: textField, path: indexPathForTextField(textField))
     }
     
     func textFieldDidEndEditing(textField: UITextField) {
-        indexPathForCurrentFirstResponder = nil
+        print("didEndEditing \(textField.text)")
+        var indexPath = indexPathForTextField(textField)
+        if (desiredFirstResponder?.path == indexPath) {
+            // Do not update if textFieldDidEndEditing is called while reloading the table
+            print("Ignore update")
+            return
+        }
+
+        currentFirstResponder = nil
+
+        let text = textField.text?.trimWhitespace()
+
+        switch (model.rowTypeForPath(indexPath)) {
+        case .UserCell:
+            if (text == nil || text!.isEmpty) {
+                deleteUserAtIndexPath(indexPath)
+                print("Delete user: '\(text)' \(indexPath.row)")
+            }
+            else {
+                let newIndexPath = model.updateAndSortUser(text, atIndexPath: indexPath)
+                print("Update user: '\(text)' \(indexPath.row) \(newIndexPath.row)")
+                if (newIndexPath != indexPath) {
+                    self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+                    indexPath = newIndexPath
+                }
+                
+                executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .UserHeader)
+            }
+
+        case .ClassCell:
+            if (text == nil || text!.isEmpty) {
+                deleteClassAtIndexPath(indexPath)
+                print("Delete class: '\(text)' \(indexPath.row)")
+            }
+            else {
+                let newIndexPath = model.updateAndSortClass(text, atIndexPath: indexPath)
+                print("Update class: '\(text)' \(indexPath.row) \(newIndexPath.row)")
+                if (newIndexPath != indexPath) {
+                    self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
+                    indexPath = newIndexPath
+                }
+                
+                executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .ClassHeader)
+            }
+            
+        default:
+            abort()
+        }
     }
     
-    // called when text changes (including clear)
-    func textField(textField: UITextField, textDidChange searchText: String) {
+    func textField(textField: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
+        var text = textField.text != nil ? textField.text! : ""
+        text = (text as NSString).stringByReplacingCharactersInRange(range, withString: string)
+        text = text.trimWhitespace()
+
+        let indexPath = indexPathForTextField(textField)
+
+        switch (model.rowTypeForPath(indexPath)) {
+        case .UserCell:
+            model.updateUser(text, atIndexPath: indexPath)
+            executeSearch(indexPath: indexPath, isSearchAssist: true, scrollTarget: .UserHeader)
+        case .ClassCell:
+            model.updateClass(text, atIndexPath: indexPath)
+            executeSearch(indexPath: indexPath, isSearchAssist: true, scrollTarget: .ClassHeader)
+        default:
+            abort()
+        }
+        
+        return true
     }
     
     @IBAction func updateText(sender: AnyObject) {
-        (sender as! UITextField).resignFirstResponder()
+        let textField = sender as! UITextField
+        textField.resignFirstResponder()
+    }
+
+    func indexPathForTextField(textField: UITextField) -> NSIndexPath {
+        let textInputCell = textField.superview!.superview as! TextInputTableViewCell
+
+        // Use indexPathForRowAtPoint rather than indexPathForCell because indexPathForCell returns nil if the cell is not yet visible (either scrolled off or not yet realized)
+        return tableView.indexPathForRowAtPoint(textInputCell.center)!
     }
     
-    // Restore the first responder textfield after reloadData is called on the table
-    var indexPathForCurrentFirstResponder: NSIndexPath?
-    
-    // Gives the newly added textfield the keyboard focus (it becomes the first responder when 'cellForRowAtIndexPath' is called with the firstResponderIndexPath index path)
-    var indexPathForDesiredFirstResponder: NSIndexPath?
-    
     @IBAction func addUser(sender: AnyObject) {
-        let indexPath = self.model.appendUser("dougzilla32")
-        indexPathForDesiredFirstResponder = indexPath
-        self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+        if (currentFirstResponder != nil) {
+            print("Resign first responder \(currentFirstResponder!.target.text)")
+        }
+        currentFirstResponder?.target.resignFirstResponder()
 
-        model.query.isSearchAssist = false
-        executeQuery(scrollTarget: .UserHeader)
+        let indexPath = self.model.insertNewUser("")
+        desiredFirstResponder = PathAndRange(path: indexPath, range: nil)
+        
+        print("Insert new empty user before")
+        self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+        print("Insert new empty user after")
+
+        executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .UserHeader)
+    }
+    
+    func deleteUserAtIndexPath(indexPath: NSIndexPath) {
+        model.deleteUserAtIndexPath(indexPath)
+        self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
+        
+        executeSearch(nil, isSearchAssist: false, scrollTarget: .None)
     }
     
     @IBAction func addClass(sender: AnyObject) {
-        let indexPath = model.appendClass("669401")
-        indexPathForDesiredFirstResponder = indexPath
+        currentFirstResponder?.target.resignFirstResponder()
+        
+        let indexPath = model.insertNewClass("669401")
+        desiredFirstResponder = PathAndRange(path: indexPath, range: nil)
         tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
         
-        model.query.isSearchAssist = false
-        executeQuery(scrollTarget: .ClassHeader)
+        executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .ClassHeader)
+    }
+    
+    func deleteClassAtIndexPath(indexPath: NSIndexPath) {
+        model.deleteClassAtIndexPath(indexPath)
+        self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
+        
+        executeSearch(nil, isSearchAssist: false, scrollTarget: .None)
     }
     
     var preferredFont: UIFont!
@@ -252,14 +368,64 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         return model.numberOfRowsInSection(section)
     }
     
+    override func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return model.canEditRowAtIndexPath(indexPath)
+    }
+    
+    override func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
+        if (editingStyle == UITableViewCellEditingStyle.Delete) {
+            if (currentFirstResponder != nil) {
+                print("Delete: resign first responder \(currentFirstResponder!.target.text)")
+            }
+            currentFirstResponder?.target.resignFirstResponder()
+
+            // handle delete (by removing the data from your array and updating the tableview)
+            switch (model.rowTypeForPath(indexPath)) {
+            case .UserCell:
+                deleteUserAtIndexPath(indexPath)
+            case .ClassCell, .IncludeCell, .ExcludeCell, .ResultCell:
+                deleteClassAtIndexPath(indexPath)
+            default:
+                abort()
+            }
+        }
+    }
+    
+    override func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
+        return true // Yes, the table view can be reordered
+    }
+    
+    override func tableView(tableView: UITableView, moveRowAtIndexPath fromIndexPath: NSIndexPath, toIndexPath: NSIndexPath) {
+        // update the item in my data source by first removing at the from index, then inserting at the to index.
+        // let item = items[fromIndexPath.row]
+        // items.removeAtIndex(fromIndexPath.row)
+        // items.insert(item, atIndex: toIndexPath.row)
+    }
+
+    override func tableView(tableView: UITableView, targetIndexPathForMoveFromRowAtIndexPath sourceIndexPath: NSIndexPath, toProposedIndexPath proposedDestinationIndexPath: NSIndexPath) -> NSIndexPath {
+        if sourceIndexPath.section != proposedDestinationIndexPath.section {
+            var row = 0
+            if sourceIndexPath.section < proposedDestinationIndexPath.section {
+                row = self.tableView(tableView, numberOfRowsInSection: sourceIndexPath.section) - 1
+            }
+            return NSIndexPath(forRow: row, inSection: sourceIndexPath.section)
+        }
+        return proposedDestinationIndexPath
+    }
+    
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
         let cell = tableView.dequeueReusableCellWithIdentifier(cellIdentifierForPath(indexPath), forIndexPath: indexPath)
         configureCell(cell, atIndexPath: indexPath)
-        if let textInputCell = cell as? TextInputTableViewCell where indexPath == indexPathForDesiredFirstResponder {
+        
+        if let textInputCell = cell as? TextInputTableViewCell where indexPath == desiredFirstResponder?.path {
+            print("desired becomes responder \(textInputCell.textField.text)")
             if (!textInputCell.textField.isFirstResponder()) {
                 textInputCell.textField.becomeFirstResponder()
+                if let range = desiredFirstResponder?.range {
+                    textInputCell.textField.selectedTextRange = range
+                }
             }
-            indexPathForDesiredFirstResponder = nil
+            desiredFirstResponder = nil
         }
 
         return cell
@@ -278,7 +444,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 qset = nil
             }
             else {
-                qset = model.pagers!.getQSetForRow(resultRow, completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
+                qset = model.pagers.getQSetForRow(resultRow, completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
                     dispatch_async(dispatch_get_main_queue(), {
                         self.safelyReloadData(resetSearchBar: false)
                     })
@@ -384,8 +550,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             (owner as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, forRange: NSMakeRange(ownerLength, 0))
             attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
             
-            if (model.query.isSearchAssist) {
-                let searchAssistCell = (cell as! LabelTableViewCell)
+            if let searchAssistCell = cell as? LabelTableViewCell {
                 searchAssistCell.label.attributedText = attributedText
                 return
             }
@@ -573,7 +738,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 if (model.isActivityIndicatorRow(resultRow)) {
                     height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
                 }
-                else if (model.query.isSearchAssist) {
+                else if (model.isSearchAssistRow(resultRow)) {
                     if (estimatedHeightForSearchAssistCell == nil) {
                         let cellIdentifier = "Search Assist Cell"
                         var sizingCell = sizingCells[cellIdentifier]
