@@ -16,7 +16,7 @@ protocol QSetPager {
     
     func peekQSetForRow(row: Int) -> QSet?
 
-    func getQSetForRow(row: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) -> QSet?
+    func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet?
 }
 
 enum PagerResponse {
@@ -113,7 +113,7 @@ class SetPager: QSetPager {
         return qsets?[pageIndex]?[pageOffset]
     }
     
-    func getQSetForRow(row: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) -> QSet? {
+    func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet? {
 //        if (isDuplicate) { return nil }
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
@@ -124,13 +124,13 @@ class SetPager: QSetPager {
         return qset
     }
     
-    func loadRow(row: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
+    func loadRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
 //        if (isDuplicate) { return }
         let page = row / paginationSize + 1
         loadPage(page, completionHandler: completionHandler)
     }
     
-    func loadPage(page: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
+    func loadPage(page: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
 //        if (isDuplicate) { return }
         guard (page > 0) else {
             NSLog("Page number is zero or less")
@@ -156,11 +156,13 @@ class SetPager: QSetPager {
         quizletSession.searchSetsWithQuery(query, creator: creator, autocomplete: isSearchAssist, imagesOnly: nil, modifiedSince: nil, page: page, perPage: paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
             
             if (queryResult == nil || resetToken < self.resetCounter) {
-                // Cancelled or error
+                // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
                 return
             }
 
-            if (!self.isSearchAssist && queryResult!.totalResults > 0) {
+            self.loadPageResult(queryResult!, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
+            
+            if (queryResult!.totalResults > 0) {
                 var setIds = [Int64]()
                 for qset in queryResult!.qsets {
                     setIds.append(qset.id)
@@ -173,19 +175,13 @@ class SetPager: QSetPager {
                     }
                     
                     queryResult = QueryResult(copyFrom: queryResult!, qsets: qsets!)
-                    self.loadPageResult(queryResult, response: .First /* .Last */, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                    self.loadPageResult(queryResult!, response: .Last, page: page, resetToken: resetToken, completionHandler: completionHandler)
                 })
             }
-            else {
-                self.loadPageResult(queryResult, response: .First /* .Last */, page: page, resetToken: resetToken, completionHandler: completionHandler)
-            }
-            
-            // It is possible to display sets in the table as soon as we get a response from searchSetsWithQuery but before the terms are available via getSetsForIds.  This is desirable if getSetsForIds is slow. To get this behavior, change .First to .Last in the call to loadPageResult above and uncomment the following line.
-            // self.loadPageResult(queryResult, response: .First, page: page, completionHandler: completionHandler)
         })
     }
     
-    func loadPageResult(queryResult: QueryResult?, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
+    func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         dispatch_async(dispatch_get_main_queue(), {
             if (response == .First) {
                 self.loadingPages.remove(page)
@@ -193,10 +189,6 @@ class SetPager: QSetPager {
             
             guard page > 0 else {
                 NSLog("Negative page value: \(page)")
-                return
-            }
-            guard let result = queryResult else {
-                completionHandler(pageLoaded: nil, response: response)
                 return
             }
             
@@ -229,7 +221,7 @@ class SetPager: QSetPager {
             // If there are no pages then call completionHandler with 'nil'
             if (result.totalPages == 0) {
                 self.qsets = nil
-                completionHandler(pageLoaded: nil, response: response)
+                completionHandler(affectedResults: 0...0, totalResults: result.totalResults, response: response)
                 return
             }
             
@@ -251,7 +243,7 @@ class SetPager: QSetPager {
             // Note: Quizlet page numbering starts from 1 rather than 0
             let remaining = result.totalResults - (result.page - 1) * self.paginationSize
             let expectedNumberOfQSets = min(remaining, self.paginationSize)
-            if (result.qsets.count != expectedNumberOfQSets) {
+            if (result.qsets.count < expectedNumberOfQSets) {
                 // NSLog("Expected \(expectedNumberOfQSets) in page \(result.page) but got \(result.qsets.count)")
                 self.qsets![page-1] = result.qsets
                 for _ in result.qsets.count...expectedNumberOfQSets {
@@ -263,7 +255,12 @@ class SetPager: QSetPager {
                 self.qsets![page-1] = result.qsets
             }
             
-            completionHandler(pageLoaded: page, response: response)
+            let start = (page-1) * self.paginationSize
+            let end = start + min(self.paginationSize, self.totalResults! - start)
+            completionHandler(
+                affectedResults: start...end,
+                totalResults: self.totalResults!,
+                response: response)
         })
     }
 }

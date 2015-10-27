@@ -44,20 +44,74 @@ class QueryPagers: QSetPager, SequenceType {
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     
     var queryPager: SetPager?
-    
     var usernamePagers: [SetPager] = []
     var classPagers: [SetPager] = []
     var includedSetsPager: SetPager?
     // var excludedSets: [QSet] = []
+
+    var totalResults: Int?
+    
+    // Do not allow the number of total results to shrink when doing search assist, because deleting rows is slow
+    var isSearchAssist = false
+    var totalResultsMax: Int?
+    var totalResultRows: Int?
+    
+//    var paddingRowsMin: Int = 5 {
+//        didSet {
+//            if (paddingRowsMin > 0) {
+//                totalResultRows = max(totalResultRows != nil ? totalResultRows! : 0, paddingRowsMin)
+//            }
+//        }
+//    }
+    
+    func updateTotals() {
+        // totalResults - total number of results
+        do {
+            var total = 0
+            var stillLoading = false
+            for pager in self {
+                if let t = pager.totalResults {
+                    total += t
+                }
+                else {
+                    stillLoading = true
+                }
+            }
+            totalResults = (stillLoading && total == 0) ? nil : total
+        }
+        
+        // totalResultRows - max of the total number of results that has been hit during a search assist session
+        do {
+            var total = totalResults
+            if (isSearchAssist) {
+                if (total != nil && totalResultsMax == nil) {
+                    totalResultsMax = total
+                }
+                else if (total != nil && totalResultsMax != nil) {
+                    totalResultsMax = max(total!, totalResultsMax!)
+                    total = totalResultsMax!
+                }
+            }
+            totalResultRows = total
+//            totalResultRows = (paddingRowsMin > 0)
+//                ? max(total != nil ? total! : 0, paddingRowsMin)
+//                : total
+        }
+    }
     
     init() { }
     
     // MARK: - Query
     
-    func executeSearch(pagerIndex: PagerIndex?, isSearchAssist: Bool, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
+    func executeSearch(pagerIndex: PagerIndex?, isSearchAssist: Bool, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         
         // Cancel previous queries
         quizletSession.cancelQueryTasks()
+        
+        self.isSearchAssist = isSearchAssist
+        if (!isSearchAssist) {
+            totalResultsMax = nil
+        }
 
         if (pagerIndex != nil && pagerIndex!.type == .Query) {
             changeQuery(isSearchAssist)
@@ -69,7 +123,7 @@ class QueryPagers: QSetPager, SequenceType {
 //        updateDuplicates(pagerIndex: pagerIndex)
         
         if (isEmpty()) {
-            completionHandler(pageLoaded: nil, response: PagerResponse.Last)
+            completionHandler(affectedResults: nil, totalResults: nil, response: PagerResponse.Last)
         }
         else {
             loadFirstPages(completionHandler: completionHandler)
@@ -185,11 +239,28 @@ class QueryPagers: QSetPager, SequenceType {
         }
     }
     
-    func loadFirstPages(completionHandler completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) {
+    func loadComplete(pager: SetPager, affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse, completionHandler: (affectedRows: Range<Int>, totalResults: Int?, response: PagerResponse) -> Void) {
+        self.updateTotals()
+        
+        var t = 0
+        for p in self {
+            if (p === pager) {
+                break
+            }
+            t += (p.totalResults != nil) ? p.totalResults! : 0
+        }
+
+        completionHandler(
+            affectedRows: (affectedRows!.startIndex + t)...(affectedRows!.endIndex + t),
+            totalResults: self.totalResults,
+            response: response)
+    }
+    
+    func loadFirstPages(completionHandler completionHandler: (affectedRows: Range<Int>, totalResults: Int?, response: PagerResponse) -> Void) {
         for pager in self {
-            // if (!pager.firstPageActive()) {
-                pager.loadPage(1, completionHandler: completionHandler)
-            // }
+            pager.loadPage(1, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+                self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)
+            })
         }
     }
     
@@ -217,12 +288,14 @@ class QueryPagers: QSetPager, SequenceType {
         return nil
     }
     
-    func getQSetForRow(row: Int, completionHandler: (pageLoaded: Int?, response: PagerResponse) -> Void) -> QSet? {
+    func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet? {
         var index = 0
         for pager in self {
             if let t = pager.totalResults {
                 if case index..<index+t = row {
-                    return pager.getQSetForRow(row-index, completionHandler: completionHandler)
+                    return pager.getQSetForRow(row-index, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+                        self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)
+                    })
                 }
                 else {
                     index += t
@@ -245,20 +318,5 @@ class QueryPagers: QSetPager, SequenceType {
             }
         }
         return nil
-    }
-    
-    var totalResults: Int? {
-        var totalResults = 0
-        var stillLoadingTotals = false
-        for pager in self {
-            if let t = pager.totalResults {
-                totalResults += t
-            }
-            else {
-                stillLoadingTotals = true
-            }
-        }
-        
-        return (stillLoadingTotals && totalResults == 0) ? nil : totalResults
     }
 }

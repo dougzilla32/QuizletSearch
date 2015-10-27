@@ -8,9 +8,8 @@
 
 import UIKit
 
-enum AddQuerySection: Int {
-    case QueryLabel, Results
-}
+let QuerySection = 0
+let ResultsSection = 1
 
 class AddQueryViewController: UITableViewController, UISearchBarDelegate, UITextFieldDelegate {
     enum ScrollTarget: Int {
@@ -72,7 +71,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     var searchBar: UISearchBar!
     var searchBarCurrentText: String?
     var disableSearchBarEndEdit = false
-    var searchBarDesiredFirstResponder = false
     
     // called when text starts editing
     func searchBarTextDidBeginEditing(searchBar: UISearchBar) {
@@ -122,61 +120,113 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     func executeSearch(pagerIndex: PagerIndex?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
         var firstLoaded = true
         
-        model.pagers.executeSearch(pagerIndex, isSearchAssist: isSearchAssist, completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
-            self.safelyReloadData(resetSearchBar: !isSearchAssist)
-            if (pageLoaded != nil && response == .First && firstLoaded) {
+        model.pagers.executeSearch(pagerIndex, isSearchAssist: isSearchAssist, completionHandler: { (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+            
+            self.safelyReloadData(affectedResults: affectedResults, totalResults: totalResults)
+            if (response == .First && firstLoaded) {
                 self.scrollTo(scrollTarget)
                 firstLoaded = false
             }
         })
+
+        // Start the activity indicator
+        let path = model.pathForResultHeader()
+        let cell = tableView.cellForRowAtIndexPath(path)
+        if (cell != nil) {
+            configureCell(cell!, atIndexPath: path)
+        }
     }
     
     func executeSearch(indexPath indexPath: NSIndexPath?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
         executeSearch(model.indexPathToPagerIndex(indexPath), isSearchAssist: isSearchAssist, scrollTarget: scrollTarget)
     }
     
-    // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
-    func safelyReloadData(resetSearchBar resetSearchBar: Bool) {
-        // Prevent recursive call
-        disableSearchBarEndEdit = true
-        if (searchBar != nil && searchBar.isFirstResponder()) {
-            searchBar.resignFirstResponder()
-            searchBarDesiredFirstResponder = true
-        }
-        disableSearchBarEndEdit = false
-        
-        if (searchBar != nil && resetSearchBar) {
-            searchBar.delegate = nil
-            searchBar = nil
-        }
-        
-        // Workaround: call reloadData to avoid a crash involving the 'search bar' when insertRowsAtIndexPaths is called
-        print("set desired first responder (reload): \(currentFirstResponder?.path)")
-        if (currentFirstResponder != nil) {
-            var range = currentFirstResponder!.target.selectedTextRange
-            if let r = range where r.start == r.end && r.start == currentFirstResponder!.target.endOfDocument {
-                range = nil
-            }
-            desiredFirstResponder = PathAndRange(path: currentFirstResponder!.path, range: range)
-        }
-        tableView.reloadData()
-
-        if (searchBar != nil && searchBarDesiredFirstResponder) {
-            searchBar.becomeFirstResponder()
-            searchBarDesiredFirstResponder = false
-        }
-    }
+    var prevTotalResults = 0
+    var prevTotalResultRows = 0
     
-    func scrollTo(scrollTarget: ScrollTarget) {
-        if (scrollTarget == .None) {
-            return
-        }
+    // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
+    func safelyReloadData(var affectedResults affectedResults: Range<Int>!, var totalResults: Int!) {
         
-        // Workaround: when the keyboard is showing and there are only a few rows, scrollToRowAtIndexPath will leave some rows occluded by the keyboard and will not properly scroll the table.  Use dispatch_after to introduce a delay as a workaround -- for some reason it works when this delay is introduced.
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-            let scrollToIndexPath = self.model.topmostPathForType(ScrollTarget.RowType[scrollTarget.rawValue]!)!
-            self.tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: UITableViewScrollPosition.Top, animated: true)
-        })
+        
+        print("safelyReload: totalResults=\(totalResults) prevTotalResults=\(prevTotalResults) totalResultRows=\(model.pagers.totalResultRows) prevTotalResultRows=\(prevTotalResultRows)")
+
+        if (model.pagers.isSearchAssist) {
+            UIView.setAnimationsEnabled(false)
+            tableView.beginUpdates()
+            print("BEGIN")
+            
+            let offset = model.rowTypes[ResultsSection].count
+
+            if (affectedResults == nil) {
+                affectedResults = 0...0
+            }
+            print("affectedResults \(affectedResults)")
+            for i in affectedResults {
+                if (i >= prevTotalResults) {
+                    break
+                }
+                let path = NSIndexPath(forRow: i + offset, inSection: ResultsSection)
+                let cell = tableView.cellForRowAtIndexPath(path)
+                if (cell != nil) {
+                    configureCell(cell!, atIndexPath: path)
+                }
+            }
+
+            if (totalResults == nil) {
+                totalResults = 0
+            }
+            var totalResultRows: Int! = model.pagers.totalResultRows
+            if (totalResultRows == nil) {
+                totalResultRows = 0
+            }
+            
+            if (totalResults > prevTotalResults) {
+                var indexPaths = [NSIndexPath]()
+                for i in prevTotalResults..<totalResults {
+                    let path = NSIndexPath(forRow: i + offset, inSection: ResultsSection)
+                    if (i >= prevTotalResultRows) {
+                        indexPaths.append(path)
+                    }
+                    else {
+                        let cell = tableView.cellForRowAtIndexPath(path)
+                        if (cell != nil) {
+                            configureCell(cell!, atIndexPath: path)
+                        }
+                    }
+                }
+                print("insertRows \(totalResults-prevTotalResults)")
+                tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: UITableViewRowAnimation.None)
+            }
+            else if (totalResults < prevTotalResults) {
+                for i in totalResults..<prevTotalResults {
+                    let path = NSIndexPath(forRow: i + offset, inSection: ResultsSection)
+                    let cell = tableView.cellForRowAtIndexPath(path)
+                    if (cell != nil) {
+                        configureCell(cell!, atIndexPath: path)
+                    }
+                }
+                print("deleteRows \(prevTotalResults-totalResults)")
+            }
+
+            let path = model.pathForResultHeader()
+            let cell = tableView.cellForRowAtIndexPath(path)
+            if (cell != nil) {
+                configureCell(cell!, atIndexPath: path)
+            }
+
+            prevTotalResults = totalResults
+            prevTotalResultRows = totalResultRows
+
+            tableView.endUpdates()
+            print("END")
+            UIView.setAnimationsEnabled(true)
+        }
+        else {
+            prevTotalResults = (model.pagers.totalResults != nil) ? model.pagers.totalResults! : 0
+            prevTotalResultRows = (model.pagers.totalResultRows != nil) ? model.pagers.totalResultRows! : 0
+                
+            tableView.reloadData()
+        }
     }
     
     // MARK: - Editable cells
@@ -352,6 +402,115 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         self.view.setNeedsLayout()
     }
     
+    // MARK: - Scroll view data source
+    
+    var fingerIsDown = false
+    
+    // called on start of dragging (may require some time and or distance to move)
+    override func scrollViewWillBeginDragging(scrollView: UIScrollView) {
+        fingerIsDown = true
+    }
+
+    // called on finger up if the user dragged. velocity is in points/millisecond. targetContentOffset may be changed to adjust where the scroll view comes to rest
+    override func scrollViewWillEndDragging(scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
+        fingerIsDown = false
+    }
+
+    // called on finger up if the user dragged. decelerate is true if it will continue moving afterwards
+    override func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
+        enforceMaxYForScrollView(scrollView, delay: 0.01)
+    }
+    
+    var previousTableViewYOffset: CGFloat = 0.0
+    var disableViewDidScroll = 0
+    
+    override func scrollViewDidScroll(scrollView: UIScrollView) {
+        let scrollSpeed = tableView.contentOffset.y - previousTableViewYOffset
+        previousTableViewYOffset = tableView.contentOffset.y
+        
+//        print("scrollViewDidScroll \(scrollView.contentOffset.y)")
+        if (scrollSpeed < 0) {
+            return
+        }
+        
+        if (disableViewDidScroll == 0) {
+            disableViewDidScroll++
+            defer {
+                disableViewDidScroll--
+            }
+            
+            if (!fingerIsDown) {
+                enforceMaxYForScrollView(scrollView, delay: 1.0 / (2.0 * log(Double(scrollSpeed) + 1.1)))
+            }
+        }
+    }
+    
+    func enforceMaxYForScrollView(scrollView: UIScrollView, delay: Double) {
+        let resultHeaderPath = model.pathForResultHeader()
+        let resultHeaderMinY = tableView.rectForRowAtIndexPath(resultHeaderPath).minY
+        let searchBarHeight = tableView.rectForHeaderInSection(ResultsSection).height
+
+        let lastRowPath = NSIndexPath(forRow: model.numberOfResultRows() - 1, inSection: ResultsSection)
+        let lastRowMaxY = tableView.rectForRowAtIndexPath(lastRowPath).maxY
+        
+        let scrollToIndexPath: NSIndexPath
+        let scrollToPosition: UITableViewScrollPosition
+        let maxY: CGFloat
+
+        if (lastRowMaxY > resultHeaderMinY + scrollView.frame.height - searchBarHeight) {
+            scrollToIndexPath = lastRowPath
+            scrollToPosition = UITableViewScrollPosition.Bottom
+            maxY = lastRowMaxY
+        }
+        else {
+            scrollToIndexPath = resultHeaderPath
+            scrollToPosition = UITableViewScrollPosition.Top
+            maxY = tableView.rectForRowAtIndexPath(scrollToIndexPath).minY + scrollView.frame.size.height - searchBarHeight
+        }
+        
+//        print("enforceScrollTo CHECK \(scrollToIndexPath.row) \(scrollView.contentOffset.y + scrollView.frame.height) \(maxY)")
+        if (scrollView.contentOffset.y + scrollView.frame.height > maxY) {
+            disableViewDidScroll++
+
+//            print("enforceScrollTo YES \(scrollToIndexPath.row)")
+            // Workaround: using dispatch_after here causes the deceleration of the scroll view to be cancelled.  I do no know why this works.
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(Double(NSEC_PER_SEC) * delay)), dispatch_get_main_queue(), {
+                    UIView.animateWithDuration(1.0, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 3.0, options: UIViewAnimationOptions.CurveLinear, animations: {
+                        
+                        self.tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: scrollToPosition, animated: false)
+                        }, completion: {
+                            (value: Bool) in
+                            self.disableViewDidScroll--
+                    })
+            })
+        }
+    }
+    
+    var scrollingTo = 0
+    
+    func scrollTo(scrollTarget: ScrollTarget) {
+        if (scrollTarget == .None) {
+            return
+        }
+        
+        // Workaround: when the keyboard is showing and there are only a few rows, scrollToRowAtIndexPath will leave some rows occluded by the keyboard and will not properly scroll the table.  Use dispatch_after to introduce a delay as a workaround -- for some reason it works when this delay is introduced.
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+            self.disableViewDidScroll++
+            self.scrollingTo++
+            
+//            print("scrollTo \(scrollTarget)")
+            let scrollToIndexPath = self.model.topmostPathForType(ScrollTarget.RowType[scrollTarget.rawValue]!)!
+            self.tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: UITableViewScrollPosition.Top, animated: true)
+        })
+    }
+    
+    override func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
+        if (scrollingTo > 0) {
+            disableViewDidScroll--
+        }
+        scrollingTo--
+    }
+    
     // MARK: - Table view data source
 
     // Called before the user changes the selection. Return a new indexPath, or nil, to change the proposed selection.
@@ -439,21 +598,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         let qset: QSet?
 
         if let resultRow = model.resultRowForIndexPath(indexPath) {
-            // result row
-            if (model.isActivityIndicatorRow(resultRow)) {
-                qset = nil
-            }
-            else {
-                qset = model.pagers.getQSetForRow(resultRow, completionHandler: { (pageLoaded: Int?, response: PagerResponse) -> Void in
-                    dispatch_async(dispatch_get_main_queue(), {
-                        self.safelyReloadData(resetSearchBar: false)
-                    })
+            qset = model.pagers.getQSetForRow(resultRow, completionHandler: { (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+                dispatch_async(dispatch_get_main_queue(), {
+                    self.safelyReloadData(affectedResults: affectedResults, totalResults: totalResults)
                 })
-                
-                if (qset == nil) {
-                    return
-                }
-            }
+            })
         }
         else {
             qset = nil
@@ -471,8 +620,23 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 return
             }
             
-            if (qset.title.isEmpty && qset.createdBy.isEmpty && qset.description.isEmpty) {
+            if (qset == nil || qset.title.isEmpty && qset.createdBy.isEmpty && qset.description.isEmpty) {
                 // Empty cell
+                if let searchAssistCell = cell as? LabelTableViewCell {
+                    searchAssistCell.label.text = ""
+                    return
+                }
+                else {
+                    let setCell = (cell as! SetTableViewCell)
+                    setCell.termsActivityIndicator.stopAnimating()
+                    setCell.label.text = ""
+                    setCell.term0.text = ""
+                    setCell.term1.text = ""
+                    setCell.term2.text = ""
+                    setCell.definition0.text = ""
+                    setCell.definition1.text = ""
+                    setCell.definition2.text = ""
+                }
                 return
             }
             
@@ -572,6 +736,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             let termLabels = [ setCell.term0, setCell.term1, setCell.term2 ]
             let definitionLabels = [ setCell.definition0, setCell.definition1, setCell.definition2 ]
             
+            let isLoadingTerms = (qset.terms.count == 0)
+            isLoadingTerms
+                ? setCell.termsActivityIndicator.startAnimating()
+                : setCell.termsActivityIndicator.stopAnimating()
             for i in 0...2 {
                 if (i < qset.terms.count) {
                     var term: String! = qset.terms[i].term.trimWhitespace()
@@ -579,8 +747,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                     
                     // Make sure term and definition always line up horizontally in the cell even if one or the other is empty
                     if (term.isEmpty && definition.isEmpty) {
-                        term = nil
-                        definition = nil
+                        if (isLoadingTerms) {
+                            term = "\u{200B}"
+                            definition = "\u{200B}"
+                        }
+                        else {
+                            term = nil
+                            definition = nil
+                        }
                     }
                     else if (term.isEmpty) {
                         term = "\u{200B}"
@@ -593,8 +767,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                     definitionLabels[i].text = definition
                 }
                 else {
-                    termLabels[i].text = nil
-                    definitionLabels[i].text = nil
+                    if (isLoadingTerms) {
+                        termLabels[i].text = "\u{200B}"
+                        definitionLabels[i].text = "\u{200B}"
+                    }
+                    else {
+                        termLabels[i].text = nil
+                        definitionLabels[i].text = nil
+                    }
                 }
                 termLabels[i].font = smallerFont
                 definitionLabels[i].font = smallerFont
@@ -604,8 +784,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             if (model.isHeaderAtPath(indexPath)) {
                 let label = cell.contentView.viewWithTag(100) as! UILabel
                 label.font = preferredFont
+
                 if (indexPath == model.topmostPathForType(.ResultHeader)) {
-                    if let t = model.totalResults {
+                    if let t = model.pagers.totalResults {
                         switch (t) {
                         case 0:
                             label.text = "0 results"
@@ -624,6 +805,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                     else {
                         label.text = "Search results:"
                     }
+
+                    let activityIndicator = cell.contentView.viewWithTag(110) as! UIActivityIndicatorView
+                    model.pagers.isLoading() ? activityIndicator.startAnimating() : activityIndicator.stopAnimating()
                 }
             }
             else if let textInputCell = cell as? TextInputTableViewCell {
@@ -655,7 +839,15 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             sizingCells[cellIdentifier] = cell!
         }
 
-        configureCell(cell!, atIndexPath: indexPath)
+        let qset: QSet?
+        if let resultRow = model.resultRowForIndexPath(indexPath) {
+            qset = model.pagers.peekQSetForRow(resultRow)
+        }
+        else {
+            qset = nil
+        }
+
+        configureCell(cell!, atIndexPath: indexPath, qset: qset)
         return calculateHeight(cell!)
     }
     
@@ -667,7 +859,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             labelCell.label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
         }
         else if let setCell = cell as? SetTableViewCell {
-            setCell.label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+            setCell.resetBounds()
+//            setCell.label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
         }
         else if let textInputCell = cell as? TextInputTableViewCell {
             textInputCell.textField.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
@@ -681,16 +874,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
 
     override func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        if (section == AddQuerySection.Results.rawValue) {
+        if (section == ResultsSection) {
             if (searchBar == nil) {
                 searchBar = UISearchBar()
                 searchBar.text = searchBarCurrentText
                 configureSearchBar(searchBar)
                 searchBar.delegate = self
-                if (searchBarDesiredFirstResponder) {
-                    searchBar.becomeFirstResponder()
-                    searchBarDesiredFirstResponder = false
-                }
             }
 
             return searchBar
@@ -712,7 +901,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     override func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
-        return (section == AddQuerySection.Results.rawValue) ? heightForSearchBar() - 3.0 : 0  // Subtract 3 to reduce borders to look better
+        return (section == ResultsSection) ? heightForSearchBar() - 3.0 : 0  // Subtract 3 to reduce borders to look better
     }
     
     var sizingSearchBar: UISearchBar!
@@ -734,26 +923,23 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     override func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
             let height: CGFloat
-            if let resultRow = model.resultRowForIndexPath(indexPath) {
-                if (model.isActivityIndicatorRow(resultRow)) {
-                    height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
-                }
-                else if (model.isSearchAssistRow(resultRow)) {
-                    if (estimatedHeightForSearchAssistCell == nil) {
-                        let cellIdentifier = "Search Assist Cell"
-                        var sizingCell = sizingCells[cellIdentifier]
-                        if (sizingCell == nil) {
-                            sizingCell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
-                            sizingCells[cellIdentifier] = sizingCell!
-                        }
-                        
-                        let qset = QSet(id: 0, url: "", title: "Title", description: "", createdBy: "Owner", creatorId: 0, createdDate: 0, modifiedDate: 0)
-                        configureCell(sizingCell!, atIndexPath: indexPath, qset: qset)
-                        estimatedHeightForSearchAssistCell = calculateHeight(sizingCell!)
-                    }
-                    height = estimatedHeightForSearchAssistCell!
-                }
-                else {
+            if let _ = model.resultRowForIndexPath(indexPath) {
+//                if (model.isSearchAssistRow(resultRow)) {
+//                    if (estimatedHeightForSearchAssistCell == nil) {
+//                        let cellIdentifier = "Search Assist Cell"
+//                        var sizingCell = sizingCells[cellIdentifier]
+//                        if (sizingCell == nil) {
+//                            sizingCell = tableView.dequeueReusableCellWithIdentifier(cellIdentifier)
+//                            sizingCells[cellIdentifier] = sizingCell!
+//                        }
+//                        
+//                        let qset = QSet(id: 0, url: "", title: "Title", description: "", createdBy: "Owner", creatorId: 0, createdDate: 0, modifiedDate: 0)
+//                        configureCell(sizingCell!, atIndexPath: indexPath, qset: qset)
+//                        estimatedHeightForSearchAssistCell = calculateHeight(sizingCell!)
+//                    }
+//                    height = estimatedHeightForSearchAssistCell!
+//                }
+//                else {
                     if (estimatedHeightForResultCell == nil) {
                         let cellIdentifier = "Result Cell"
                         var sizingCell = sizingCells[cellIdentifier]
@@ -772,7 +958,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                         estimatedHeightForResultCell = calculateHeight(sizingCell!)
                     }
                     height = estimatedHeightForResultCell!
-                }
+//                }
             }
             else {
                 height = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
