@@ -53,13 +53,13 @@ class DataModel: NSObject {
             abort()
         }
         
-        println("ROOT USERS:")
+        print("ROOT USERS:")
         for user in userResult! {
-            println("  \(user.name)")
-            println("  QUERIES:")
+            print("  \(user.name)")
+            print("  QUERIES:")
             for query in user.queries {
                 var f: Query = query as! Query
-                println("    \(f.title)")
+                print("    \(f.title)")
             }
         }
         */

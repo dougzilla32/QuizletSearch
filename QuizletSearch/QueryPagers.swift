@@ -51,8 +51,7 @@ class QueryPagers: QSetPager, SequenceType {
 
     var totalResults: Int?
     
-    // Do not allow the number of total results to shrink when doing search assist, because deleting rows is slow
-    var isSearchAssist = false
+    // Do not allow the number of total results to shrink, because deleting rows is slow
     var totalResultsMax: Int?
     var totalResultRows: Int?
     
@@ -63,12 +62,6 @@ class QueryPagers: QSetPager, SequenceType {
 //            }
 //        }
 //    }
-    
-    func resetPadding() {
-        isSearchAssist = false
-        totalResultsMax = nil
-        totalResultRows = totalResults
-    }
     
     func updateTotals() {
         // totalResults - total number of results
@@ -89,14 +82,12 @@ class QueryPagers: QSetPager, SequenceType {
         // totalResultRows - max of the total number of results that has been hit during a search assist session
         do {
             var total = totalResults
-            if (isSearchAssist) {
-                if (total != nil && totalResultsMax == nil) {
-                    totalResultsMax = total
-                }
-                else if (total != nil && totalResultsMax != nil) {
-                    totalResultsMax = max(total!, totalResultsMax!)
-                    total = totalResultsMax!
-                }
+            if (total != nil && totalResultsMax == nil) {
+                totalResultsMax = total
+            }
+            else if (total != nil && totalResultsMax != nil) {
+                totalResultsMax = max(total!, totalResultsMax!)
+                total = totalResultsMax!
             }
             totalResultRows = total
 //            totalResultRows = (paddingRowsMin > 0)
@@ -109,21 +100,13 @@ class QueryPagers: QSetPager, SequenceType {
     
     // MARK: - Query
     
-    func executeSearch(pagerIndex: PagerIndex?, isSearchAssist: Bool, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+    func executeSearch(pagerIndex: PagerIndex?, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         
         // Cancel previous queries
         quizletSession.cancelQueryTasks()
         
-        self.isSearchAssist = isSearchAssist
-        if (!isSearchAssist) {
-            totalResultsMax = nil
-        }
-
         if (pagerIndex != nil && pagerIndex!.type == .Query) {
-            changeQuery(isSearchAssist)
-        }
-        else {
-            changeSearchAssist(isSearchAssist)
+            updateQuery()
         }
         
 //        updateDuplicates(pagerIndex: pagerIndex)
@@ -137,21 +120,19 @@ class QueryPagers: QSetPager, SequenceType {
         }
     }
     
-    func isEmpty() -> Bool {
-        return (queryPager == nil && usernamePagers.count == 0 && classPagers.count == 0 && includedSetsPager == nil)
-    }
-    
-    func changeQuery(isSearchAssist: Bool) {
+    func updateQuery() {
         let query = queryPager?.query
         for pager in self {
-            pager.changeQuery(query, isSearchAssist: isSearchAssist)
+            pager.updateQuery(query)
         }
+        
+//        if (queryPager != nil) {
+//            queryPager!.updateEnabled((usernamePagers.count == 0) && (classPagers.count == 0))
+//        }
     }
     
-    func changeSearchAssist(isSearchAssist: Bool) {
-        for pager in self {
-            pager.changeSearchAssist(isSearchAssist)
-        }
+    func isEmpty() -> Bool {
+        return (queryPager == nil && usernamePagers.count == 0 && classPagers.count == 0 && includedSetsPager == nil)
     }
     
     /*
@@ -258,7 +239,7 @@ class QueryPagers: QSetPager, SequenceType {
         }
 
         completionHandler(
-            affectedRows: (affectedRows!.startIndex + t)...(affectedRows!.endIndex + t),
+            affectedRows: (affectedRows!.startIndex + t)..<(affectedRows!.endIndex + t),
             totalResults: self.totalResults,
             response: response)
     }
@@ -303,21 +284,6 @@ class QueryPagers: QSetPager, SequenceType {
                     return pager.getQSetForRow(row-index, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
                         self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)
                     })
-                }
-                else {
-                    index += t
-                }
-            }
-        }
-        return nil
-    }
-    
-    func isSearchAssistForRow(row: Int) -> Bool? {
-        var index = 0
-        for pager in self {
-            if let t = pager.totalResults {
-                if case index..<index+t = row {
-                    return pager.isSearchAssist
                 }
                 else {
                     index += t

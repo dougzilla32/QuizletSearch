@@ -8,6 +8,9 @@
 
 import UIKit
 
+func trace(items: Any...) {
+    print(items)
+}
 
 class Common {
     static let isSampleMode = false

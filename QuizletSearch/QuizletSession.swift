@@ -481,8 +481,8 @@ class QuizletSession {
                 })
                 
                 /** Print the result
-                println(path)
-                println("Response data: \(NSString(data: data, encoding: NSUTF8StringEncoding))")
+                print(path)
+                print("Response data: \(NSString(data: data, encoding: NSUTF8StringEncoding))")
                 */
                 
                 let jsonData: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)

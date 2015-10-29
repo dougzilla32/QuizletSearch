@@ -34,7 +34,7 @@ class SetPager: QSetPager {
     var qsets: [[QSet]?]?
     var qsetsToken = 0
     var resetCounter = 0
-    var isSearchAssist = false
+//    var enabled = true
     
     var loadingPages = Set<Int>()
     var totalPages: Int?
@@ -72,7 +72,6 @@ class SetPager: QSetPager {
         self.query = query
         self.creator = creator
         self.classId = classId
-        self.isSearchAssist = false
     }
     
     func reset(query query: String?) {
@@ -87,20 +86,19 @@ class SetPager: QSetPager {
         reset(query: query, creator: nil, classId: classId)
     }
     
-    func changeQuery(query: String?, isSearchAssist: Bool) {
-        if (self.query != query || self.isSearchAssist != isSearchAssist) {
+    func updateQuery(query: String?) {
+        if (self.query != query) {
             self.query = query
-            self.isSearchAssist = isSearchAssist
             resetAllPages()
         }
     }
     
-    func changeSearchAssist(isSearchAssist: Bool) {
-        if (self.isSearchAssist != isSearchAssist) {
-            self.isSearchAssist = isSearchAssist
-            resetAllPages()
-        }
-    }
+//    func updateEnabled(enabled: Bool) {
+//        if (self.enabled != enabled) {
+//            self.enabled = enabled
+//            resetAllPages()
+//        }
+//    }
     
     func isLoading() -> Bool {
         return /* !isDuplicate && */ loadingPages.count > 0
@@ -136,6 +134,13 @@ class SetPager: QSetPager {
             NSLog("Page number is zero or less")
             return
         }
+
+//        if (!enabled) {
+//            let queryResult = QueryResult()
+//            self.loadPageResult(queryResult, response: .First, page: page, resetToken: self.resetCounter, completionHandler: completionHandler)
+//            return
+//        }
+
         if (qsets != nil && qsetsToken == resetCounter) {
             guard (page <= qsets!.count) else {
                 NSLog("Requested page \(page) is greater than the number of pages \(self.qsets!.count)")
@@ -155,19 +160,19 @@ class SetPager: QSetPager {
         let resetToken = self.resetCounter
         let q = self.query
 
-        print("SEARCH IN \(self.query) \(q) \(resetToken)")
+        trace("SEARCH IN \(self.query) \(q) \(resetToken)")
         // Insert a delay so that keyboard response on the iPhone is better
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/3)), dispatch_get_main_queue(), {
             
             if (resetToken < self.resetCounter) {
-                print("SEARCH CANCEL \(self.query) \(q) \(resetToken)")
+                trace("SEARCH CANCEL \(self.query) \(q) \(resetToken)")
                 return
             }
-            print("SEARCH GO \(self.query) \(q) \(resetToken)")
+            trace("SEARCH GO \(self.query) \(q) \(resetToken)")
             
-            self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: self.isSearchAssist, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
+            self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: false, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
                 
-                print("SEARCH OUT \(self.query) \(q) \(resetToken)")
+                trace("SEARCH OUT \(self.query) \(q) \(resetToken)")
                 if (queryResult == nil || resetToken < self.resetCounter) {
                     // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
                     return
@@ -197,7 +202,7 @@ class SetPager: QSetPager {
     
     func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         dispatch_async(dispatch_get_main_queue(), {
-            print("SEARCH RESULT \(self.query)")
+            trace("SEARCH RESULT \(self.query)")
             if (response == .First) {
                 self.loadingPages.remove(page)
             }
@@ -261,7 +266,7 @@ class SetPager: QSetPager {
             if (result.qsets.count < expectedNumberOfQSets) {
                 // NSLog("Expected \(expectedNumberOfQSets) in page \(result.page) but got \(result.qsets.count)")
                 self.qsets![page-1] = result.qsets
-                for _ in result.qsets.count...expectedNumberOfQSets {
+                for _ in result.qsets.count..<expectedNumberOfQSets {
                     self.qsets![page-1]!.append(QSet(id: 0, url: "", title: "", description: "", createdBy: "", creatorId: 0, createdDate: 0, modifiedDate: 0))
                 }
             }
@@ -273,7 +278,7 @@ class SetPager: QSetPager {
             let start = (page-1) * self.paginationSize
             let end = start + min(self.paginationSize, self.totalResults! - start)
             completionHandler(
-                affectedResults: start...end,
+                affectedResults: start..<end,
                 totalResults: self.totalResults!,
                 response: response)
         })

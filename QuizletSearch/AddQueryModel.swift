@@ -206,11 +206,6 @@ class AddQueryModel {
         return false
     }
     
-    func isSearchAssistRow(row: Int) -> Bool {
-        let b = pagers.isSearchAssistForRow(row)
-        return (b != nil) ? b! : false
-    }
-    
     func isPaddingRow(row: Int) -> Bool {
         let t = pagers.totalResults
         return row > rowTypes[1].count + (t != nil ? t! : 0)
