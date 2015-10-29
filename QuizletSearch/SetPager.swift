@@ -160,19 +160,19 @@ class SetPager: QSetPager {
         let resetToken = self.resetCounter
         let q = self.query
 
-        trace("SEARCH IN \(self.query) \(q) \(resetToken)")
+        trace("SEARCH IN", self.query, q, resetToken)
         // Insert a delay so that keyboard response on the iPhone is better
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/4)), dispatch_get_main_queue(), {
             
             if (resetToken < self.resetCounter) {
-                trace("SEARCH CANCEL \(self.query) \(q) \(resetToken)")
+                trace("SEARCH CANCEL", self.query, q, resetToken)
                 return
             }
-            trace("SEARCH GO \(self.query) \(q) \(resetToken)")
+            trace("SEARCH GO", self.query, q, resetToken)
             
             self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: false, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
                 
-                trace("SEARCH OUT \(self.query) \(q) \(resetToken)")
+                trace("SEARCH OUT", self.query, q, resetToken)
                 if (queryResult == nil || resetToken < self.resetCounter) {
                     // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
                     return
@@ -202,7 +202,7 @@ class SetPager: QSetPager {
     
     func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         dispatch_async(dispatch_get_main_queue(), {
-            trace("SEARCH RESULT \(self.query)")
+            trace("SEARCH RESULT", self.query)
             if (response == .First) {
                 self.loadingPages.remove(page)
             }

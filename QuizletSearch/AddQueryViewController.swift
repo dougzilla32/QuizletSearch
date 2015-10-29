@@ -121,7 +121,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         model.pagers.executeSearch(pagerIndex, completionHandler: { (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
             
             self.safelyReloadData(affectedResults: affectedResults, totalResults: totalResults)
-            if (response == .First && firstLoaded) {
+            if (response == .First && firstLoaded && totalResults > 0) {
                 self.scrollTo(scrollTarget)
                 firstLoaded = false
             }
@@ -140,7 +140,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
     func safelyReloadData(var affectedResults affectedResults: Range<Int>!, var totalResults: Int!) {
-        trace("safelyReload: totalResults=\(totalResults) prevTotalResults=\(prevTotalResults) totalResultRows=\(model.pagers.totalResultRows) prevTotalResultRows=\(prevTotalResultRows)")
+        trace("safelyReload: totalResults=", totalResults, " prevTotalResults=", prevTotalResults, " totalResultRows=", model.pagers.totalResultRows, " prevTotalResultRows=", prevTotalResultRows, separator: "")
 
         let offset = model.rowTypes[ResultsSection].count
         
@@ -148,7 +148,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             affectedResults = 0..<0
         }
 
-        trace("affectedResults \(affectedResults)")
+        trace("affectedResults", affectedResults)
         for i in affectedResults {
             if (i >= prevTotalResults) {
                 break
@@ -184,10 +184,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             }
 
             UIView.setAnimationsEnabled(false)
-            trace("BEGIN numRows=\(model.numberOfRowsInSection(ResultsSection))")
-            trace("insertRows \(totalResults-prevTotalResults)")
+            trace("BEGIN numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
+            trace("insertRows", totalResults-prevTotalResults)
             tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: UITableViewRowAnimation.None)
-            trace("END numRows=\(model.numberOfRowsInSection(ResultsSection))")
+            trace("END numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
             UIView.setAnimationsEnabled(true)
         }
         else if (totalResults < prevTotalResults) {
@@ -198,7 +198,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                     configureCell(cell!, atIndexPath: path)
                 }
             }
-            trace("deleteRows \(prevTotalResults-totalResults)")
+            trace("deleteRows", prevTotalResults-totalResults)
         }
         
         let path = model.pathForResultHeader()
@@ -230,12 +230,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     var desiredFirstResponder: PathAndRange?
     
     func textFieldDidBeginEditing(textField: UITextField) {
-        trace("didBeginEditing \(textField.text)")
+        trace("didBeginEditing", textField.text)
         currentFirstResponder = TargetAndPath(target: textField, path: indexPathForTextField(textField))
     }
     
     func textFieldDidEndEditing(textField: UITextField) {
-        trace("didEndEditing \(textField.text)")
+        trace("didEndEditing", textField.text)
         var indexPath = indexPathForTextField(textField)
         if (desiredFirstResponder?.path == indexPath) {
             // Do not update if textFieldDidEndEditing is called while reloading the table
@@ -251,11 +251,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         case .UserCell:
             if (text == nil || text!.isEmpty) {
                 deleteUserAtIndexPath(indexPath)
-                trace("Delete user: '\(text)' \(indexPath.row)")
+                trace("Delete user: '", text, "' ", indexPath.row, separator: "")
             }
             else {
                 let newIndexPath = model.updateAndSortUser(text, atIndexPath: indexPath)
-                trace("Update user: '\(text)' \(indexPath.row) \(newIndexPath.row)")
+                trace("Update user: '", text, "' ", indexPath.row, " ", newIndexPath.row, separator: "")
                 if (newIndexPath != indexPath) {
                     self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
                     indexPath = newIndexPath
@@ -265,11 +265,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         case .ClassCell:
             if (text == nil || text!.isEmpty) {
                 deleteClassAtIndexPath(indexPath)
-                trace("Delete class: '\(text)' \(indexPath.row)")
+                trace("Delete class: '", text, "' ", indexPath.row, separator: "")
             }
             else {
                 let newIndexPath = model.updateAndSortClass(text, atIndexPath: indexPath)
-                trace("Update class: '\(text)' \(indexPath.row) \(newIndexPath.row)")
+                trace("Update class: '", text, "' ", indexPath.row, " ", newIndexPath.row, separator: "")
                 if (newIndexPath != indexPath) {
                     self.tableView.moveRowAtIndexPath(indexPath, toIndexPath: newIndexPath)
                     indexPath = newIndexPath
@@ -319,7 +319,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             searchBar.resignFirstResponder()
         }
         if (currentFirstResponder != nil) {
-            trace("Resign first responder \(currentFirstResponder!.target.text)")
+            trace("Resign first responder", currentFirstResponder!.target.text)
         }
         currentFirstResponder?.target.resignFirstResponder()
 
@@ -521,12 +521,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             if (r != nil && r!.path == indexPath) {
                 if (r!.target.text == nil || r!.target.text!.isEmpty) {
                     // In this case the textFieldDidEndEditing callback will delete the textfield so we can return
-                    trace("Delete: resign & delete self first responder \(r!.target.text)")
+                    trace("Delete: resign & delete self first responder",  r!.target.text)
                     r!.target.resignFirstResponder()
                     return
                 }
                 else {
-                    trace("Delete: resign self first responder \(r!.target.text)")
+                    trace("Delete: resign self first responder", r!.target.text)
                     r!.target.resignFirstResponder()
                 }
             }
@@ -534,17 +534,17 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             // handle delete (by removing the data from your array and updating the tableview)
             switch (model.rowTypeForPath(indexPath)) {
             case .UserCell:
-                trace("Delete user \(indexPath.row)")
+                trace("Delete user", indexPath.row)
                 deleteUserAtIndexPath(indexPath)
             case .ClassCell, .IncludeCell, .ExcludeCell, .ResultCell:
-                trace("Delete class \(indexPath.row)")
+                trace("Delete class", indexPath.row)
                 deleteClassAtIndexPath(indexPath)
             default:
                 abort()
             }
 
             if (currentFirstResponder != nil) {
-                trace("Delete: resign first responder \(currentFirstResponder!.target.text)")
+                trace("Delete: resign first responder", currentFirstResponder!.target.text)
                 currentFirstResponder!.target.resignFirstResponder()
             }
             
@@ -579,7 +579,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         configureCell(cell, atIndexPath: indexPath)
         
         if let textInputCell = cell as? TextInputTableViewCell where indexPath == desiredFirstResponder?.path {
-            trace("desired becomes responder \(textInputCell.textField.text)")
+            trace("desired becomes responder", textInputCell.textField.text)
             if (!textInputCell.textField.isFirstResponder()) {
                 textInputCell.textField.becomeFirstResponder()
                 if let range = desiredFirstResponder?.range {

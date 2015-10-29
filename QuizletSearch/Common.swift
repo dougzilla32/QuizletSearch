@@ -8,8 +8,20 @@
 
 import UIKit
 
-func trace(items: Any...) {
-    print(items)
+func trace(items: Any?..., separator: String = " ", terminator: String = "\n") {
+    var s = ""
+    for i in items {
+        if (!s.isEmpty && !separator.isEmpty) {
+            s = s + separator
+        }
+        if (i != nil) {
+            s += String(i!)
+        }
+        else {
+            s += "nil"
+        }
+    }
+    print(s, terminator: terminator)
 }
 
 class Common {
