@@ -152,37 +152,52 @@ class SetPager: QSetPager {
         }
         loadingPages.insert(page)
         
-        let resetToken = resetCounter
-        quizletSession.searchSetsWithQuery(query, creator: creator, autocomplete: isSearchAssist, imagesOnly: nil, modifiedSince: nil, page: page, perPage: paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
+        let resetToken = self.resetCounter
+        let q = self.query
+
+        print("SEARCH IN \(self.query) \(q) \(resetToken)")
+        // Insert a delay so that keyboard response on the iPhone is better
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/3)), dispatch_get_main_queue(), {
             
-            if (queryResult == nil || resetToken < self.resetCounter) {
-                // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
+            if (resetToken < self.resetCounter) {
+                print("SEARCH CANCEL \(self.query) \(q) \(resetToken)")
                 return
             }
-
-            self.loadPageResult(queryResult!, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
+            print("SEARCH GO \(self.query) \(q) \(resetToken)")
             
-            if (queryResult!.totalResults > 0) {
-                var setIds = [Int64]()
-                for qset in queryResult!.qsets {
-                    setIds.append(qset.id)
+            self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: self.isSearchAssist, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
+                
+                print("SEARCH OUT \(self.query) \(q) \(resetToken)")
+                if (queryResult == nil || resetToken < self.resetCounter) {
+                    // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
+                    return
                 }
                 
-                self.quizletSession.getSetsForIds(setIds, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
-                    if (qsets == nil || resetToken < self.resetCounter) {
-                        // Cancelled or error
-                        return
+                self.loadPageResult(queryResult!, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                
+                if (queryResult!.totalResults > 0) {
+                    var setIds = [Int64]()
+                    for qset in queryResult!.qsets {
+                        setIds.append(qset.id)
                     }
                     
-                    queryResult = QueryResult(copyFrom: queryResult!, qsets: qsets!)
-                    self.loadPageResult(queryResult!, response: .Last, page: page, resetToken: resetToken, completionHandler: completionHandler)
-                })
-            }
+                    self.quizletSession.getSetsForIds(setIds, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
+                        if (qsets == nil || resetToken < self.resetCounter) {
+                            // Cancelled or error
+                            return
+                        }
+                        
+                        queryResult = QueryResult(copyFrom: queryResult!, qsets: qsets!)
+                        self.loadPageResult(queryResult!, response: .Last, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                    })
+                }
+            })
         })
     }
     
     func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         dispatch_async(dispatch_get_main_queue(), {
+            print("SEARCH RESULT \(self.query)")
             if (response == .First) {
                 self.loadingPages.remove(page)
             }
@@ -221,7 +236,7 @@ class SetPager: QSetPager {
             // If there are no pages then call completionHandler with 'nil'
             if (result.totalPages == 0) {
                 self.qsets = nil
-                completionHandler(affectedResults: 0...0, totalResults: result.totalResults, response: response)
+                completionHandler(affectedResults: 0..<0, totalResults: result.totalResults, response: response)
                 return
             }
             

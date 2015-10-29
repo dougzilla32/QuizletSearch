@@ -81,7 +81,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         searchBarCurrentText = searchBar.text
 
         if (!disableSearchBarEndEdit) {
-            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollTarget: .None)
+            // "Search assist" search is now identical to normal search, so simply reload the table here
+            // executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollTarget: .None)
+            model.pagers.resetPadding()
+            safelyReloadData(affectedResults: nil, totalResults: nil)
         }
     }
     
@@ -99,7 +102,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             searchBar.resignFirstResponder()
             disableSearchBarEndEdit = false
 
-            executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollTarget: .ResultsHeader)
+            // "Search assist" search is now identical to normal search, so simply reload the table here
+            // executeSearchForQuery(searchBar.text, isSearchAssist: false, scrollTarget: .ResultsHeader)
+            model.pagers.resetPadding()
+            safelyReloadData(affectedResults: nil, totalResults: nil)
         }
         return true
     }
@@ -112,9 +118,18 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         }
         query = query.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
         
-        model.pagers.queryPager = query.isEmpty ? nil: SetPager(query: query)
+        if (model.pagers.queryPager == nil && !query.isEmpty) {
+            model.pagers.queryPager = SetPager(query: query)
+        }
+        else {
+            model.pagers.queryPager?.reset(query: query)
+        }
         
         executeSearch(PagerIndex(type: .Query, index: 0), isSearchAssist: isSearchAssist, scrollTarget: scrollTarget)
+    }
+    
+    func executeSearch(indexPath indexPath: NSIndexPath?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
+        executeSearch(model.indexPathToPagerIndex(indexPath), isSearchAssist: isSearchAssist, scrollTarget: scrollTarget)
     }
     
     func executeSearch(pagerIndex: PagerIndex?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
@@ -137,10 +152,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         }
     }
     
-    func executeSearch(indexPath indexPath: NSIndexPath?, isSearchAssist: Bool, scrollTarget: ScrollTarget) {
-        executeSearch(model.indexPathToPagerIndex(indexPath), isSearchAssist: isSearchAssist, scrollTarget: scrollTarget)
-    }
-    
     var prevTotalResults = 0
     var prevTotalResultRows = 0
     
@@ -153,12 +164,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         if (model.pagers.isSearchAssist) {
             UIView.setAnimationsEnabled(false)
             tableView.beginUpdates()
-            print("BEGIN")
+            print("BEGIN numRows=\(model.numberOfRowsInSection(ResultsSection))")
             
             let offset = model.rowTypes[ResultsSection].count
 
             if (affectedResults == nil) {
-                affectedResults = 0...0
+                affectedResults = 0..<0
             }
             print("affectedResults \(affectedResults)")
             for i in affectedResults {
@@ -217,8 +228,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             prevTotalResults = totalResults
             prevTotalResultRows = totalResultRows
 
+            print("BEFORE END numRows=\(model.numberOfRowsInSection(ResultsSection))")
             tableView.endUpdates()
-            print("END")
+            print("END numRows=\(model.numberOfRowsInSection(ResultsSection))")
             UIView.setAnimationsEnabled(true)
         }
         else {
@@ -226,6 +238,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             prevTotalResultRows = (model.pagers.totalResultRows != nil) ? model.pagers.totalResultRows! : 0
                 
             tableView.reloadData()
+            print("RELOAD searchBarFirstResponder=\(searchBar.isFirstResponder())")
         }
     }
     
@@ -279,7 +292,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                     indexPath = newIndexPath
                 }
                 
-                executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .UserHeader)
+                // "Search assist" search is now identical to normal search, so simply reload the table here
+                // executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .UserHeader)
+                model.pagers.resetPadding()
+                safelyReloadData(affectedResults: nil, totalResults: nil)
             }
 
         case .ClassCell:
@@ -295,7 +311,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                     indexPath = newIndexPath
                 }
                 
-                executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .ClassHeader)
+                // "Search assist" search is now identical to normal search, so simply reload the table here
+                // executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .ClassHeader)
+                model.pagers.resetPadding()
+                safelyReloadData(affectedResults: nil, totalResults: nil)
             }
             
         default:
@@ -337,6 +356,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     @IBAction func addUser(sender: AnyObject) {
+        if (searchBar.isFirstResponder()) {
+            searchBar.resignFirstResponder()
+        }
         if (currentFirstResponder != nil) {
             print("Resign first responder \(currentFirstResponder!.target.text)")
         }
@@ -349,31 +371,34 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
         print("Insert new empty user after")
 
-        executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .UserHeader)
+        executeSearch(indexPath: indexPath, isSearchAssist: true, scrollTarget: .UserHeader)
     }
     
     func deleteUserAtIndexPath(indexPath: NSIndexPath) {
         model.deleteUserAtIndexPath(indexPath)
         self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
         
-        executeSearch(nil, isSearchAssist: false, scrollTarget: .None)
+        executeSearch(nil, isSearchAssist: currentFirstResponder != nil, scrollTarget: .None)
     }
     
     @IBAction func addClass(sender: AnyObject) {
+        if (searchBar.isFirstResponder()) {
+            searchBar.resignFirstResponder()
+        }
         currentFirstResponder?.target.resignFirstResponder()
         
         let indexPath = model.insertNewClass("669401")
         desiredFirstResponder = PathAndRange(path: indexPath, range: nil)
         tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
         
-        executeSearch(indexPath: indexPath, isSearchAssist: false, scrollTarget: .ClassHeader)
+        executeSearch(indexPath: indexPath, isSearchAssist: true, scrollTarget: .ClassHeader)
     }
     
     func deleteClassAtIndexPath(indexPath: NSIndexPath) {
         model.deleteClassAtIndexPath(indexPath)
         self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
         
-        executeSearch(nil, isSearchAssist: false, scrollTarget: .None)
+        executeSearch(nil, isSearchAssist: currentFirstResponder != nil, scrollTarget: .None)
     }
     
     var preferredFont: UIFont!

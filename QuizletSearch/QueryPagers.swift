@@ -64,6 +64,12 @@ class QueryPagers: QSetPager, SequenceType {
 //        }
 //    }
     
+    func resetPadding() {
+        isSearchAssist = false
+        totalResultsMax = nil
+        totalResultRows = totalResults
+    }
+    
     func updateTotals() {
         // totalResults - total number of results
         do {
@@ -123,6 +129,7 @@ class QueryPagers: QSetPager, SequenceType {
 //        updateDuplicates(pagerIndex: pagerIndex)
         
         if (isEmpty()) {
+            self.updateTotals()
             completionHandler(affectedResults: nil, totalResults: nil, response: PagerResponse.Last)
         }
         else {
