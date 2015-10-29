@@ -184,12 +184,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             }
 
             UIView.setAnimationsEnabled(false)
-//            tableView.beginUpdates()
             trace("BEGIN numRows=\(model.numberOfRowsInSection(ResultsSection))")
             trace("insertRows \(totalResults-prevTotalResults)")
             tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: UITableViewRowAnimation.None)
-            trace("BEFORE END numRows=\(model.numberOfRowsInSection(ResultsSection))")
-//            tableView.endUpdates()
             trace("END numRows=\(model.numberOfRowsInSection(ResultsSection))")
             UIView.setAnimationsEnabled(true)
         }
@@ -791,13 +788,13 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 label.font = preferredFont
 
                 if (indexPath == model.topmostPathForType(.ResultHeader)) {
-                    if let t = model.pagers.totalResults {
+                    if let t = model.pagers.totalResultsNoMax {
                         switch (t) {
                         case 0:
                             label.text = "0 results"
                         case 1:
                             label.text = "1 result"
-                        case 5000:
+                        case 5000..<Int.max:
                             // The Quizlet hardcoded upper limit on the number of search results is 5,000
                             label.text = "Over 5,000 results:"
                         default:

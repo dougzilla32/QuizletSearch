@@ -41,6 +41,8 @@ class PagerIndex {
 }
 
 class QueryPagers: QSetPager, SequenceType {
+    let MaxTotalResults = 300
+    
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     
     var queryPager: SetPager?
@@ -50,9 +52,10 @@ class QueryPagers: QSetPager, SequenceType {
     // var excludedSets: [QSet] = []
 
     var totalResults: Int?
+    var totalResultsNoMax: Int?
     
     // Do not allow the number of total results to shrink, because deleting rows is slow
-    var totalResultsMax: Int?
+    var totalResultsHighWaterMark: Int?
     var totalResultRows: Int?
     
 //    var paddingRowsMin: Int = 5 {
@@ -76,20 +79,21 @@ class QueryPagers: QSetPager, SequenceType {
                     stillLoading = true
                 }
             }
-            totalResults = (stillLoading && total == 0) ? nil : total
+            totalResults = (stillLoading && total == 0) ? nil : min(total, MaxTotalResults)
+            totalResultsNoMax = (stillLoading && total == 0) ? nil : total
         }
         
         // totalResultRows - max of the total number of results that has been hit during a search assist session
         do {
             var total = totalResults
-            if (total != nil && totalResultsMax == nil) {
-                totalResultsMax = total
+            if (total != nil && totalResultsHighWaterMark == nil) {
+                totalResultsHighWaterMark = total
             }
-            else if (total != nil && totalResultsMax != nil) {
-                totalResultsMax = max(total!, totalResultsMax!)
-                total = totalResultsMax!
+            else if (total != nil && totalResultsHighWaterMark != nil) {
+                totalResultsHighWaterMark = max(total!, totalResultsHighWaterMark!)
+                total = totalResultsHighWaterMark!
             }
-            totalResultRows = total
+            totalResultRows = (total == nil) ? nil : min(total!, MaxTotalResults)
 //            totalResultRows = (paddingRowsMin > 0)
 //                ? max(total != nil ? total! : 0, paddingRowsMin)
 //                : total
@@ -237,9 +241,19 @@ class QueryPagers: QSetPager, SequenceType {
             }
             t += (p.totalResults != nil) ? p.totalResults! : 0
         }
+        
+        if (t >= MaxTotalResults) {
+            return
+        }
+        
+        var r = (affectedRows!.startIndex + t)..<(affectedRows!.endIndex + t)
+        if (r.startIndex >= MaxTotalResults) {
+            return
+        }
+        r.endIndex = min(r.endIndex, MaxTotalResults)
 
         completionHandler(
-            affectedRows: (affectedRows!.startIndex + t)..<(affectedRows!.endIndex + t),
+            affectedRows: r,
             totalResults: self.totalResults,
             response: response)
     }
@@ -253,15 +267,26 @@ class QueryPagers: QSetPager, SequenceType {
     }
     
     func isLoading() -> Bool {
+        var index = 0
         for pager in self {
             if (pager.isLoading()) {
                 return true
+            }
+            if let t = pager.totalResults {
+                index += t
+                if (index >= MaxTotalResults) {
+                    break
+                }
             }
         }
         return false
     }
     
     func peekQSetForRow(row: Int) -> QSet? {
+        if (row >= MaxTotalResults) {
+            return nil
+        }
+
         var index = 0
         for pager in self {
             if let t = pager.totalResults {
@@ -277,6 +302,10 @@ class QueryPagers: QSetPager, SequenceType {
     }
     
     func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet? {
+        if (row >= MaxTotalResults) {
+            return nil
+        }
+
         var index = 0
         for pager in self {
             if let t = pager.totalResults {

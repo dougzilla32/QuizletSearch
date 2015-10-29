@@ -162,7 +162,7 @@ class SetPager: QSetPager {
 
         trace("SEARCH IN \(self.query) \(q) \(resetToken)")
         // Insert a delay so that keyboard response on the iPhone is better
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/3)), dispatch_get_main_queue(), {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/4)), dispatch_get_main_queue(), {
             
             if (resetToken < self.resetCounter) {
                 trace("SEARCH CANCEL \(self.query) \(q) \(resetToken)")
