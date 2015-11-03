@@ -9,21 +9,11 @@
 import UIKit
 import Foundation
 
-protocol QSetPager {
-    var totalResults: Int? { get }
-    
-    func isLoading() -> Bool
-    
-    func peekQSetForRow(row: Int) -> QSet?
-
-    func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet?
-}
-
 enum PagerResponse {
     case First, Last
 }
 
-class SetPager: QSetPager {
+class SetPager {
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
 
     let paginationSize = 30
@@ -34,7 +24,7 @@ class SetPager: QSetPager {
     var qsets: [[QSet]?]?
     var qsetsToken = 0
     var resetCounter = 0
-//    var enabled = true
+    var enabled = true
     
     var loadingPages = Set<Int>()
     var totalPages: Int?
@@ -93,12 +83,17 @@ class SetPager: QSetPager {
         }
     }
     
-//    func updateEnabled(enabled: Bool) {
-//        if (self.enabled != enabled) {
-//            self.enabled = enabled
-//            resetAllPages()
-//        }
-//    }
+    func updateEnabled(enabled: Bool) {
+        if (self.enabled != enabled) {
+            self.enabled = enabled
+            resetAllPages()
+        }
+    }
+    
+    func isEmptyQuery() -> Bool {
+        return ((query == nil || query!.isEmpty) && (creator == nil || creator!.isEmpty)) // Everything is empty
+            || (creator != nil && creator!.isEmpty)  // If creator non-nil but is empty then do not run the query
+    }
     
     func isLoading() -> Bool {
         return /* !isDuplicate && */ loadingPages.count > 0
@@ -135,11 +130,16 @@ class SetPager: QSetPager {
             return
         }
 
-//        if (!enabled) {
-//            let queryResult = QueryResult()
-//            self.loadPageResult(queryResult, response: .First, page: page, resetToken: self.resetCounter, completionHandler: completionHandler)
-//            return
-//        }
+        if (!enabled || isEmptyQuery()) {
+            self.totalPages = 0
+            self.totalResults = 0
+            self.qsets = nil
+            self.qsetsToken = resetCounter
+            if (enabled) {
+                completionHandler(affectedResults: 0..<0, totalResults: 0, response: PagerResponse.Last)
+            }
+            return
+        }
 
         if (qsets != nil && qsetsToken == resetCounter) {
             guard (page <= qsets!.count) else {
@@ -202,7 +202,7 @@ class SetPager: QSetPager {
     
     func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         dispatch_async(dispatch_get_main_queue(), {
-            trace("SEARCH RESULT", self.query)
+            trace("SEARCH RESULT", self.query, result.qsets.count)
             if (response == .First) {
                 self.loadingPages.remove(page)
             }

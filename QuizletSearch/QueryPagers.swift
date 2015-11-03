@@ -40,7 +40,7 @@ class PagerIndex {
     }
 }
 
-class QueryPagers: QSetPager, SequenceType {
+class QueryPagers: SequenceType {
     let MaxTotalResults = 300
     
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
@@ -56,7 +56,6 @@ class QueryPagers: QSetPager, SequenceType {
     
     // Do not allow the number of total results to shrink, because deleting rows is slow
     var totalResultsHighWaterMark: Int?
-    var totalResultRows: Int?
     
 //    var paddingRowsMin: Int = 5 {
 //        didSet {
@@ -67,37 +66,19 @@ class QueryPagers: QSetPager, SequenceType {
 //    }
     
     func updateTotals() {
-        // totalResults - total number of results
-        do {
-            var total = 0
-            var stillLoading = false
-            for pager in self {
-                if let t = pager.totalResults {
-                    total += t
-                }
-                else {
-                    stillLoading = true
-                }
+        var total = 0
+        var stillLoading = false
+        for pager in self {
+            if let t = pager.totalResults {
+                total += t
             }
-            totalResults = (stillLoading && total == 0) ? nil : min(total, MaxTotalResults)
-            totalResultsNoMax = (stillLoading && total == 0) ? nil : total
+            else {
+                stillLoading = true
+            }
         }
-        
-        // totalResultRows - max of the total number of results that has been hit during a search assist session
-        do {
-            var total = totalResults
-            if (total != nil && totalResultsHighWaterMark == nil) {
-                totalResultsHighWaterMark = total
-            }
-            else if (total != nil && totalResultsHighWaterMark != nil) {
-                totalResultsHighWaterMark = max(total!, totalResultsHighWaterMark!)
-                total = totalResultsHighWaterMark!
-            }
-            totalResultRows = (total == nil) ? nil : min(total!, MaxTotalResults)
-//            totalResultRows = (paddingRowsMin > 0)
-//                ? max(total != nil ? total! : 0, paddingRowsMin)
-//                : total
-        }
+        totalResults = (stillLoading && total == 0) ? nil : min(total, MaxTotalResults)
+        totalResultsNoMax = (stillLoading && total == 0) ? nil : total
+        totalResultsHighWaterMark = max(totalResults, totalResultsHighWaterMark)
     }
     
     init() { }
@@ -109,15 +90,13 @@ class QueryPagers: QSetPager, SequenceType {
         // Cancel previous queries
         quizletSession.cancelQueryTasks()
         
-        if (pagerIndex != nil && pagerIndex!.type == .Query) {
-            updateQuery()
-        }
+        updateQuery()
         
 //        updateDuplicates(pagerIndex: pagerIndex)
         
         if (isEmpty()) {
             self.updateTotals()
-            completionHandler(affectedResults: nil, totalResults: nil, response: PagerResponse.Last)
+            completionHandler(affectedResults: nil, totalResults: totalResults, response: PagerResponse.Last)
         }
         else {
             loadFirstPages(completionHandler: completionHandler)
@@ -126,13 +105,28 @@ class QueryPagers: QSetPager, SequenceType {
     
     func updateQuery() {
         let query = queryPager?.query
+
         for pager in self {
             pager.updateQuery(query)
         }
         
-//        if (queryPager != nil) {
-//            queryPager!.updateEnabled((usernamePagers.count == 0) && (classPagers.count == 0))
-//        }
+        let b = hasUserOrClass()
+        trace("updateEnabled", b)
+        queryPager?.updateEnabled(!b)
+    }
+    
+    func hasUserOrClass() -> Bool {
+        for p in usernamePagers {
+            if (p.creator != nil && !p.creator!.isEmpty) {
+                return true
+            }
+        }
+        for p in classPagers {
+            if (p.classId != nil && !p.classId!.isEmpty) {
+                return true
+            }
+        }
+        return false
     }
     
     func isEmpty() -> Bool {
@@ -241,7 +235,6 @@ class QueryPagers: QSetPager, SequenceType {
             }
             t += (p.totalResults != nil) ? p.totalResults! : 0
         }
-        
         if (t >= MaxTotalResults) {
             return
         }

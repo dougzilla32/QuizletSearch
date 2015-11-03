@@ -136,21 +136,24 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     var prevTotalResults = 0
-    var prevTotalResultRows = 0
+    var prevTotalResultsHighWaterMark = 0
     
     // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
     func safelyReloadData(var affectedResults affectedResults: Range<Int>!, var totalResults: Int!) {
-        trace("safelyReload: totalResults=", totalResults, " prevTotalResults=", prevTotalResults, " totalResultRows=", model.pagers.totalResultRows, " prevTotalResultRows=", prevTotalResultRows, separator: "")
+        trace("safelyReload: totalResults=", totalResults, " prevTotalResults=", prevTotalResults, /* "totalResultRows=", model.pagers.totalResultRows, */ " prevTotalResultsHighWaterMark=", prevTotalResultsHighWaterMark, separator: "")
 
         let offset = model.rowTypes[ResultsSection].count
         
         if (affectedResults == nil) {
             affectedResults = 0..<0
         }
-
+        if (totalResults == nil) {
+            totalResults = 0
+        }
+        
         trace("affectedResults", affectedResults)
         for i in affectedResults {
-            if (i >= prevTotalResults) {
+            if (i >= prevTotalResultsHighWaterMark) {
                 break
             }
             let path = NSIndexPath(forRow: i + offset, inSection: ResultsSection)
@@ -160,19 +163,13 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             }
         }
         
-        if (totalResults == nil) {
-            totalResults = 0
-        }
-        var totalResultRows: Int! = model.pagers.totalResultRows
-        if (totalResultRows == nil) {
-            totalResultRows = 0
-        }
+        var didInsert = false
         
         if (totalResults > prevTotalResults) {
             var indexPaths = [NSIndexPath]()
             for i in prevTotalResults..<totalResults {
                 let path = NSIndexPath(forRow: i + offset, inSection: ResultsSection)
-                if (i >= prevTotalResultRows) {
+                if (i >= prevTotalResultsHighWaterMark) {
                     indexPaths.append(path)
                 }
                 else {
@@ -183,12 +180,15 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 }
             }
 
-            UIView.setAnimationsEnabled(false)
-            trace("BEGIN numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
-            trace("insertRows", totalResults-prevTotalResults)
-            tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: UITableViewRowAnimation.None)
-            trace("END numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
-            UIView.setAnimationsEnabled(true)
+            if (indexPaths.count > 0) {
+                UIView.setAnimationsEnabled(false)
+                trace("BEGIN numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
+                trace("insertRows", totalResults-prevTotalResults)
+                tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: UITableViewRowAnimation.None)
+                trace("END numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
+                UIView.setAnimationsEnabled(true)
+                didInsert = true
+            }
         }
         else if (totalResults < prevTotalResults) {
             for i in totalResults..<prevTotalResults {
@@ -207,8 +207,16 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             configureCell(cell!, atIndexPath: path)
         }
         
+        if (!didInsert) {
+            // Trick the table into re-fetching the heights for the currently visible rows
+            UIView.setAnimationsEnabled(false)
+            let indexPath = NSIndexPath(forRow: 0, inSection: 0)
+            tableView.reloadRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.None)
+            UIView.setAnimationsEnabled(true)
+        }
+
         prevTotalResults = totalResults
-        prevTotalResultRows = totalResultRows
+        prevTotalResultsHighWaterMark = max(totalResults, prevTotalResultsHighWaterMark)
     }
     
     // MARK: - Editable cells
@@ -282,6 +290,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     func textField(textField: UITextField, shouldChangeCharactersInRange range: NSRange, replacementString string: String) -> Bool {
+        if (string == "\n") {
+            return true
+        }
+        
         var text = textField.text != nil ? textField.text! : ""
         text = (text as NSString).stringByReplacingCharactersInRange(range, withString: string)
         text = text.trimWhitespace()
@@ -327,37 +339,45 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         desiredFirstResponder = PathAndRange(path: indexPath, range: nil)
         
         trace("Insert new empty user before")
-        self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
         trace("Insert new empty user after")
 
         executeSearch(indexPath: indexPath, scrollTarget: .UserHeader)
     }
     
     func deleteUserAtIndexPath(indexPath: NSIndexPath) {
-        model.deleteUserAtIndexPath(indexPath)
-        self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
-        
-//        executeSearch(nil, scrollTarget: .None)
+        model.deleteAtIndexPath(indexPath)
+        self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+
+        // Delete the pager after deleting the rows in the tableView so that the row heights are not disrupted
+        model.deleteUsernamePagerAtIndexPath(indexPath)
     }
     
     @IBAction func addClass(sender: AnyObject) {
         if (searchBar.isFirstResponder()) {
             searchBar.resignFirstResponder()
         }
+        if (currentFirstResponder != nil) {
+            trace("Resign first responder", currentFirstResponder!.target.text)
+        }
         currentFirstResponder?.target.resignFirstResponder()
         
         let indexPath = model.insertNewClass("669401")
         desiredFirstResponder = PathAndRange(path: indexPath, range: nil)
+        
+        trace("Insert new class before")
         tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+        trace("Insert new class after")
         
         executeSearch(indexPath: indexPath, scrollTarget: .ClassHeader)
     }
     
     func deleteClassAtIndexPath(indexPath: NSIndexPath) {
-        model.deleteClassAtIndexPath(indexPath)
-        self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Fade)
-        
-//        executeSearch(nil, scrollTarget: .None)
+        model.deleteAtIndexPath(indexPath)
+        self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+
+        // Delete the pager after deleting the rows in the tableView so that the row heights are not disrupted
+        model.deleteClassPagerAtIndexPath(indexPath)
     }
     
     var preferredFont: UIFont!

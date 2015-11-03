@@ -163,7 +163,7 @@ class AddQueryModel {
     func numberOfRowsInSection(section: Int) -> Int {
         var numRows = rowTypes[section].count
         if (section == ResultsSection) {
-            if let t = pagers.totalResultRows {
+            if let t = pagers.totalResultsHighWaterMark {
                 numRows += t
             }
 //            else if (pagers!.isLoading()) {
@@ -216,7 +216,7 @@ class AddQueryModel {
     func insertNewUser(name: String) -> NSIndexPath {
         let insertIndex = 0
         let path = NSIndexPath(forRow: insertIndex + UsernameOffset, inSection: ResultsSection)
-        insertAtPath(path, type: .UserCell, item: name)
+        insertAtIndexPath(path, type: .UserCell, item: name)
         pagers.usernamePagers.insert(SetPager(query: pagers.queryPager?.query, creator: name), atIndex: insertIndex)
         return path
     }
@@ -262,10 +262,9 @@ class AddQueryModel {
         return indexPath
     }
     
-    func deleteUserAtIndexPath(indexPath: NSIndexPath) {
+    func deleteUsernamePagerAtIndexPath(indexPath: NSIndexPath) {
         assert(indexPath.section == ResultsSection)
         pagers.usernamePagers.removeAtIndex(indexPath.row - UsernameOffset)
-        deleteAtPath(indexPath)
     }
     
     let UsernameOffset = 1 // Subtract 1 for User Header
@@ -284,7 +283,7 @@ class AddQueryModel {
     func insertNewClass(id: String) -> NSIndexPath {
         let insertIndex = 0
         let path = NSIndexPath(forRow: insertIndex + ClassOffset(), inSection: ResultsSection)
-        insertAtPath(path, type: .ClassCell, item: id)
+        insertAtIndexPath(path, type: .ClassCell, item: id)
         pagers.classPagers.insert(SetPager(query: pagers.queryPager?.query, classId: id), atIndex: insertIndex)
         return path
     }
@@ -330,10 +329,9 @@ class AddQueryModel {
         return indexPath
     }
     
-    func deleteClassAtIndexPath(indexPath: NSIndexPath) {
+    func deleteClassPagerAtIndexPath(indexPath: NSIndexPath) {
         assert(indexPath.section == ResultsSection)
         pagers.classPagers.removeAtIndex(indexPath.row - ClassOffset())
-        deleteAtPath(indexPath)
     }
     
     func ClassOffset() -> Int {
@@ -351,12 +349,12 @@ class AddQueryModel {
     
     // MARK: - Row types and items
     
-    func insertAtPath(path: NSIndexPath, type: QueryRowType, item: String) {
+    func insertAtIndexPath(path: NSIndexPath, type: QueryRowType, item: String) {
         rowTypes[path.section].insert(type, atIndex: path.row)
         rowItems[path.section].insert(item, atIndex: path.row)
     }
     
-    func deleteAtPath(path: NSIndexPath) {
+    func deleteAtIndexPath(path: NSIndexPath) {
         rowTypes[path.section].removeAtIndex(path.row)
         rowItems[path.section].removeAtIndex(path.row)
     }

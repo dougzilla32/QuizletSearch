@@ -8,7 +8,13 @@
 
 import UIKit
 
+let IsTraceEnabled = true
+
 func trace(items: Any?..., separator: String = " ", terminator: String = "\n") {
+    if (!IsTraceEnabled) {
+        return
+    }
+    
     var s = ""
     for i in items {
         if (!s.isEmpty && !separator.isEmpty) {
@@ -22,6 +28,16 @@ func trace(items: Any?..., separator: String = " ", terminator: String = "\n") {
         }
     }
     print(s, terminator: terminator)
+}
+
+func max<T : Comparable>(x: T?, _ y: T?) -> T? {
+    if (x == nil) {
+        return y
+    }
+    if (y == nil) {
+        return x
+    }
+    return max(x!, y!)
 }
 
 class Common {
@@ -272,6 +288,38 @@ extension NSStringCompareOptions {
 }
 
 extension String {
+    func beginsWith (str: String) -> Bool {
+        if let range = self.rangeOfString(str) {
+            return range.startIndex == self.startIndex
+        }
+        return false
+    }
+    
+    func endsWith (str: String) -> Bool {
+        if let range = self.rangeOfString(str, options:NSStringCompareOptions.BackwardsSearch) {
+            return range.endIndex == self.endIndex
+        }
+        return false
+    }
+
+    func isWhitespace() -> Bool {
+        let string = self as NSString
+        for i in 0..<string.length {
+            if (!StringAndIndex.isWhitespace(string.characterAtIndex(i))) {
+                return false
+            }
+        }
+        return true
+    }
+    
+    func trimInlineWhitespace() -> String {
+        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+    }
+    
+    func trimWhitespace() -> String {
+        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+    }
+    
     private class StringAndIndex {
         let string: StringWithBoundaries
         var unicharIndex: Int
@@ -345,24 +393,6 @@ extension String {
         class func isWhitespace(character: unichar) -> Bool {
             return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(character)
         }
-    }
-    
-    func isWhitespace() -> Bool {
-        let string = self as NSString
-        for i in 0..<string.length {
-            if (!StringAndIndex.isWhitespace(string.characterAtIndex(i))) {
-                return false
-            }
-        }
-        return true
-    }
-    
-    func trimInlineWhitespace() -> String {
-        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
-    }
-    
-    func trimWhitespace() -> String {
-        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
     }
     
     // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
