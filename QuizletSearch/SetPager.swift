@@ -165,6 +165,7 @@ class SetPager {
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/4)), dispatch_get_main_queue(), {
             
             if (resetToken < self.resetCounter) {
+                self.loadingPages.remove(page)
                 trace("SEARCH CANCEL", self.query, q, resetToken)
                 return
             }
@@ -174,6 +175,7 @@ class SetPager {
                 
                 trace("SEARCH OUT", self.query, q, resetToken)
                 if (queryResult == nil || resetToken < self.resetCounter) {
+                    self.loadingPages.remove(page)
                     // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
                     return
                 }
