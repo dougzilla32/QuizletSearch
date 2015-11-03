@@ -111,7 +111,7 @@ class QueryPagers: SequenceType {
         }
         
         let b = hasUserOrClass()
-        trace("updateEnabled", b)
+        trace("updateEnabled", !b)
         queryPager?.updateEnabled(!b)
     }
     

@@ -342,7 +342,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
         trace("Insert new empty user after")
 
-        executeSearch(indexPath: indexPath, scrollTarget: .UserHeader)
+        // Do not call executeSearch -- adding an empty user does not cause the results to change
+        // executeSearch(indexPath: indexPath, scrollTarget: .UserHeader)
     }
     
     func deleteUserAtIndexPath(indexPath: NSIndexPath) {
