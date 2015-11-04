@@ -500,7 +500,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         else {
             scrollToIndexPath = resultHeaderPath
             scrollToPosition = .Top
-            maxY = tableView.rectForRowAtIndexPath(scrollToIndexPath).minY + scrollView.frame.size.height - searchBarHeight
+            maxY = tableView.rectForRowAtIndexPath(scrollToIndexPath).minY + scrollView.frame.height - keyboardHeight - searchBarHeight
         }
         
 //        trace("enforceScrollTo CHECK", scrollToIndexPath.row, scrollView.contentOffset.y + scrollView.frame.height, maxY)
