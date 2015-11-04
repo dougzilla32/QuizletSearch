@@ -18,6 +18,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         static let RowType: [QueryRowType?] = [nil, .UserHeader, .ClassHeader, .ResultHeader]
     }
     
+    let MaxDescriptionLength = 350
+    
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     var model = AddQueryModel()
     
@@ -665,11 +667,18 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             
             let title = qset.title.trimWhitespace()
             let owner = qset.createdBy.trimWhitespace()
-            let description = qset.description.trimWhitespace()
+            var description = qset.description.trimWhitespace()
             
             let titleLength = (title as NSString).length
             let ownerLength = (owner as NSString).length
-            let descriptionLength = (description as NSString).length
+            var descriptionLength = (description as NSString).length
+            
+            if (descriptionLength > MaxDescriptionLength) {
+                // Use NSString because swift Strings are quite slow
+                descriptionLength = NSMaxRange((description as NSString).rangeOfComposedCharacterSequenceAtIndex(MaxDescriptionLength))
+                description = (description as NSString).substringToIndex(descriptionLength) + "..."
+                descriptionLength += 3
+            }
             
             var labelText: String = ""
             
