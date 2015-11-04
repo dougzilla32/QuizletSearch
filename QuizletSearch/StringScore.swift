@@ -10,10 +10,12 @@
 import Foundation
 
 extension NSString {
-    enum StringScoreOptions: UInt {
-        case None = 0b00
-        case FavorSmallerWords = 0b01
-        case ReducedLongStringPenalty = 0b10
+    struct StringScoreOptions: OptionSetType {
+        let rawValue: Int
+        
+        static let None = StringScoreOptions(rawValue: 0b00)
+        static let FavorSmallerWords = StringScoreOptions(rawValue: 0b01)
+        static let ReducedLongStringPenalty = StringScoreOptions(rawValue: 0b10)
     }
     
     var invalidCharacterSet: NSCharacterSet {
@@ -35,7 +37,7 @@ extension NSString {
     }
     
     func scoreAgainst(otherString: NSString, fuzziness: Double?) -> Double {
-        return self.scoreAgainst(otherString, fuzziness: fuzziness, options: StringScoreOptions.None)
+        return self.scoreAgainst(otherString, fuzziness: fuzziness, options: .None)
     }
     
     func scoreAgainst(anotherString: NSString, fuzziness: Double?, options: StringScoreOptions) -> Double {
@@ -127,14 +129,14 @@ extension NSString {
             totalCharacterScore += characterScore
         }
         
-        if (StringScoreOptions.FavorSmallerWords.rawValue == (options.rawValue & StringScoreOptions.FavorSmallerWords.rawValue)) {
+        if (options.contains(.FavorSmallerWords)) {
             // Weigh smaller words higher
             return totalCharacterScore / Double(stringLength)
         }
         
         otherStringScore = totalCharacterScore / Double(otherStringLength)
         
-        if (StringScoreOptions.ReducedLongStringPenalty.rawValue == (options.rawValue & StringScoreOptions.ReducedLongStringPenalty.rawValue)) {
+        if (options.contains(.ReducedLongStringPenalty)) {
             // Reduce the penalty for longer words
             let percentageOfMatchedString = Double(otherStringLength) / Double(stringLength)
             let wordScore = otherStringScore * percentageOfMatchedString

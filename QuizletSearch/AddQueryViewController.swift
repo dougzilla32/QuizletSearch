@@ -60,7 +60,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return UIInterfaceOrientationMask.All
+        return .All
     }
     
     override func didReceiveMemoryWarning() {

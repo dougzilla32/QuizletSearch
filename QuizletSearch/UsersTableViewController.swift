@@ -16,7 +16,7 @@ class UsersTableViewController: UITableViewController {
     }
     
     override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return UIInterfaceOrientationMask.All
+        return .All
     }
 
     override func loadView() {

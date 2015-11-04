@@ -62,7 +62,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return UIInterfaceOrientationMask.All
+        return .All
     }
     
     override func loadView() {
@@ -299,7 +299,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             })
             
             bySetAtoZ.sortInPlace({ (s1: SortSet<SortTerm>, s2: SortSet<SortTerm>) -> Bool in
-                return s1.title.compare(s2.title, options: [NSStringCompareOptions.CaseInsensitiveSearch, NSStringCompareOptions.NumericSearch]) != .OrderedDescending
+                return s1.title.compare(s2.title, options: [.CaseInsensitiveSearch, .NumericSearch]) != .OrderedDescending
             })
         }
         
@@ -357,13 +357,13 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     class func termComparator(t1: SortTerm, t2: SortTerm) -> Bool {
-        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: [NSStringCompareOptions.CaseInsensitiveSearch, NSStringCompareOptions.NumericSearch])) {
+        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: [.CaseInsensitiveSearch, .NumericSearch])) {
         case .OrderedAscending:
             return true
         case .OrderedDescending:
             return false
         case .OrderedSame:
-            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: [NSStringCompareOptions.CaseInsensitiveSearch, NSStringCompareOptions.NumericSearch]) != .OrderedDescending
+            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: [.CaseInsensitiveSearch, .NumericSearch]) != .OrderedDescending
         }
     }
     

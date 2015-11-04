@@ -170,7 +170,7 @@ class QuizletSession {
         
         let authString = "\(quizletClientId):\(quizletSecretKey)"
         let authData = authString.dataUsingEncoding(NSUTF8StringEncoding)
-        let base64AuthString = authData!.base64EncodedStringWithOptions(NSDataBase64EncodingOptions.Encoding64CharacterLineLength)
+        let base64AuthString = authData!.base64EncodedStringWithOptions(.Encoding64CharacterLineLength)
         
         let config = NSURLSessionConfiguration.defaultSessionConfiguration()
         config.HTTPAdditionalHeaders = [
@@ -232,8 +232,7 @@ class QuizletSession {
         var jsonError: NSError?
         var jsonAny: AnyObject?
         do {
-            jsonAny = try NSJSONSerialization.JSONObjectWithData(
-                        data!, options: NSJSONReadingOptions.AllowFragments)
+            jsonAny = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
         } catch let error as NSError {
             jsonError = error
             jsonAny = nil
@@ -407,8 +406,7 @@ class QuizletSession {
 
         var jsonAny: AnyObject?
         do {
-            jsonAny = try NSJSONSerialization.JSONObjectWithData(
-                        data!, options: NSJSONReadingOptions.AllowFragments)
+            jsonAny = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
         } catch let error as NSError {
             NSLog("\(error)")
             completionHandler(nil)

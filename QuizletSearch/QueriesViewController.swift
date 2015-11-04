@@ -29,7 +29,7 @@ class QueriesViewController: TableContainerController {
     }
     
     override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return UIInterfaceOrientationMask.All
+        return .All
     }
     
     // MARK: - Table view data source
