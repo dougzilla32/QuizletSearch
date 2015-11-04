@@ -92,7 +92,7 @@ class QueryPagers: SequenceType {
         
         updateQuery()
         
-//        updateDuplicates(pagerIndex: pagerIndex)
+        updateDuplicates(pagerIndex: pagerIndex)
         
         if (isEmpty()) {
             self.updateTotals()
@@ -133,42 +133,34 @@ class QueryPagers: SequenceType {
         return (queryPager == nil && usernamePagers.count == 0 && classPagers.count == 0 && includedSetsPager == nil)
     }
     
-    /*
     func updateDuplicates(pagerIndex pagerIndex: PagerIndex?) {
-        markDuplicates(usernamePagers, type: .Username, pagerIndex: pagerIndex)
-        markDuplicates(classPagers, type: .Class, pagerIndex: pagerIndex)
-    }
-    
-    func markDuplicates(pagerList: [SetPager], type: PagerIndex.PagerType, pagerIndex: PagerIndex?) {
-        var activePagers: [String: Int] = [:]
-        for i in 0..<pagerList.count {
-            let pager = pagerList[i]
-            let id: String
-            switch (type) {
-            case .Username:
-                id = pager.creator!
-            case .Class:
-                id = pager.classId!
-            case .Query, .IncludedSets, .End:
-                abort()
+        do {
+            var duplicates = Set<String>()
+            for p in usernamePagers {
+                if (p.creator == nil || p.creator!.isEmpty) {
+                    continue
+                }
+                let dup = duplicates.contains(p.creator!)
+                p.updateEnabled(!dup)
+                if (!dup) {
+                    duplicates.insert(p.creator!)
+                }
             }
-            let activeIndex = activePagers[id]
-            if (activeIndex == nil) {
-                activePagers[id] = i
-                pager.isDuplicate = false
-            }
-            else if (pagerIndex != nil && pagerIndex!.type == type && pagerIndex!.index == activeIndex!) {
-                // Swap duplicates so that 'pagerIndex' is the one marked as a duplicate
-                pagerList[activeIndex!].isDuplicate = true
-                activePagers[id] = i
-                pager.isDuplicate = false
-            }
-            else {
-                pager.isDuplicate = true
+        }
+        do {
+            var duplicates = Set<String>()
+            for p in classPagers {
+                if (p.classId == nil || p.classId!.isEmpty) {
+                    continue
+                }
+                let dup = duplicates.contains(p.classId!)
+                p.updateEnabled(!dup)
+                if (!dup) {
+                    duplicates.insert(p.classId!)
+                }
             }
         }
     }
-    */
     
     /* Use this slower generate() function for testing purposes if the more complex generate() function is suspected of causing problems.
     func generate() -> AnyGenerator<SetPager> {
@@ -201,13 +193,13 @@ class QueryPagers: SequenceType {
                         }
                         return self.queryPager
                     case .Username:
-                        if (index.index == self.usernamePagers.count /* || self.usernamePagers[index.index].isDuplicate */) {
+                        if (index.index == self.usernamePagers.count) {
                             index.advance()
                             continue Restart
                         }
                         return self.usernamePagers[index.index++]
                     case .Class:
-                        if (index.index == self.classPagers.count /* || self.classPagers[index.index].isDuplicate */) {
+                        if (index.index == self.classPagers.count) {
                             index.advance()
                             continue Restart
                         }

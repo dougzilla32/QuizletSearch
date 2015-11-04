@@ -30,9 +30,6 @@ class SetPager {
     var totalPages: Int?
     var totalResults: Int?
     
-    // Indicates a duplicate pager (the user entered two or more identical usernames or class ids)
-//    var isDuplicate = false
-    
     init(query: String?, creator: String?, classId: String?) {
         self.query = query
         self.creator = creator
@@ -96,18 +93,16 @@ class SetPager {
     }
     
     func isLoading() -> Bool {
-        return /* !isDuplicate && */ loadingPages.count > 0
+        return loadingPages.count > 0
     }
     
     func peekQSetForRow(row: Int) -> QSet? {
-//        if (isDuplicate) { return nil }
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
         return qsets?[pageIndex]?[pageOffset]
     }
     
     func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet? {
-//        if (isDuplicate) { return nil }
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
         let qset = qsets?[pageIndex]?[pageOffset]
@@ -118,13 +113,11 @@ class SetPager {
     }
     
     func loadRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
-//        if (isDuplicate) { return }
         let page = row / paginationSize + 1
         loadPage(page, completionHandler: completionHandler)
     }
     
     func loadPage(page: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
-//        if (isDuplicate) { return }
         guard (page > 0) else {
             NSLog("Page number is zero or less")
             return
