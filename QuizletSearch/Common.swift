@@ -30,14 +30,19 @@ func trace(items: Any?..., separator: String = " ", terminator: String = "\n") {
     print(s, terminator: terminator)
 }
 
-func max<T : Comparable>(x: T?, _ y: T?) -> T? {
-    if (x == nil) {
-        return y
+func max<T : Comparable>(items: T?...) -> T? {
+    var m: T? = nil
+    for item in items {
+        if (item != nil) {
+            if (m != nil) {
+                m = max(m!, item!)
+            }
+            else {
+                m = item
+            }
+        }
     }
-    if (y == nil) {
-        return x
-    }
-    return max(x!, y!)
+    return m
 }
 
 class Common {
@@ -296,7 +301,7 @@ extension String {
     }
     
     func endsWith (str: String) -> Bool {
-        if let range = self.rangeOfString(str, options:NSStringCompareOptions.BackwardsSearch) {
+        if let range = self.rangeOfString(str, options: .BackwardsSearch) {
             return range.endIndex == self.endIndex
         }
         return false
@@ -332,7 +337,7 @@ extension String {
             self.unicharIndex = 0
             self.characterIndex = 0
             self.characterSubIndex = 0
-            self.skipWhitespaceOption = (options.rawValue & NSStringCompareOptions.WhitespaceInsensitiveSearch.rawValue) != 0
+            self.skipWhitespaceOption = options.contains(.WhitespaceInsensitiveSearch)
         }
         
         init(stringAndIndex: StringAndIndex) {

@@ -41,6 +41,7 @@ class PagerIndex {
 }
 
 class QueryPagers: SequenceType {
+    let MinTotalResultsHighWaterMark = 10
     let MaxTotalResults = 300
     
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
@@ -57,14 +58,6 @@ class QueryPagers: SequenceType {
     // Do not allow the number of total results to shrink, because deleting rows is slow
     var totalResultsHighWaterMark: Int?
     
-//    var paddingRowsMin: Int = 5 {
-//        didSet {
-//            if (paddingRowsMin > 0) {
-//                totalResultRows = max(totalResultRows != nil ? totalResultRows! : 0, paddingRowsMin)
-//            }
-//        }
-//    }
-    
     func updateTotals() {
         var total = 0
         var stillLoading = false
@@ -78,7 +71,7 @@ class QueryPagers: SequenceType {
         }
         totalResults = (stillLoading && total == 0) ? nil : min(total, MaxTotalResults)
         totalResultsNoMax = (stillLoading && total == 0) ? nil : total
-        totalResultsHighWaterMark = max(totalResults, totalResultsHighWaterMark)
+        totalResultsHighWaterMark = max(totalResults, totalResultsHighWaterMark, MinTotalResultsHighWaterMark)
     }
     
     init() { }

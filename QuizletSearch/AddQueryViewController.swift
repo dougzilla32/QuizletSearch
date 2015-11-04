@@ -22,6 +22,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     var model = AddQueryModel()
+    var keyboardHeight: CGFloat = 0.0
     
     // MARK: - View Controller
     
@@ -41,6 +42,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             object: nil)
         resetFonts()
         
+        // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardDidHide:", name: UIKeyboardDidHideNotification, object: nil)
+
         // Delay "touches began" so that swipe to delete for textfield cells works properly
         self.tableView.panGestureRecognizer.delaysTouchesBegan = true
         
@@ -63,6 +68,17 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         // Dispose of any resources that can be recreated.
     }
     
+    func keyboardWillShow(notification: NSNotification) {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
+            keyboardHeight = keyboardSize.height
+        }
+    }
+    
+    func keyboardDidHide(notification: NSNotification) {
+        keyboardHeight = 0
+//        ensureLastRowIsVisible()
+    }
+
     deinit {
         // Remove all 'self' observers
         NSNotificationCenter.defaultCenter().removeObserver(self)
@@ -152,6 +168,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         if (totalResults == nil) {
             totalResults = 0
         }
+        let totalResultsHighWaterMark = (model.pagers.totalResultsHighWaterMark != nil) ? model.pagers.totalResultsHighWaterMark! : 0
         
         trace("affectedResults", affectedResults)
         for i in affectedResults {
@@ -167,30 +184,20 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         
         var didInsert = false
         
-        if (totalResults > prevTotalResults) {
+        if (totalResultsHighWaterMark > prevTotalResultsHighWaterMark) {
             var indexPaths = [NSIndexPath]()
-            for i in prevTotalResults..<totalResults {
+            for i in prevTotalResultsHighWaterMark..<totalResultsHighWaterMark {
                 let path = NSIndexPath(forRow: i + offset, inSection: ResultsSection)
-                if (i >= prevTotalResultsHighWaterMark) {
-                    indexPaths.append(path)
-                }
-                else {
-                    let cell = tableView.cellForRowAtIndexPath(path)
-                    if (cell != nil) {
-                        configureCell(cell!, atIndexPath: path)
-                    }
-                }
+                indexPaths.append(path)
             }
-
-            if (indexPaths.count > 0) {
-                UIView.setAnimationsEnabled(false)
-                trace("BEGIN numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
-                trace("insertRows", totalResults-prevTotalResults)
-                tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: UITableViewRowAnimation.None)
-                trace("END numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
-                UIView.setAnimationsEnabled(true)
-                didInsert = true
-            }
+            
+            UIView.setAnimationsEnabled(false)
+            trace("BEGIN numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
+            trace("insertRows", totalResults-prevTotalResults)
+            tableView.insertRowsAtIndexPaths(indexPaths, withRowAnimation: UITableViewRowAnimation.None)
+            trace("END numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
+            UIView.setAnimationsEnabled(true)
+            didInsert = true
         }
         else if (totalResults < prevTotalResults) {
             for i in totalResults..<prevTotalResults {
@@ -218,7 +225,15 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         }
 
         prevTotalResults = totalResults
-        prevTotalResultsHighWaterMark = max(totalResults, prevTotalResultsHighWaterMark)
+        prevTotalResultsHighWaterMark = totalResultsHighWaterMark
+        
+        if (deferredScrollTo != nil) {
+            tableView.scrollToRowAtIndexPath(deferredScrollTo!, atScrollPosition: .Bottom, animated: false)
+            deferredScrollTo = nil
+        }
+        else {
+            ensureLastRowIsVisible()
+        }
     }
     
     // MARK: - Editable cells
@@ -430,29 +445,39 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     var previousTableViewYOffset: CGFloat = 0.0
     var disableViewDidScroll = 0
+    var deferredScrollTo: NSIndexPath?
     
     override func scrollViewDidScroll(scrollView: UIScrollView) {
         let scrollSpeed = tableView.contentOffset.y - previousTableViewYOffset
         previousTableViewYOffset = tableView.contentOffset.y
         
-//        trace("scrollViewDidScroll \(scrollView.contentOffset.y)")
+//        trace("scrollViewDidScroll", scrollView.contentOffset.y, scrollSpeed, fingerIsDown, disableViewDidScroll)
         if (scrollSpeed < 0) {
             return
         }
         
         if (disableViewDidScroll == 0) {
             disableViewDidScroll++
+//            trace("increment #1 disableViewDidScroll", disableViewDidScroll)
             defer {
+//                trace("decrement #1 disableViewDidScroll", disableViewDidScroll)
                 disableViewDidScroll--
             }
             
             if (!fingerIsDown) {
-                enforceMaxYForScrollView(scrollView, delay: 1.0 / (2.0 * log(Double(scrollSpeed) + 1.1)))
+                enforceMaxYForScrollView(scrollView, delay: 0.1)
             }
         }
     }
     
+    func ensureLastRowIsVisible() {
+        if (!fingerIsDown) {
+            enforceMaxYForScrollView(tableView, delay: 0.0)
+        }
+    }
+    
     func enforceMaxYForScrollView(scrollView: UIScrollView, delay: Double) {
+        // Note: the 'delay' parameter simulates the first part of the bounce by allowing the scroll view to continue scrolling 'down' for a moment before starting the 'up' animation
         let resultHeaderPath = model.pathForResultHeader()
         let resultHeaderMinY = tableView.rectForRowAtIndexPath(resultHeaderPath).minY
         let searchBarHeight = tableView.rectForHeaderInSection(ResultsSection).height
@@ -463,30 +488,45 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         let scrollToIndexPath: NSIndexPath
         let scrollToPosition: UITableViewScrollPosition
         let maxY: CGFloat
+        
+//        trace("enforceMaxYForScrollView", lastRowMaxY, resultHeaderMinY + scrollView.frame.height - searchBarHeight, resultHeaderMinY, scrollView.frame.height, searchBarHeight)
 
-        if (lastRowMaxY > resultHeaderMinY + scrollView.frame.height - searchBarHeight) {
+        // If the scrolling area is tall, potentially scroll to the last row (at bottom).  If the scrolling area is short,  potentially scroll to the result header (at top).
+        if (lastRowMaxY > resultHeaderMinY + scrollView.frame.height - keyboardHeight - searchBarHeight) {
             scrollToIndexPath = lastRowPath
-            scrollToPosition = UITableViewScrollPosition.Bottom
+            scrollToPosition = .Bottom
             maxY = lastRowMaxY
         }
         else {
             scrollToIndexPath = resultHeaderPath
-            scrollToPosition = UITableViewScrollPosition.Top
+            scrollToPosition = .Top
             maxY = tableView.rectForRowAtIndexPath(scrollToIndexPath).minY + scrollView.frame.size.height - searchBarHeight
         }
         
-//        trace("enforceScrollTo CHECK \(scrollToIndexPath.row) \(scrollView.contentOffset.y + scrollView.frame.height) \(maxY)")
-        if (scrollView.contentOffset.y + scrollView.frame.height > maxY) {
+//        trace("enforceScrollTo CHECK", scrollToIndexPath.row, scrollView.contentOffset.y + scrollView.frame.height, maxY)
+        if (scrollView.contentOffset.y + scrollView.frame.height - keyboardHeight > maxY) {
+            if (model.pagers.isLoading()) {
+//                trace("deferredScrollTo", scrollToIndexPath.row)
+                deferredScrollTo = scrollToIndexPath
+                return
+            }
+            if (delay == 0.0) {
+                tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: scrollToPosition, animated: false)
+                return
+            }
+
             disableViewDidScroll++
+//            trace("increment #2 disableViewDidScroll", disableViewDidScroll)
 
 //            trace("enforceScrollTo YES \(scrollToIndexPath.row)")
             // Workaround: using dispatch_after here causes the deceleration of the scroll view to be cancelled.  I do no know why this works.
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(Double(NSEC_PER_SEC) * delay)), dispatch_get_main_queue(), {
-                    UIView.animateWithDuration(1.0, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 3.0, options: UIViewAnimationOptions.CurveLinear, animations: {
+                    UIView.animateWithDuration(1.0, delay: 0.0, usingSpringWithDamping: 3.0, initialSpringVelocity: 3.0, options: [.CurveLinear, .AllowUserInteraction], animations: {
                         
                         self.tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: scrollToPosition, animated: false)
                         }, completion: {
                             (value: Bool) in
+//                            trace("decrement #2 disableViewDidScroll", self.disableViewDidScroll)
                             self.disableViewDidScroll--
                     })
             })
@@ -500,18 +540,35 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             return
         }
         
+        let scrollToIndexPath = self.model.topmostPathForType(ScrollTarget.RowType[scrollTarget.rawValue]!)!
+
         // Workaround: when the keyboard is showing and there are only a few rows, scrollToRowAtIndexPath will leave some rows occluded by the keyboard and will not properly scroll the table.  Use dispatch_after to introduce a delay as a workaround -- for some reason it works when this delay is introduced.
         dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-            self.disableViewDidScroll++
-            self.scrollingTo++
-            
-//            trace("scrollTo \(scrollTarget)")
-            let scrollToIndexPath = self.model.topmostPathForType(ScrollTarget.RowType[scrollTarget.rawValue]!)!
-            self.tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: UITableViewScrollPosition.Top, animated: true)
+            self.safelyScrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: .Top)
         })
     }
     
+    func safelyScrollToRowAtIndexPath(indexPath: NSIndexPath, atScrollPosition: UITableViewScrollPosition) {
+        let originalOffset = self.tableView.contentOffset.y
+        self.tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: atScrollPosition, animated: false)
+        let offset = self.tableView.contentOffset.y
+        
+        if (originalOffset != offset) {
+            // We know it will scroll to a new position and scrollViewDidEndScrollingAnimation will be called
+            self.tableView.setContentOffset(CGPointMake(0, originalOffset), animated: false)
+            
+//            trace("scrollTo \(scrollTarget)")
+            self.disableViewDidScroll++
+//            trace("increment #3 disabledViewDidScroll", self.disableViewDidScroll)
+            self.scrollingTo++
+            
+            // Do the scroll with animation so `scrollViewDidEndScrollingAnimation:` will execute
+            self.tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: atScrollPosition, animated: true)
+        }
+    }
+    
     override func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
+//        trace("decrement #3 disableViewDidScroll", disableViewDidScroll, scrollingTo)
         if (scrollingTo > 0) {
             disableViewDidScroll--
         }
