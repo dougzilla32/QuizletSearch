@@ -19,6 +19,7 @@ class QuizletSet: NSManagedObject {
     @NSManaged var creatorId: Int64
     @NSManaged var createdDate: Int64
     @NSManaged var modifiedDate: Int64
+    @NSManaged var classIds: String
     @NSManaged var terms: NSOrderedSet
     @NSManaged var queries: NSSet
 
@@ -31,6 +32,7 @@ class QuizletSet: NSManagedObject {
         self.creatorId = qset.creatorId
         self.createdDate = qset.createdDate
         self.modifiedDate = qset.modifiedDate
+        self.classIds = qset.classIds
         
         var newTerms = [Term]()
         for qterm in qset.terms {
@@ -68,6 +70,9 @@ class QuizletSet: NSManagedObject {
         }
         if (self.modifiedDate != qset.modifiedDate) {
             self.modifiedDate = qset.modifiedDate
+        }
+        if (self.classIds != qset.classIds) {
+            self.classIds = qset.classIds
         }
         
         // Update the terms

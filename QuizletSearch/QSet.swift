@@ -17,10 +17,11 @@ class QSet {
     let creatorId: Int64
     let createdDate: Int64
     let modifiedDate: Int64
+    let classIds: String
     
     var terms: [QTerm]
     
-    init(id: Int64, url: String, title: String, description: String, createdBy: String, creatorId: Int64, createdDate: Int64, modifiedDate: Int64) {
+    init(id: Int64, url: String, title: String, description: String, createdBy: String, creatorId: Int64, createdDate: Int64, modifiedDate: Int64, classIds: String) {
         self.id = id
         self.url = url
         self.title = title
@@ -29,6 +30,7 @@ class QSet {
         self.creatorId = creatorId
         self.createdDate = createdDate
         self.modifiedDate = modifiedDate
+        self.classIds = classIds
         self.terms = []
     }
     
@@ -42,7 +44,18 @@ class QSet {
             let creatorId = (jsonSet["creator_id"] as? NSNumber)?.longLongValue,
             let createdDate = (jsonSet["created_date"] as? NSNumber)?.longLongValue,
             let modifiedDate = (jsonSet["modified_date"] as? NSNumber)?.longLongValue {
-                qset = QSet(id: id, url: url, title: title, description: description, createdBy: createdBy, creatorId: creatorId, createdDate: createdDate, modifiedDate: modifiedDate)
+                var classIds = ""
+                if let ids = jsonSet["class_ids"] as? NSArray {
+                    for id in ids {
+                        if let idNumber = id as? NSNumber {
+                            if (!classIds.isEmpty) {
+                                classIds += ","
+                            }
+                            classIds += String(idNumber)
+                        }
+                    }
+                }
+                qset = QSet(id: id, url: url, title: title, description: description, createdBy: createdBy, creatorId: creatorId, createdDate: createdDate, modifiedDate: modifiedDate, classIds: classIds)
                 if let terms = jsonSet["terms"] as? NSArray {
                     for termObject in terms {
                         if  let id = (termObject["id"] as? NSNumber)?.longLongValue,

@@ -15,6 +15,14 @@ class QueryResult {
     let imageSetCount: Int
     let qsets: [QSet]
     
+    init(page: Int, totalPages: Int, totalResults: Int, imageSetCount: Int, qsets: [QSet]) {
+        self.page = page
+        self.totalPages = totalPages
+        self.totalResults = totalResults
+        self.imageSetCount = imageSetCount
+        self.qsets = qsets
+    }
+    
     init(copyFrom: QueryResult, qsets: [QSet]) {
         self.page = copyFrom.page
         self.totalPages = copyFrom.totalPages

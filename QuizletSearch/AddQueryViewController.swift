@@ -227,13 +227,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         prevTotalResults = totalResults
         prevTotalResultsHighWaterMark = totalResultsHighWaterMark
         
-        if (deferredScrollTo != nil) {
-            tableView.scrollToRowAtIndexPath(deferredScrollTo!, atScrollPosition: .Bottom, animated: false)
-            deferredScrollTo = nil
-        }
-        else {
-            ensureLastRowIsVisible()
-        }
+        ensureLastRowIsVisible()
     }
     
     // MARK: - Editable cells
@@ -440,12 +434,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 
     // called on finger up if the user dragged. decelerate is true if it will continue moving afterwards
     override func scrollViewDidEndDragging(scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        enforceMaxYForScrollView(scrollView, delay: 0.01)
+        enforceMaxYForScrollView(scrollView, delay: 0.01, animated: true)
     }
     
     var previousTableViewYOffset: CGFloat = 0.0
     var disableViewDidScroll = 0
-    var deferredScrollTo: NSIndexPath?
     
     override func scrollViewDidScroll(scrollView: UIScrollView) {
         let scrollSpeed = tableView.contentOffset.y - previousTableViewYOffset
@@ -465,18 +458,18 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             }
             
             if (!fingerIsDown) {
-                enforceMaxYForScrollView(scrollView, delay: 0.1)
+                enforceMaxYForScrollView(scrollView, delay: 0.1, animated: true)
             }
         }
     }
     
     func ensureLastRowIsVisible() {
         if (!fingerIsDown) {
-            enforceMaxYForScrollView(tableView, delay: 0.0)
+            enforceMaxYForScrollView(tableView, delay: 0.0, animated: false)
         }
     }
     
-    func enforceMaxYForScrollView(scrollView: UIScrollView, delay: Double) {
+    func enforceMaxYForScrollView(scrollView: UIScrollView, delay: Double, animated: Bool) {
         // Note: the 'delay' parameter simulates the first part of the bounce by allowing the scroll view to continue scrolling 'down' for a moment before starting the 'up' animation
         let resultHeaderPath = model.pathForResultHeader()
         let resultHeaderMinY = tableView.rectForRowAtIndexPath(resultHeaderPath).minY
@@ -486,32 +479,33 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         let lastRowMaxY = tableView.rectForRowAtIndexPath(lastRowPath).maxY
         
         let scrollToIndexPath: NSIndexPath
-        let scrollToPosition: UITableViewScrollPosition
         let maxY: CGFloat
+        let scrollToY: CGFloat
         
 //        trace("enforceMaxYForScrollView", lastRowMaxY, resultHeaderMinY + scrollView.frame.height - searchBarHeight, resultHeaderMinY, scrollView.frame.height, searchBarHeight)
 
         // If the scrolling area is tall, potentially scroll to the last row (at bottom).  If the scrolling area is short,  potentially scroll to the result header (at top).
         if (lastRowMaxY > resultHeaderMinY + scrollView.frame.height - keyboardHeight - searchBarHeight) {
             scrollToIndexPath = lastRowPath
-            scrollToPosition = .Bottom
             maxY = lastRowMaxY
+            scrollToY = maxY - (scrollView.frame.height - keyboardHeight)
         }
         else {
             scrollToIndexPath = resultHeaderPath
-            scrollToPosition = .Top
             maxY = tableView.rectForRowAtIndexPath(scrollToIndexPath).minY + scrollView.frame.height - keyboardHeight - searchBarHeight
+            scrollToY = maxY - (scrollView.frame.height - keyboardHeight)
         }
         
 //        trace("enforceScrollTo CHECK", scrollToIndexPath.row, scrollView.contentOffset.y + scrollView.frame.height, maxY)
         if (scrollView.contentOffset.y + scrollView.frame.height - keyboardHeight > maxY) {
             if (model.pagers.isLoading()) {
 //                trace("deferredScrollTo", scrollToIndexPath.row)
-                deferredScrollTo = scrollToIndexPath
+                // ensureLastRowIsVisible will be called when the pager is done loading
                 return
             }
-            if (delay == 0.0) {
-                tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: scrollToPosition, animated: false)
+
+            if (!animated) {
+                tableView.setContentOffset(CGPoint(x: 0, y: scrollToY), animated: false)
                 return
             }
 
@@ -521,14 +515,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 //            trace("enforceScrollTo YES \(scrollToIndexPath.row)")
             // Workaround: using dispatch_after here causes the deceleration of the scroll view to be cancelled.  I do no know why this works.
             dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(Double(NSEC_PER_SEC) * delay)), dispatch_get_main_queue(), {
-                    UIView.animateWithDuration(1.0, delay: 0.0, usingSpringWithDamping: 3.0, initialSpringVelocity: 3.0, options: [.CurveLinear, .AllowUserInteraction], animations: {
-                        
-                        self.tableView.scrollToRowAtIndexPath(scrollToIndexPath, atScrollPosition: scrollToPosition, animated: false)
-                        }, completion: {
-                            (value: Bool) in
+                UIView.animateWithDuration(1.0, delay: 0.0, usingSpringWithDamping: 3.0, initialSpringVelocity: 3.0, options: [.CurveLinear, .AllowUserInteraction], animations: {
+
+                        self.tableView.setContentOffset(CGPoint(x: 0, y: scrollToY), animated: false)
+                    }, completion: {
+                        (value: Bool) in
 //                            trace("decrement #2 disableViewDidScroll", self.disableViewDidScroll)
-                            self.disableViewDidScroll--
-                    })
+                        self.disableViewDidScroll--
+                })
             })
         }
     }
@@ -725,6 +719,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             let title = qset.title.trimWhitespace()
             let owner = qset.createdBy.trimWhitespace()
             var description = qset.description.trimWhitespace()
+//            if (!qset.classIds.isEmpty) {
+//                description = qset.classIds + ": " + description
+//            }
             
             let titleLength = (title as NSString).length
             let ownerLength = (owner as NSString).length
@@ -1021,7 +1018,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                         sizingCells[cellIdentifier] = sizingCell!
                     }
                     
-                    let qset = QSet(id: 0, url: "", title: "Title", description: "", createdBy: "Owner", creatorId: 0, createdDate: 0, modifiedDate: 0)
+                    let qset = QSet(id: 0, url: "", title: "Title", description: "", createdBy: "Owner", creatorId: 0, createdDate: 0, modifiedDate: 0, classIds: "")
                     qset.terms = [
                         QTerm(id: 0, term: "Term 1", definition: "Definition 1"),
                         QTerm(id: 0, term: "Term 2", definition: "Definition 2"),
