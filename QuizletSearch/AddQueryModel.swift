@@ -21,8 +21,8 @@ enum QueryRowType: Int {
         "Query Header", "Query Cell",
         "User Header", "Text Input Cell",
         "Class Header", "Text Input Cell",
-        "Include Header", "Include Cell",
-        "Exclude Header", "Exclude Cell",
+        "Include Header", "Label Cell",
+        "Exclude Header", "Label Cell",
         "Result Header", "Result Cell"]
     
     func id() -> String {

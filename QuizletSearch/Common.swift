@@ -293,18 +293,27 @@ extension NSStringCompareOptions {
 }
 
 extension String {
-    func beginsWith (str: String) -> Bool {
+    func beginsWith(str: String) -> Bool {
         if let range = self.rangeOfString(str) {
             return range.startIndex == self.startIndex
         }
         return false
     }
     
-    func endsWith (str: String) -> Bool {
+    func endsWith(str: String) -> Bool {
         if let range = self.rangeOfString(str, options: .BackwardsSearch) {
             return range.endIndex == self.endIndex
         }
         return false
+    }
+    
+    func contains(str: String, options: NSStringCompareOptions? = nil) -> Bool {
+        if let opt = options {
+            return self.rangeOfString(str, options: opt) != nil
+        }
+        else {
+            return self.rangeOfString(str) != nil
+        }
     }
 
     func isWhitespace() -> Bool {

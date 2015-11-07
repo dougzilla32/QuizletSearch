@@ -975,8 +975,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     func createSearchBar() -> UISearchBar {
+        let cell = tableView.dequeueReusableCellWithIdentifier("Query Cell")
+        let cellSearchBar = cell!.contentView.subviews[0] as! UISearchBar
+
         let searchBar = UISearchBar()
-        searchBar.placeholder = "Search"
+        searchBar.placeholder = cellSearchBar.placeholder
 
         // Update the appearance of the search bar's textfield
         let searchTextField = Common.findTextField(searchBar)!

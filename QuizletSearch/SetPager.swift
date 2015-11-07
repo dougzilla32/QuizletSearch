@@ -179,7 +179,7 @@ class SetPager {
             trace("SEARCH GO", self.query, q, resetToken)
             
             if (self.classId != nil) {
-                self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
+                self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (var qsets: [QSet]?) in
                     
                     trace("CLASS SEARCH OUT", self.classId, resetToken)
                     if (qsets == nil || resetToken < self.resetCounter) {
@@ -187,6 +187,8 @@ class SetPager {
                         // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
                         return
                     }
+                    
+                    qsets = self.filterQSets(qsets!)
                     
                     self.paginationSize = qsets!.count
 
@@ -226,6 +228,22 @@ class SetPager {
                 })
             }
         })
+    }
+    
+    func filterQSets(qsets: [QSet]) -> [QSet] {
+        if (query == nil || query!.isEmpty) {
+            return qsets
+        }
+
+        var newQSets: [QSet] = []
+        for qset in qsets {
+            if (qset.title.contains(query!, options: .CaseInsensitiveSearch)
+                || qset.description.contains(query!, options: .CaseInsensitiveSearch)
+                || qset.createdBy.contains(query!, options: .CaseInsensitiveSearch)) {
+                newQSets.append(qset)
+            }
+        }
+        return newQSets
     }
     
     func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
@@ -274,7 +292,8 @@ class SetPager {
             }
             
             if (self.qsets == nil) {
-                let expectedPages = (result.totalResults + self.paginationSize - 1) / self.paginationSize
+                let expectedPages = (self.paginationSize == 0) ? 0
+                    : (result.totalResults + self.paginationSize - 1) / self.paginationSize
                 if (expectedPages != result.totalPages) {
                     NSLog("Expected number of pages \(expectedPages) does not match actual number of pages \(result.totalPages)")
                 }
