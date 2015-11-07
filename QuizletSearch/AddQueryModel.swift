@@ -295,7 +295,7 @@ class AddQueryModel {
         }
         
         let pager = pagers.classPagers[indexPath.row - ClassOffset()]
-        pager.reset(query: pagers.queryPager?.query, creator: name)
+        pager.reset(query: pagers.queryPager?.query, classId: name)
         rowItems[indexPath.section][indexPath.row] = name
     }
     
@@ -323,7 +323,7 @@ class AddQueryModel {
             indexPath = NSIndexPath(forRow: newIndex + ClassOffset(), inSection: indexPath.section)
         }
         else {
-            pagers.classPagers[oldIndex].reset(query: query, creator: name)
+            pagers.classPagers[oldIndex].reset(query: query, classId: name)
             rowItems[indexPath.section][indexPath.row] = name
         }
         return indexPath

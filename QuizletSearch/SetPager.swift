@@ -235,13 +235,21 @@ class SetPager {
             return qsets
         }
 
+        let q = query!.lowercaseString.decomposeAndNormalize()
         var newQSets: [QSet] = []
         for qset in qsets {
-            if (qset.title.contains(query!, options: .CaseInsensitiveSearch)
-                || qset.description.contains(query!, options: .CaseInsensitiveSearch)
-                || qset.createdBy.contains(query!, options: .CaseInsensitiveSearch)) {
-                newQSets.append(qset)
+            let options: NSStringCompareOptions = [.CaseInsensitiveSearch, .WhitespaceInsensitiveSearch]
+            if (String.characterRangesOfUnichars(qset.title.lowercaseString.decomposeAndNormalize(), targetString: q, options: options).count > 0 ||
+                String.characterRangesOfUnichars(qset.description.lowercaseString.decomposeAndNormalize(), targetString: q, options: options).count > 0 ||
+                String.characterRangesOfUnichars(qset.createdBy.lowercaseString.decomposeAndNormalize(), targetString: q, options: options).count > 0) {
+                    newQSets.append(qset)
             }
+            
+//            if (qset.title.contains(query!, options: .CaseInsensitiveSearch)
+//                || qset.description.contains(query!, options: .CaseInsensitiveSearch)
+//                || qset.createdBy.contains(query!, options: .CaseInsensitiveSearch)) {
+//                newQSets.append(qset)
+//            }
         }
         return newQSets
     }
