@@ -52,6 +52,9 @@ class QueryPagers: SequenceType {
     var includedSetsPager: SetPager?
     // var excludedSets: [QSet] = []
 
+    var firstChanceUsers = Set<String>()  // Users that definitively work with 'searchSetsWithQuery'
+    var secondChanceUsers = Set<String>() // Users that definitively do not work with 'searchSetsWithQuery'
+    
     var totalResults: Int?
     var totalResultsNoMax: Int?
     
@@ -74,7 +77,10 @@ class QueryPagers: SequenceType {
         totalResultsHighWaterMark = max(totalResults, totalResultsHighWaterMark, MinTotalResultsHighWaterMark)
     }
     
-    init() { }
+    init() {
+        SetPager.firstChanceUsers.removeAll()
+        SetPager.secondChanceUsers.removeAll()
+    }
     
     // MARK: - Query
     

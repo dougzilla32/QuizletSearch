@@ -17,6 +17,8 @@ class SetPager {
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     
     static let DefaultPaginationSize = 30
+    static var firstChanceUsers = Set<String>()
+    static var secondChanceUsers = Set<String>()
 
     var paginationSize = DefaultPaginationSize
     var query: String?
@@ -53,6 +55,13 @@ class SetPager {
     func resetAllPages() {
         loadingPages.removeAll()
         resetCounter++
+        
+        if (classId != nil) {
+            paginationSize = 0
+        }
+        else {
+            paginationSize = SetPager.DefaultPaginationSize
+        }
     }
     
     func reset(query query: String?, creator: String?, classId: String?) {
@@ -61,13 +70,6 @@ class SetPager {
         self.query = query
         self.creator = creator
         self.classId = classId
-        
-        if (classId != nil) {
-            paginationSize = 0
-        }
-        else {
-            paginationSize = SetPager.DefaultPaginationSize
-        }
     }
     
     func reset(query query: String?) {
@@ -181,61 +183,96 @@ class SetPager {
             trace("SEARCH GO", self.query, q, resetToken)
             
             if (self.classId != nil) {
-                self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (var qsets: [QSet]?) in
-                    
-                    trace("CLASS SEARCH OUT", self.classId, resetToken)
-                    if (qsets == nil || resetToken < self.resetCounter) {
-                        self.loadingPages.remove(page)
-                        // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
-                        return
-                    }
-                    
-                    qsets = self.filterQSets(qsets!)
-                    
-                    self.paginationSize = qsets!.count
-                    
-                    for qset in qsets! {
-                        if (qset.terms.count == 0) {
-                            // No permission to see the terms and definitions for this set
-                            qset.terms.append(QTerm(id: 0, term: "🔐", definition: ""))
-                        }
-                    }
-
-                    let queryResult = QueryResult(page: page, totalPages: 1, totalResults: qsets!.count, imageSetCount: 0, qsets: qsets!)
-                    
-                    self.loadPageResult(queryResult, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
-                })
+                self.getSetsInClass(page: page, resetToken: resetToken, completionHandler: completionHandler)
+            }
+            else if (!self.isEmpty(self.creator) && SetPager.firstChanceUsers.contains(self.creator!)) {
+                self.searchSetsWithQuery(page: page, resetToken: resetToken, completionHandler: completionHandler, trySecondChanceUser: false)
+            }
+            else if (!self.isEmpty(self.creator) && SetPager.secondChanceUsers.contains(self.creator!)) {
+                self.getAllSetsForUser(page: page, resetToken: resetToken, completionHandler: completionHandler)
             }
             else {
-                self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: false, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?) in
-                    
-                    trace("SEARCH OUT", self.query, q, resetToken)
-                    if (queryResult == nil || resetToken < self.resetCounter) {
-                        self.loadingPages.remove(page)
-                        // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
-                        return
+                self.searchSetsWithQuery(page: page, resetToken: resetToken, completionHandler: completionHandler, trySecondChanceUser: true)
+            }
+        })
+    }
+    
+    func searchSetsWithQuery(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void, trySecondChanceUser: Bool) {
+        self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: false, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?, response: NSURLResponse?, error: NSError?) in
+            
+            trace("SEARCH OUT", self.query, resetToken)
+            if (queryResult == nil || resetToken < self.resetCounter) {
+                // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
+                self.loadingPages.remove(page)
+                return
+            }
+            
+            if (queryResult!.totalResults > 0 && !self.isEmpty(self.creator)) {
+                SetPager.firstChanceUsers.insert(self.creator!)
+            }
+            
+            if (trySecondChanceUser && queryResult!.totalResults == 0 && !self.isEmpty(self.creator)) {
+                self.getAllSetsForUser(page: page, resetToken: resetToken, completionHandler: completionHandler)
+            }
+            else {
+                self.loadPageResult(queryResult!, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                
+                if (queryResult!.totalResults > 0) {
+                    var setIds = [Int64]()
+                    for qset in queryResult!.qsets {
+                        setIds.append(qset.id)
                     }
                     
-                    self.loadPageResult(queryResult!, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
-                    
-                    if (queryResult!.totalResults > 0) {
-                        var setIds = [Int64]()
-                        for qset in queryResult!.qsets {
-                            setIds.append(qset.id)
+                    self.quizletSession.getSetsForIds(setIds, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
+                        if (qsets == nil || resetToken < self.resetCounter) {
+                            // Cancelled or error
+                            self.loadingPages.remove(page)
+                            return
                         }
                         
-                        self.quizletSession.getSetsForIds(setIds, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
-                            if (qsets == nil || resetToken < self.resetCounter) {
-                                // Cancelled or error
-                                return
-                            }
-                            
-                            queryResult = QueryResult(copyFrom: queryResult!, qsets: qsets!)
-                            self.loadPageResult(queryResult!, response: .Last, page: page, resetToken: resetToken, completionHandler: completionHandler)
-                        })
-                    }
-                })
+                        queryResult = QueryResult(copyFrom: queryResult!, qsets: qsets!)
+                        self.loadPageResult(queryResult!, response: .Last, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                    })
+                }
             }
+        })
+    }
+    
+    func getAllSetsForUser(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+        // Try using the '2.0/users/<username>' query.  For some unexplained reason, the search query will return no results for certain users, where the user query will return all the expected results.
+        self.quizletSession.getAllSetsForUser(self.creator!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (var qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
+            
+            // Check for NOT FOUND status code
+            let foundUser = (response as? NSHTTPURLResponse)?.statusCode != 404
+            if ((qsets == nil && foundUser) || resetToken < self.resetCounter) {
+                // Cancelled or unexpected error
+                self.loadingPages.remove(page)
+                return
+            }
+            
+            if ((qsets?.count > 0 || !foundUser) && self.isEmpty(self.query)) {
+                SetPager.secondChanceUsers.insert(self.creator!)
+            }
+            
+            // Found user and qsets
+            if (qsets == nil) {
+                qsets = []
+            }
+            self.qsetsResult(qsets, page: page, resetToken: resetToken, completionHandler: completionHandler)
+        })
+    }
+    
+    func getSetsInClass(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+        self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
+            
+            trace("CLASS SEARCH OUT", self.classId, resetToken)
+            if (qsets == nil || resetToken < self.resetCounter) {
+                self.loadingPages.remove(page)
+                // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
+                return
+            }
+            
+            self.qsetsResult(qsets, page: page, resetToken: resetToken, completionHandler: completionHandler)
         })
     }
     
@@ -261,6 +298,23 @@ class SetPager {
 //            }
         }
         return newQSets
+    }
+    
+    func qsetsResult(var qsets: [QSet]!, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+        qsets = self.filterQSets(qsets)
+        
+        self.paginationSize = qsets.count
+        
+        for qset in qsets {
+            if (qset.terms.count == 0) {
+                // No permission to see the terms and definitions for this set
+                qset.terms.append(QTerm(id: 0, term: "🔐", definition: ""))
+            }
+        }
+        
+        let queryResult = QueryResult(page: page, totalPages: (qsets.count > 0) ? 1 : 0, totalResults: qsets.count, imageSetCount: 0, qsets: qsets)
+        
+        self.loadPageResult(queryResult, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
     }
     
     func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
