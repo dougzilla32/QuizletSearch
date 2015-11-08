@@ -323,6 +323,7 @@ class QuizletSession {
             params.append(NSURLQueryItem(name: "perPage", value: String(perPage!)))
         }
         // params.append(NSURLQueryitem(name: "whitespace", value: "1"))
+        // params.append(NSURLQueryItem(name: "sort", value: "title"))
         
         self.invokeQuery("/2.0/search/sets", queryItems: params,
             allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: AnyObject?) in

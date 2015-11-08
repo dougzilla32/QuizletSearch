@@ -111,12 +111,14 @@ class SetPager {
     }
     
     func peekQSetForRow(row: Int) -> QSet? {
+        if (paginationSize == 0) { return nil }
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
         return qsets?[pageIndex]?[pageOffset]
     }
     
     func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet? {
+        if (paginationSize == 0) { return nil }
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
         let qset = qsets?[pageIndex]?[pageOffset]
@@ -191,6 +193,13 @@ class SetPager {
                     qsets = self.filterQSets(qsets!)
                     
                     self.paginationSize = qsets!.count
+                    
+                    for qset in qsets! {
+                        if (qset.terms.count == 0) {
+                            // No permission to see the terms and definitions for this set
+                            qset.terms.append(QTerm(id: 0, term: "🔐", definition: ""))
+                        }
+                    }
 
                     let queryResult = QueryResult(page: page, totalPages: 1, totalResults: qsets!.count, imageSetCount: 0, qsets: qsets!)
                     
