@@ -21,6 +21,10 @@ class QSet {
     
     var terms: [QTerm]
     
+    var normalizedTitle: StringWithBoundaries?
+    var normalizedDescription: StringWithBoundaries?
+    var normalizedCreatedBy: StringWithBoundaries?
+    
     init(id: Int64, url: String, title: String, description: String, createdBy: String, creatorId: Int64, createdDate: Int64, modifiedDate: Int64, classIds: String) {
         self.id = id
         self.url = url

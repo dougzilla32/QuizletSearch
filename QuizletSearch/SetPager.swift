@@ -319,10 +319,20 @@ class SetPager {
         let q = query!.lowercaseString.decomposeAndNormalize()
         var newQSets: [QSet] = []
         for qset in qsets {
+            if (qset.normalizedTitle == nil) {
+                qset.normalizedTitle = qset.title.lowercaseString.decomposeAndNormalize()
+            }
+            if (qset.normalizedDescription == nil) {
+                qset.normalizedDescription = qset.description.lowercaseString.decomposeAndNormalize()
+            }
+            if (qset.normalizedCreatedBy == nil) {
+                qset.normalizedCreatedBy = qset.createdBy.lowercaseString.decomposeAndNormalize()
+            }
+            
             let options: NSStringCompareOptions = [.CaseInsensitiveSearch, .WhitespaceInsensitiveSearch]
-            if (String.characterRangesOfUnichars(qset.title.lowercaseString.decomposeAndNormalize(), targetString: q, options: options).count > 0 ||
-                String.characterRangesOfUnichars(qset.description.lowercaseString.decomposeAndNormalize(), targetString: q, options: options).count > 0 ||
-                String.characterRangesOfUnichars(qset.createdBy.lowercaseString.decomposeAndNormalize(), targetString: q, options: options).count > 0) {
+            if (String.characterRangesOfUnichars(qset.normalizedTitle!, targetString: q, options: options).count > 0 ||
+                String.characterRangesOfUnichars(qset.normalizedDescription!, targetString: q, options: options).count > 0 ||
+                String.characterRangesOfUnichars(qset.normalizedCreatedBy!, targetString: q, options: options).count > 0) {
                     newQSets.append(qset)
             }
             
