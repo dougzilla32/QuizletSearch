@@ -396,12 +396,12 @@ class QuizletSession {
         })
     }
     
-    func getAllSampleSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+    func getAllSampleSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?, response: NSURLResponse?, error: NSError?) -> Void) {
 
         let sampleFilePath = NSBundle.mainBundle().pathForResource("SampleQuizletData", ofType: "json")
         if (sampleFilePath == nil) {
             NSLog("Resource not found: SampleQuizletData.json")
-            completionHandler(nil)
+            completionHandler(nil, response: nil, error: nil)
             return
         }
 
@@ -412,7 +412,7 @@ class QuizletSession {
             jsonAny = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
         } catch let error as NSError {
             NSLog("\(error)")
-            completionHandler(nil)
+            completionHandler(nil, response: nil, error: nil)
             return
         }
         
@@ -421,10 +421,10 @@ class QuizletSession {
             if (qsets == nil) {
                 NSLog("Invalid Quizlet Set in getAllSampleSetsForUser")
             }
-            completionHandler(qsets)
+            completionHandler(qsets, response: nil, error: nil)
         } else {
             NSLog("Unexpected response in getAllSampleSetsForUser: \(data)")
-            completionHandler(nil)
+            completionHandler(nil, response: nil, error: nil)
         }
     }
     

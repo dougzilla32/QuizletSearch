@@ -30,6 +30,11 @@ class SetPager {
     var resetCounter = 0
     var enabled = true
     
+    var userSetsCreator: String?
+    var userSetsQSets: [QSet]?
+    var classSetsId: String?
+    var classSetsQSets: [QSet]?
+    
     var loadingPages = Set<Int>()
     var totalPages: Int?
     var totalResults: Int?
@@ -70,6 +75,15 @@ class SetPager {
         self.query = query
         self.creator = creator
         self.classId = classId
+        
+        if (userSetsCreator != creator) {
+            userSetsCreator = nil
+            userSetsQSets = nil
+        }
+        if (classSetsId != classId) {
+            classSetsId = nil
+            classSetsQSets = nil
+        }
     }
     
     func reset(query query: String?) {
@@ -198,6 +212,7 @@ class SetPager {
     }
     
     func searchSetsWithQuery(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void, trySecondChanceUser: Bool) {
+        
         self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: false, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?, response: NSURLResponse?, error: NSError?) in
             
             trace("SEARCH OUT", self.query, resetToken)
@@ -239,6 +254,13 @@ class SetPager {
     }
     
     func getAllSetsForUser(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+        
+        if (userSetsCreator == self.creator) {
+            trace("CACHED USER SETS")
+            self.qsetsResult(userSetsQSets, page: page, resetToken: resetToken, completionHandler: completionHandler)
+            return
+        }
+        
         // Try using the '2.0/users/<username>' query.  For some unexplained reason, the search query will return no results for certain users, where the user query will return all the expected results.
         self.quizletSession.getAllSetsForUser(self.creator!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (var qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
             
@@ -250,6 +272,9 @@ class SetPager {
                 return
             }
             
+            self.userSetsCreator = self.creator
+            self.userSetsQSets = qsets
+
             if ((qsets?.count > 0 || !foundUser) && self.isEmpty(self.query)) {
                 SetPager.secondChanceUsers.insert(self.creator!)
             }
@@ -263,6 +288,13 @@ class SetPager {
     }
     
     func getSetsInClass(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+
+        if (classSetsId == self.classId) {
+            trace("CACHED CLASS SETS")
+            self.qsetsResult(classSetsQSets, page: page, resetToken: resetToken, completionHandler: completionHandler)
+            return
+        }
+        
         self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
             
             trace("CLASS SEARCH OUT", self.classId, resetToken)
@@ -271,6 +303,9 @@ class SetPager {
                 // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
                 return
             }
+            
+            self.classSetsId = self.classId
+            self.classSetsQSets = qsets
             
             self.qsetsResult(qsets, page: page, resetToken: resetToken, completionHandler: completionHandler)
         })

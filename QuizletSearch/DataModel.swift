@@ -192,7 +192,7 @@ class DataModel: NSObject {
 
             if (creators[0].isFavoritesFolder()) {
                 quizletSession.getFavoriteSetsForUser(currentUser!.name, modifiedSince: 0, allowCellularAccess: allowCellularAccess,
-                    completionHandler: { (qsets: [QSet]?) in
+                    completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
                         if (qsets != nil) {
                             self.updateTermsForQuery(q, qsets: qsets)
                         }
@@ -206,7 +206,7 @@ class DataModel: NSObject {
                 }
                 
                 getAllSetsForUserFunction(creators[0].username, modifiedSince: q.maxModifiedDate, allowCellularAccess: allowCellularAccess,
-                    completionHandler: { (qsets: [QSet]?) in
+                    completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
                         if (qsets != nil) {
                             self.updateTermsForQuery(q, qsets: qsets)
                         }
