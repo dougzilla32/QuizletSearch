@@ -145,6 +145,7 @@ class Common {
     }
     
     class func findTextField(view: UIView) -> UITextField? {
+//        return view.valueForKey("_searchField") as? UITextField
         for i in 0..<view.subviews.count {
             let subview = view.subviews[i]
             if let textField = subview as? UITextField {

@@ -271,8 +271,8 @@ class AddQueryModel {
     
     func insertionSortIndexForUser(item: String, atIndex: Int, list: [SetPager]) -> Int {
         for i in 0..<list.count {
-            if (i != atIndex && item < list[i].creator) {
-                return i
+            if (i != atIndex && item <= list[i].creator) {
+                return (item == list[i].creator) ? atIndex : i
             }
         }
         return list.count
@@ -340,8 +340,8 @@ class AddQueryModel {
     
     func insertionSortIndexForClass(item: String, atIndex: Int, list: [SetPager]) -> Int {
         for i in 0..<list.count {
-            if (i != atIndex && item < list[i].creator) {
-                return i
+            if (i != atIndex && item <= list[i].classId) {
+                return (item == list[i].classId) ? atIndex : i
             }
         }
         return list.count

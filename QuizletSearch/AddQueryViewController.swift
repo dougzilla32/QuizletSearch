@@ -342,6 +342,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             searchBar.resignFirstResponder()
         }
         if (currentFirstResponder != nil) {
+            if (currentFirstResponder!.path == model.topmostPathForType(QueryRowType.UserCell) && currentFirstResponder!.target.text == "") {
+                // There is already an empty user input textfield as first responder, so simply return
+                return
+            }
             trace("Resign first responder", currentFirstResponder!.target.text)
         }
         currentFirstResponder?.target.resignFirstResponder()
@@ -370,6 +374,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             searchBar.resignFirstResponder()
         }
         if (currentFirstResponder != nil) {
+            if (currentFirstResponder!.path == model.topmostPathForType(QueryRowType.ClassCell) && currentFirstResponder!.target.text == "") {
+                // There is already an empty class input textfield as first responder, so simply return
+                return
+            }
             trace("Resign first responder", currentFirstResponder!.target.text)
         }
         currentFirstResponder?.target.resignFirstResponder()

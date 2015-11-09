@@ -213,6 +213,8 @@ class SetPager {
     
     func searchSetsWithQuery(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void, trySecondChanceUser: Bool) {
         
+        paginationSize = SetPager.DefaultPaginationSize
+        
         self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: false, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (var queryResult: QueryResult?, response: NSURLResponse?, error: NSError?) in
             
             trace("SEARCH OUT", self.query, resetToken)
@@ -265,13 +267,19 @@ class SetPager {
         self.quizletSession.getAllSetsForUser(self.creator!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (var qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
             
             // Check for NOT FOUND status code
-            let foundUser = (response as? NSHTTPURLResponse)?.statusCode != 404
+            let code = (response as? NSHTTPURLResponse)?.statusCode
+            let foundUser = (code != 404 && code != 410)
             if ((qsets == nil && foundUser) || resetToken < self.resetCounter) {
                 // Cancelled or unexpected error
                 self.loadingPages.remove(page)
                 return
             }
             
+            // Found user and qsets
+            if (qsets == nil) {
+                qsets = []
+            }
+
             self.userSetsCreator = self.creator
             self.userSetsQSets = qsets
 
@@ -279,10 +287,6 @@ class SetPager {
                 SetPager.secondChanceUsers.insert(self.creator!)
             }
             
-            // Found user and qsets
-            if (qsets == nil) {
-                qsets = []
-            }
             self.qsetsResult(qsets, page: page, resetToken: resetToken, completionHandler: completionHandler)
         })
     }
@@ -295,13 +299,22 @@ class SetPager {
             return
         }
         
-        self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
+        self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (var qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
             
             trace("CLASS SEARCH OUT", self.classId, resetToken)
-            if (qsets == nil || resetToken < self.resetCounter) {
+
+            // Check for NOT FOUND status code
+            let code = (response as? NSHTTPURLResponse)?.statusCode
+            let foundClass = (code != 404 && code != 410)
+            if ((qsets == nil && foundClass) || resetToken < self.resetCounter) {
                 self.loadingPages.remove(page)
                 // Cancelled or error - if cancelled do nothing, instead just let the subsequent request fill in the rows
                 return
+            }
+            
+            // Found class and qsets
+            if (qsets == nil) {
+                qsets = []
             }
             
             self.classSetsId = self.classId

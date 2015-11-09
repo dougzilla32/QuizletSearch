@@ -222,9 +222,10 @@ class QuizletSession {
             return nil
         }
         
+        // Status code 200 is 'ok', code 404 is 'not found' and code 410 is 'gone'.  Code 404 and 410 are not errors and indicate the class or user in the query either was not found or has been deleted.
         let httpResponse = response as! NSHTTPURLResponse
         if (httpResponse.statusCode != 200) {
-            if (httpResponse.statusCode != 404) {
+            if (httpResponse.statusCode != 404 && httpResponse.statusCode != 410) {
                 NSLog("Unexpected response for \(url) request: \(NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode))")
                 QuizletSession.logData(data)
             }
