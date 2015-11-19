@@ -24,6 +24,12 @@ class UsersTableViewController: UITableViewController {
         (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()
     }
 
+    override func viewWillAppear(animated: Bool) {
+        UIView.setAnimationsEnabled(false)
+        navigationController?.setNavigationBarHidden(false, animated: false)
+        UIView.setAnimationsEnabled(true)
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         

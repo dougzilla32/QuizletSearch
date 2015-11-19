@@ -20,11 +20,16 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     let MaxDescriptionLength = 350
     
+    let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
-    var model = AddQueryModel()
+    var model: AddQueryModel!
     var keyboardHeight: CGFloat = 0.0
     
     // MARK: - View Controller
+    
+    override func viewWillAppear(animated: Bool) {
+//        navigationController!.setNavigationBarHidden(false, animated: false)
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -49,9 +54,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         // Delay "touches began" so that swipe to delete for textfield cells works properly
         self.tableView.panGestureRecognizer.delaysTouchesBegan = true
         
-        self.navigationController!.navigationBar.titleTextAttributes =
-            [NSFontAttributeName: UIFont(name: "Noteworthy-Bold", size: 18)!]
+//        self.navigationController!.navigationBar.titleTextAttributes =
+//            [NSFontAttributeName: UIFont(name: "Noteworthy-Bold", size: 18)!]
         
+        model = AddQueryModel(/* queryData: dataModel.currentUser!.queries[0] as! Query */)
         model.reloadData()
     }
     
@@ -84,6 +90,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
     
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        print("prepareForSegue AddQueryViewController segue:", segue.identifier, "sender:", (sender as! UIBarButtonItem).title)
+    }
+
     // MARK: - Search Bar
     
     var searchBar: UISearchBar!

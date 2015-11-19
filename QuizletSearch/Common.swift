@@ -48,6 +48,10 @@ func max<T : Comparable>(items: T?...) -> T? {
 class Common {
     static let isSampleMode = false
     
+    class func isEmpty(s: String?) -> Bool {
+        return s == nil || s!.trimWhitespace().isEmpty
+    }
+    
     class func preferredSystemFontForTextStyle(textStyle: String) -> UIFont? {
         // choose the font size
         let fontSize: CGFloat = preferredSystemFontSize()

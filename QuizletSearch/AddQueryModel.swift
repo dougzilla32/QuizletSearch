@@ -70,6 +70,10 @@ class AddQueryModel {
     var rowTypes: [[QueryRowType]] = [[],[]]
     var rowItems: [[String]] = [[],[]]
     
+    init(/* queryData: Query */) {
+        // loadFromDataModel(queryData)
+    }
+    
     // MARK: - Search
     
     func indexPathToPagerIndex(indexPath: NSIndexPath!) -> PagerIndex? {
@@ -409,14 +413,22 @@ class AddQueryModel {
         
         pagers.queryPager = q.query.isEmpty ? nil : SetPager(query: q.query)
 
-        let usernames = q.creators.characters.split{$0 == ","}.map(String.init)
+        // With Swift string: let usernames = q.creators.characters.split{$0 == ","}.map(String.init)
+        // Using NSString for now because Swift strings are slow
+        let usernames = (q.creators as NSString).componentsSeparatedByString(sep)
+        pagers.usernamePagers.removeAll()
+        for name in usernames {
+            pagers.usernamePagers.append(SetPager(query: q.query, creator: name))
+        }
         
         let classIds = (q.classes as NSString).componentsSeparatedByString(sep)
-        // TODO: load QuizletClasses using the Quizlet API
+        pagers.classPagers.removeAll()
+        for id in classIds {
+            pagers.classPagers.append(SetPager(query: q.query, classId: id))
+        }
         
-        let includedIds = (q.includedSets as NSString).componentsSeparatedByString(sep)
-        let excludedIds = (q.excludedSets as NSString).componentsSeparatedByString(sep)
-        // TODO: load QuizletSets for the included and excluded ids using the Quizlet API
+        includedSets = (q.includedSets as NSString).componentsSeparatedByString(sep)
+        excludedSets = (q.excludedSets as NSString).componentsSeparatedByString(sep)
     }
     
     func saveToDataModel(q: Query) {

@@ -69,6 +69,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         super.loadView()
         (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
     }
+    
+    override func viewWillAppear(animated: Bool) {
+        navigationController?.navigationBarHidden = true
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -172,7 +176,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     // MARK: - Search View Controller
     
-    @IBAction func unwindToSearchView(segue: UIStoryboardSegue) {
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        print("prepareForSegue SearchViewController sender:", sender)
+    }
+    
+    @IBAction func unwindFromAddQuery(segue: UIStoryboardSegue) {
+        print("unwindFromAddQuery", segue)
         (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
     }
     
