@@ -1058,6 +1058,23 @@
                                             <outlet property="termLabel" destination="7Od-W1-V7w" id="Wlo-UR-pFI"/>
                                         </connections>
                                     </tableViewCell>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="ActivityCell" rowHeight="44" id="T5c-cE-UmO" customClass="SearchTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="117" width="600" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="T5c-cE-UmO" id="n4p-e7-FET">
+                                            <rect key="frame" x="0.0" y="0.0" width="600" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <activityIndicatorView opaque="NO" tag="100" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="6AQ-u8-xxM">
+                                                    <rect key="frame" x="290" y="12" width="20" height="20"/>
+                                                </activityIndicatorView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="6AQ-u8-xxM" firstAttribute="centerX" secondItem="n4p-e7-FET" secondAttribute="centerX" id="7Qk-Y6-4gX"/>
+                                                <constraint firstItem="6AQ-u8-xxM" firstAttribute="centerY" secondItem="n4p-e7-FET" secondAttribute="centerY" id="rRW-q7-eIs"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
                                 </prototypes>
                                 <sections/>
                                 <connections>

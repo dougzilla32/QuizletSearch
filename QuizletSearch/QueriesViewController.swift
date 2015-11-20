@@ -10,9 +10,6 @@ import UIKit
 
 class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
-    // TODO: remove static, communicate this to AddQueryViewController some other way
-    static var currentQueryData: Query!
-    
     let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
     
     @IBOutlet weak var searchBar: UISearchBar!
@@ -202,7 +199,9 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         if (text!.isEmpty) {
             if (addingRow == indexPath.row) {
                 // Delete
+                let query = (currentUser.queries[indexPath.row] as! Query)
                 currentUser.removeQueryAtIndex(indexPath.row)
+                dataModel.moc.deleteObject(query)
                 dataModel.saveChanges()
                 deleteRow = indexPath
             }
@@ -255,7 +254,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
 
     func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
         trace("select", indexPath.row)
-        
+        dataModel.currentQuery = dataModel.currentUser?.queries[indexPath.row] as? Query
 //        self.performSegueWithIdentifier("MySegue", sender: self)
     }
     
@@ -380,14 +379,11 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             return 44.0
     }
     
-    /*
     // MARK: - Navigation
 
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        trace("prepareForSegue", segue.destinationViewController, sender)
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
     }
-    */
-
 }

@@ -166,12 +166,16 @@ class DataModel: NSObject {
         return user!
     }
     
+    func deleteUser(user: User) {
+        moc.deleteObject(user)
+    }
+    
     func newQueryForUser(user: User) -> Query {
         let query = NSEntityDescription.insertNewObjectForEntityForName("Query",
             inManagedObjectContext: moc) as! Query
         query.title = ""
         query.query = ""
-        query.creators = user.name
+        query.creators = ""
         query.classes = ""
         query.includedSets = ""
         query.excludedSets = ""
@@ -179,6 +183,10 @@ class DataModel: NSObject {
         query.user = user
         query.sets = NSSet()
         return query
+    }
+    
+    func deleteQuery(query: Query) {
+        moc.deleteObject(query)
     }
     
     func refreshModelForCurrentQuery(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {

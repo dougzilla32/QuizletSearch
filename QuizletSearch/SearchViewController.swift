@@ -22,6 +22,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     var observedTableIndexViewWidth: CGFloat?
     
+    var showActivityIndicator = true
+    
     // MARK: - Sorting
     
     var sortedTerms = SortedTerms<SortTerm>()
@@ -101,9 +103,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
-        sortedTerms = SearchViewController.initSortedTerms()
-        executeSearchForQuery(searchBar.text)
-        
         let moc = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext
         NSNotificationCenter.defaultCenter().addObserver(self,
             selector: "contextDidSaveNotification:",
@@ -124,6 +123,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         if (dataModel.currentQuery != nil) {
             searchBar.placeholder = "Search \(dataModel.currentQuery!.title)"
         }
+
+        dispatch_async(dispatch_get_main_queue(), {
+            self.sortedTerms = SearchViewController.initSortedTerms()
+            self.showActivityIndicator = false
+            self.executeSearchForQuery(self.searchBar.text)
+        })
     }
     
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
@@ -398,6 +403,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // MARK: - Table view data source
 
     func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+        if (showActivityIndicator) {
+            return 1
+        }
+        
         // Return the number of sections.
         var numberOfSections: Int
         switch (currentSortSelection()) {
@@ -421,6 +430,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+        if (showActivityIndicator) {
+            return 1
+        }
+        
         // Return the number of rows in the section.
         var numberOfRows: Int
         switch (currentSortSelection()) {
@@ -451,6 +464,13 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     //
     
     override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+        if (showActivityIndicator) {
+            let cell = tableView.dequeueReusableCellWithIdentifier("ActivityCell", forIndexPath: indexPath)
+            let activityIndicator = cell.contentView.viewWithTag(100) as! UIActivityIndicatorView
+            activityIndicator.startAnimating()
+            return cell
+        }
+        
         let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell", forIndexPath: indexPath) as! SearchTableViewCell
         configureCell(cell, atIndexPath: indexPath)
         return cell
@@ -499,6 +519,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
      * to test this because Xcode 7 does not support the iOS 7 simulator.
      */
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+        if (showActivityIndicator) {
+            return 44 // calculateHeight(tableView.dequeueReusableCellWithIdentifier("ActivityCell")!)
+        }
+        
         configureCell(sizingCell, atIndexPath:indexPath)
         return calculateRowHeight(sizingCell)
     }
@@ -525,6 +549,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+            if (showActivityIndicator) {
+                return self.tableView(tableView, heightForRowAtIndexPath: indexPath)
+            }
             
             /* TODO: make sure performance is ok for large sets, may need to go back to quicker estimates
              if (estimatedHeight == nil) {
@@ -593,6 +620,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }()
     
     func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        if (showActivityIndicator) {
+            return 0
+        }
+        
         configureHeaderCell(headerSizingCell, section: section)
         return calculateHeaderHeight(headerSizingCell)
     }
