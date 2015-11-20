@@ -137,6 +137,8 @@
 				910BC27A1BC8DD28007F1A9E /* LabelTableViewCell.swift */,
 				91EF24231BCC4C8300CABA3C /* TextInputTableViewCell.swift */,
 				910AAEB01BAB612000655131 /* TableContainerController.swift */,
+				916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */,
+				912DFCF61BBAD106002D67FA /* SetPager.swift */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -203,8 +205,6 @@
 				911C41081BA10A21007E0AEE /* SearchOperation.swift */,
 				91EA7CFD1BB0BD3C00273996 /* AddQueryViewController.swift */,
 				910BC27C1BCA19B9007F1A9E /* AddQueryModel.swift */,
-				916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */,
-				912DFCF61BBAD106002D67FA /* SetPager.swift */,
 				91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */,
 				91B4AB501B683CF40043675A /* Algorithms */,
 				9118D8A21BF4602000C5897C /* Common */,

@@ -411,24 +411,7 @@ class AddQueryModel {
         type = q.type
         title = q.title
         
-        pagers.queryPager = q.query.isEmpty ? nil : SetPager(query: q.query)
-
-        // With Swift string: let usernames = q.creators.characters.split{$0 == ","}.map(String.init)
-        // Using NSString for now because Swift strings are slow
-        let usernames = (q.creators as NSString).componentsSeparatedByString(sep)
-        pagers.usernamePagers.removeAll()
-        for name in usernames {
-            pagers.usernamePagers.append(SetPager(query: q.query, creator: name))
-        }
-        
-        let classIds = (q.classes as NSString).componentsSeparatedByString(sep)
-        pagers.classPagers.removeAll()
-        for id in classIds {
-            pagers.classPagers.append(SetPager(query: q.query, classId: id))
-        }
-        
-        includedSets = (q.includedSets as NSString).componentsSeparatedByString(sep)
-        excludedSets = (q.excludedSets as NSString).componentsSeparatedByString(sep)
+        pagers.loadFromDataModel(q)
     }
     
     func saveToDataModel(q: Query) {

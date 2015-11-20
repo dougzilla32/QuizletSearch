@@ -41,6 +41,7 @@ class PagerIndex {
 }
 
 class QueryPagers: SequenceType {
+    let sep = ","
     let MinTotalResultsHighWaterMark = 10
     let MaxTotalResults = 300
     
@@ -52,9 +53,6 @@ class QueryPagers: SequenceType {
     var includedSetsPager: SetPager?
     // var excludedSets: [QSet] = []
 
-    var firstChanceUsers = Set<String>()  // Users that definitively work with 'searchSetsWithQuery'
-    var secondChanceUsers = Set<String>() // Users that definitively do not work with 'searchSetsWithQuery'
-    
     var totalResults: Int?
     var totalResultsNoMax: Int?
     
@@ -82,7 +80,90 @@ class QueryPagers: SequenceType {
         SetPager.secondChanceUsers.removeAll()
     }
     
+    convenience init(query: Query) {
+        self.init()
+        
+        loadFromDataModel(query)
+    }
+    
+    func loadFromDataModel(q: Query) {
+        queryPager = q.query.isEmpty ? nil : SetPager(query: q.query)
+        
+        // With Swift string: let usernames = q.creators.characters.split{$0 == ","}.map(String.init)
+        // Using NSString for now because Swift strings are slow
+        let usernames = (q.creators as NSString).componentsSeparatedByString(sep)
+        usernamePagers.removeAll()
+        for name in usernames {
+            usernamePagers.append(SetPager(query: q.query, creator: name))
+        }
+        
+        let classIds = (q.classes as NSString).componentsSeparatedByString(sep)
+        classPagers.removeAll()
+        for id in classIds {
+            classPagers.append(SetPager(query: q.query, classId: id))
+        }
+        
+        // includedSetsPager = SetPager(includedSets: (q.includedSets as NSString).componentsSeparatedByString(sep))
+        // excludedSets = (q.excludedSets as NSString).componentsSeparatedByString(sep)
+    }
+    
     // MARK: - Query
+    
+    let MaxTermCount = 5000
+    
+    func executeFullSearch(completionHandler completionHandler: ([QSet]?, Int) -> Void) {
+        trace("executeFullSearch START")
+        let generator = generate()
+        let qsets = [QSet]()
+        loadNextPage(currentPager: generator.next(), currentPageNumber: 1, generator: generator, qsets: qsets, termCount: 0, completionHandler: completionHandler)
+    }
+    
+    func loadNextPage(var currentPager currentPager: SetPager!, var currentPageNumber: Int, generator: AnyGenerator<SetPager>, var qsets: [QSet], var termCount: Int, completionHandler: ([QSet]?, Int) -> Void) {
+        if (currentPager == nil) {
+            trace("executeFullSearch COMPLETE qsets.count:", qsets.count, "termCount:", termCount)
+            completionHandler(qsets, termCount)
+            return
+        }
+        
+        trace("loadNextPage",
+            "query:", currentPager.query != nil ? currentPager.query! : "nil",
+            "creator:", currentPager.creator != nil ? currentPager.creator! : "nil",
+            "classId:", currentPager.classId != nil ? currentPager.classId! : "nil")
+        
+        currentPager.pagerPause = true
+        
+        currentPager.loadPage(currentPageNumber, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+            
+            if (response != .Complete) {
+                return
+            }
+            
+            let newQSets = currentPager.qsets?[currentPageNumber-1]
+            currentPager.qsets?[currentPageNumber-1] = nil
+            
+            if (newQSets != nil) {
+                for s in newQSets! {
+                    if (termCount + s.terms.count > self.MaxTermCount) {
+                        trace("executeFullSearch MAXED qsets.count:", qsets.count, "termCount:", termCount, "MaxTermCount:", self.MaxTermCount)
+                        completionHandler(qsets, termCount)
+                        return
+                    }
+                    qsets.append(s)
+                    termCount += s.terms.count
+                }
+            }
+            
+            if (newQSets == nil || currentPageNumber >= currentPager.totalPages) {
+                currentPager = generator.next()
+                currentPageNumber = 1
+            }
+            else {
+                currentPageNumber++
+            }
+            
+            self.loadNextPage(currentPager: currentPager, currentPageNumber: currentPageNumber, generator: generator, qsets: qsets, termCount: termCount, completionHandler: completionHandler)
+        })
+    }
     
     func executeSearch(pagerIndex: PagerIndex?, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         
@@ -95,7 +176,7 @@ class QueryPagers: SequenceType {
         
         if (isEmpty()) {
             self.updateTotals()
-            completionHandler(affectedResults: nil, totalResults: totalResults, response: PagerResponse.Last)
+            completionHandler(affectedResults: nil, totalResults: totalResults, response: PagerResponse.Complete)
         }
         else {
             loadFirstPages(completionHandler: completionHandler)
@@ -244,6 +325,8 @@ class QueryPagers: SequenceType {
     
     func loadFirstPages(completionHandler completionHandler: (affectedRows: Range<Int>, totalResults: Int?, response: PagerResponse) -> Void) {
         for pager in self {
+            pager.pagerPause = true
+            
             pager.loadPage(1, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
                 self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)
             })

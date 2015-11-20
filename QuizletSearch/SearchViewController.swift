@@ -234,10 +234,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             let sortedTerms = SearchViewController.initSortedTerms()
             
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
-            dispatch_sync(dispatch_get_main_queue(), {
+            dispatch_sync_main({
                 self.sortedTerms = sortedTerms
                 self.executeSearchForQuery(self.searchBar.text)
-            });
+            })
         }
     }
     

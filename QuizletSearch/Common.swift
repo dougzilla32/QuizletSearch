@@ -45,6 +45,15 @@ func max<T : Comparable>(items: T?...) -> T? {
     return m
 }
 
+func dispatch_sync_main(block: dispatch_block_t) -> Void {
+    if (NSThread.isMainThread()) {
+        block()
+    }
+    else {
+        dispatch_sync(dispatch_get_main_queue(), block)
+    }
+}
+
 class Common {
     static let isSampleMode = false
     

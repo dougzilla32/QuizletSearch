@@ -10,20 +10,21 @@ import UIKit
 import Foundation
 
 enum PagerResponse {
-    case First, Last
+    case Partial, Complete
 }
 
 class SetPager {
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     
     static let DefaultPaginationSize = 30
-    static var firstChanceUsers = Set<String>()
-    static var secondChanceUsers = Set<String>()
+    static var firstChanceUsers = Set<String>()  // Users that definitively work with 'searchSetsWithQuery'
+    static var secondChanceUsers = Set<String>() // Users that definitively do not work with 'searchSetsWithQuery'
 
     var paginationSize = DefaultPaginationSize
     var query: String?
     var creator: String?
     var classId: String?
+    var pagerPause = true
 
     var qsets: [[QSet]?]?
     var qsetsToken = 0
@@ -161,7 +162,7 @@ class SetPager {
             self.qsets = nil
             self.qsetsToken = resetCounter
             if (enabled) {
-                completionHandler(affectedResults: 0..<0, totalResults: 0, response: PagerResponse.Last)
+                completionHandler(affectedResults: 0..<0, totalResults: 0, response: PagerResponse.Complete)
             }
             return
         }
@@ -187,7 +188,8 @@ class SetPager {
 
         trace("SEARCH IN", self.query, q, resetToken)
         // Insert a delay so that keyboard response on the iPhone is better
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/4)), dispatch_get_main_queue(), {
+        let t = pagerPause ? dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/4)) : DISPATCH_TIME_NOW
+        dispatch_after(t, dispatch_get_main_queue(), {
             
             if (resetToken < self.resetCounter) {
                 self.loadingPages.remove(page)
@@ -232,7 +234,7 @@ class SetPager {
                 self.getAllSetsForUser(page: page, resetToken: resetToken, completionHandler: completionHandler)
             }
             else {
-                self.loadPageResult(queryResult!, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                self.loadPageResult(queryResult!, response: .Partial, page: page, resetToken: resetToken, completionHandler: completionHandler)
                 
                 if (queryResult!.totalResults > 0) {
                     var setIds = [Int64]()
@@ -248,7 +250,7 @@ class SetPager {
                         }
                         
                         queryResult = QueryResult(copyFrom: queryResult!, qsets: qsets!)
-                        self.loadPageResult(queryResult!, response: .Last, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                        self.loadPageResult(queryResult!, response: .Complete, page: page, resetToken: resetToken, completionHandler: completionHandler)
                     })
                 }
             }
@@ -372,13 +374,13 @@ class SetPager {
         
         let queryResult = QueryResult(page: page, totalPages: (qsets.count > 0) ? 1 : 0, totalResults: qsets.count, imageSetCount: 0, qsets: qsets)
         
-        self.loadPageResult(queryResult, response: .First, page: page, resetToken: resetToken, completionHandler: completionHandler)
+        self.loadPageResult(queryResult, response: .Complete, page: page, resetToken: resetToken, completionHandler: completionHandler)
     }
     
     func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
         dispatch_async(dispatch_get_main_queue(), {
             trace("SEARCH RESULT", self.query, result.qsets.count)
-            if (response == .First) {
+            if (response == .Complete) {
                 self.loadingPages.remove(page)
             }
             

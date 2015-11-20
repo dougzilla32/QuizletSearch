@@ -31,7 +31,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
             id = "ErrorViewController"
         }
         
-        setRootViewControllerWithIdentifier(id)
+//        setRootViewControllerWithIdentifier(id)
 
         return true
     }
@@ -54,7 +54,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
         // Refresh the data model
-        self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?) in
+        self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?, termCount: Int) in
             if (completionHandler != nil) {
                 completionHandler!(qsets)
             }
@@ -78,7 +78,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     func refresh() {
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
-        self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?) in
+        self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?, termCount: Int) in
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         })
     }

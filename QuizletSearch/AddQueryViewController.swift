@@ -149,7 +149,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         model.pagers.executeSearch(pagerIndex, completionHandler: { (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
             
             self.safelyReloadData(affectedResults: affectedResults, totalResults: totalResults)
-            if (response == .First && firstLoaded && totalResults > 0) {
+            if (firstLoaded && totalResults > 0) {
                 self.scrollTo(scrollTarget)
                 firstLoaded = false
             }

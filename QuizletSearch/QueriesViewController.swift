@@ -382,7 +382,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     // MARK: - Navigation
 
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        trace("prepareForSegue", segue.destinationViewController, sender)
+        // trace("prepareForSegue", segue.destinationViewController, sender)
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
     }

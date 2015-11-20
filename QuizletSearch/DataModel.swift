@@ -189,45 +189,17 @@ class DataModel: NSObject {
         moc.deleteObject(query)
     }
     
-    func refreshModelForCurrentQuery(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?) -> Void) {
+    func refreshModelForCurrentQuery(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?, Int) -> Void) {
         guard let q = currentQuery else {
             return
         }
         
-        if (!q.query.isEmpty) {
-        }
-        else if (!q.creators.isEmpty) {
-            var creators = DataModel.parseCreators(q.creators)
-            // TODO: handle multiple creators
-            // TODO: handle classes
+        let pagers = QueryPagers(query: q)
 
-            if (creators[0].isFavoritesFolder()) {
-                quizletSession.getFavoriteSetsForUser(currentUser!.name, modifiedSince: 0, allowCellularAccess: allowCellularAccess,
-                    completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
-                        if (qsets != nil) {
-                            self.updateTermsForQuery(q, qsets: qsets)
-                        }
-                        completionHandler(qsets)
-                })
-            }
-            else {
-                var getAllSetsForUserFunction = quizletSession.getAllSetsForUser
-                if (Common.isSampleMode) {
-                    getAllSetsForUserFunction = quizletSession.getAllSampleSetsForUser
-                }
-                
-                getAllSetsForUserFunction(creators[0].username, modifiedSince: q.maxModifiedDate, allowCellularAccess: allowCellularAccess,
-                    completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
-                        if (qsets != nil) {
-                            self.updateTermsForQuery(q, qsets: qsets)
-                        }
-                        completionHandler(qsets)
-                })
-            }
-        }
-        else if (!q.classes.isEmpty) {
-            // TODO: handle classes
-        }
+        pagers.executeFullSearch(completionHandler: { (qsets: [QSet]?, termCount: Int) in
+            self.updateTermsForQuery(q, qsets: qsets)
+            completionHandler(qsets, termCount)
+        })
     }
     
     class Creator {
