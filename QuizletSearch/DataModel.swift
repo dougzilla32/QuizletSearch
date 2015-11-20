@@ -166,23 +166,6 @@ class DataModel: NSObject {
         return user!
     }
     
-    /*
-    func createDefaultQueryForUser(user: User) -> Query {
-        let query = NSEntityDescription.insertNewObjectForEntityForName("Query",
-            inManagedObjectContext: moc) as! Query
-        query.title = "My Sets"
-        query.query = ""
-        query.creators = user.name
-        query.classes = ""
-        query.includedSets = ""
-        query.excludedSets = ""
-        query.maxModifiedDate = 0
-        query.user = user
-        query.sets = NSSet()
-        return query
-    }
-    */
-    
     func newQueryForUser(user: User) -> Query {
         let query = NSEntityDescription.insertNewObjectForEntityForName("Query",
             inManagedObjectContext: moc) as! Query

@@ -104,10 +104,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         sortedTerms = SearchViewController.initSortedTerms()
         executeSearchForQuery(searchBar.text)
         
-        // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
-
         let moc = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext
         NSNotificationCenter.defaultCenter().addObserver(self,
             selector: "contextDidSaveNotification:",
@@ -189,26 +185,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
  
-    func keyboardWillShow(notification: NSNotification) {
-        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
-    
-            var contentInsets: UIEdgeInsets
-            if (UIInterfaceOrientationIsPortrait(UIApplication.sharedApplication().statusBarOrientation)) {
-                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.height, 0.0);
-            } else {
-                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.width, 0.0);
-            }
-    
-            self.tableView.contentInset = contentInsets;
-            self.tableView.scrollIndicatorInsets = contentInsets;
-        }
-    }
-
-    func keyboardWillHide(notification: NSNotification) {
-        self.tableView.contentInset = UIEdgeInsetsZero
-        self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero
-    }
-    
     func refreshTable() {
         (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
             self.refreshControl.endRefreshing()

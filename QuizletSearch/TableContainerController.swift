@@ -29,6 +29,10 @@ class TableContainerController: UIViewController, UITableViewDelegate, UIScrollV
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
+        
         if (refreshing) {
             // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
             refreshControl = UIRefreshControl()
@@ -36,6 +40,26 @@ class TableContainerController: UIViewController, UITableViewDelegate, UIScrollV
             tableView.addSubview(refreshControl)
             tableView.sendSubviewToBack(refreshControl)
         }
+    }
+    
+    func keyboardWillShow(notification: NSNotification) {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
+            
+            var contentInsets: UIEdgeInsets
+            if (UIInterfaceOrientationIsPortrait(UIApplication.sharedApplication().statusBarOrientation)) {
+                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.height, 0.0);
+            } else {
+                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.width, 0.0);
+            }
+            
+            self.tableView.contentInset = contentInsets;
+            self.tableView.scrollIndicatorInsets = contentInsets;
+        }
+    }
+    
+    func keyboardWillHide(notification: NSNotification) {
+        self.tableView.contentInset = UIEdgeInsetsZero
+        self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero
     }
     
     // The UITableViewController deselects the currently selected row when the table becomes visible.  We are not subclassing UITableViewController because we want to customize the view with additional elements, and the UITableViewController does not allow for this.
