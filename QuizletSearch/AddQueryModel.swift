@@ -70,10 +70,6 @@ class AddQueryModel {
     var rowTypes: [[QueryRowType]] = [[],[]]
     var rowItems: [[String]] = [[],[]]
     
-    init(/* queryData: Query */) {
-        // loadFromDataModel(queryData)
-    }
-    
     // MARK: - Search
     
     func indexPathToPagerIndex(indexPath: NSIndexPath!) -> PagerIndex? {
@@ -422,29 +418,8 @@ class AddQueryModel {
             q.title = title
         }
         
-        let query = (pagers.queryPager?.query != nil) ? pagers.queryPager!.query! : ""
-        if (q.query != query) {
-            q.query = query
-        }
-        
-        var usernames = [String]()
-        for pager in pagers.usernamePagers {
-            usernames.append(pager.creator!)
-        }
-        let creators = usernames.joinWithSeparator(sep)
-        if (q.creators != creators) {
-            q.creators = creators
-        }
-        
-        var ids = [String]()
-        for pager in pagers.classPagers {
-            ids.append(pager.classId!)
-        }
-        let classIds = ids.joinWithSeparator(sep)
-        if (q.classes != classIds) {
-            q.classes = classIds
-        }
-        
+        pagers.saveToDataModel(q)
+
         let includedIds = includedSets.joinWithSeparator(sep)
         if (q.includedSets != includedIds) {
             q.includedSets = includedIds

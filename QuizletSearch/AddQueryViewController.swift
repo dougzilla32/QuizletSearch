@@ -57,7 +57,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 //        self.navigationController!.navigationBar.titleTextAttributes =
 //            [NSFontAttributeName: UIFont(name: "Noteworthy-Bold", size: 18)!]
         
-        model = AddQueryModel(/* queryData: dataModel.currentUser!.queries[0] as! Query */)
+        model = AddQueryModel()
+        model.loadFromDataModel(dataModel.currentQuery!)
         model.reloadData()
     }
     
@@ -92,6 +93,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         print("prepareForSegue AddQueryViewController segue:", segue.identifier, "sender:", (sender as! UIBarButtonItem).title)
+        model.saveToDataModel(dataModel.currentQuery!)
     }
 
     // MARK: - Search Bar

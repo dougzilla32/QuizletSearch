@@ -144,6 +144,7 @@ class DataModel: NSObject {
             
             let query = newQueryForUser(newUser)
             query.title = "My Sets"
+            query.creators = newUser.name
             newUser.queries = NSOrderedSet(object: query)
 
             let mutableUsers = root.users.mutableCopy() as! NSMutableOrderedSet
@@ -173,6 +174,7 @@ class DataModel: NSObject {
     func newQueryForUser(user: User) -> Query {
         let query = NSEntityDescription.insertNewObjectForEntityForName("Query",
             inManagedObjectContext: moc) as! Query
+        query.type = ""
         query.title = ""
         query.query = ""
         query.creators = ""
@@ -189,6 +191,7 @@ class DataModel: NSObject {
         moc.deleteObject(query)
     }
     
+    // TODO: guard against "refresh" call while already refreshing.  This requires having the completionHandler called in all cases including cancel and error.
     func refreshModelForCurrentQuery(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?, Int) -> Void) {
         guard let q = currentQuery else {
             return

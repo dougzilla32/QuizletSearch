@@ -804,13 +804,7 @@
                     </tableView>
                     <extendedEdge key="edgesForExtendedLayout" bottom="YES"/>
                     <navigationItem key="navigationItem" title="Quizlet Sets" id="hJY-fZ-wS3">
-                        <barButtonItem key="leftBarButtonItem" systemItem="cancel" id="TUD-2E-KYu">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                            <connections>
-                                <segue destination="1du-tI-dW2" kind="unwind" identifier="Cancel" unwindAction="unwindFromAddQuery:" id="WyI-7y-Io3"/>
-                            </connections>
-                        </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" systemItem="save" id="c6z-sf-a90">
+                        <barButtonItem key="leftBarButtonItem" systemItem="done" id="c6z-sf-a90">
                             <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                             <connections>
                                 <segue destination="1du-tI-dW2" kind="unwind" identifier="Save" unwindAction="unwindFromAddQuery:" id="rct-yY-k3J"/>
@@ -1136,7 +1130,7 @@
         <!--Navigation Controller-->
         <scene sceneID="oyw-ic-17H">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="ZVE-uh-d8d" sceneMemberID="viewController">
+                <navigationController storyboardIdentifier="QueriesNavigationController" automaticallyAdjustsScrollViewInsets="NO" id="ZVE-uh-d8d" sceneMemberID="viewController">
                     <toolbarItems/>
                     <navigationBar key="navigationBar" contentMode="scaleToFill" barStyle="black" translucent="NO" id="nkb-ng-sZr">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>

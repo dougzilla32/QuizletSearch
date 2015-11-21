@@ -8,6 +8,7 @@
         <attribute name="maxModifiedDate" optional="YES" attributeType="Integer 64" defaultValueString="0" syncable="YES"/>
         <attribute name="query" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="title" optional="YES" attributeType="String" syncable="YES"/>
+        <attribute name="type" optional="YES" attributeType="String" syncable="YES"/>
         <relationship name="sets" optional="YES" toMany="YES" deletionRule="Nullify" destinationEntity="QuizletSet" inverseName="queries" inverseEntity="QuizletSet" syncable="YES"/>
         <relationship name="user" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="User" inverseName="queries" inverseEntity="User" syncable="YES"/>
     </entity>
@@ -42,7 +43,7 @@
         <relationship name="root" optional="YES" maxCount="1" deletionRule="Nullify" destinationEntity="Root" inverseName="users" inverseEntity="Root" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Query" positionX="0" positionY="81" width="128" height="180"/>
+        <element name="Query" positionX="0" positionY="81" width="128" height="195"/>
         <element name="QuizletSet" positionX="-63" positionY="-18" width="128" height="210"/>
         <element name="Root" positionX="-27" positionY="72" width="128" height="60"/>
         <element name="Term" positionX="-54" positionY="27" width="128" height="105"/>

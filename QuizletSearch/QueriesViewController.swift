@@ -9,8 +9,11 @@
 import UIKit
 
 class QueriesViewController: TableContainerController, UITextFieldDelegate {
-    
-    let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
+
+    // Load dataModel lazily so the app gets a chance to show the model load error message in the case where the data model is out of sync.
+    lazy var dataModel: DataModel = {
+        return (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
+    }()
     
     @IBOutlet weak var searchBar: UISearchBar!
 

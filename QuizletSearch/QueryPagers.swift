@@ -107,6 +107,33 @@ class QueryPagers: SequenceType {
         // excludedSets = (q.excludedSets as NSString).componentsSeparatedByString(sep)
     }
     
+    // TODO: FIX ME -- not working correctly with "query=hi" and "username=dougzilla32", runs the "hi" query separately
+    // Also, before fixing test that the MaxTermLimit is working correctly
+    func saveToDataModel(q: Query) {
+        let query = (queryPager?.query != nil) ? queryPager!.query! : ""
+        if (q.query != query) {
+            q.query = query
+        }
+        
+        var usernames = [String]()
+        for pager in usernamePagers {
+            usernames.append(pager.creator!)
+        }
+        let creators = usernames.joinWithSeparator(sep)
+        if (q.creators != creators) {
+            q.creators = creators
+        }
+        
+        var ids = [String]()
+        for pager in classPagers {
+            ids.append(pager.classId!)
+        }
+        let classIds = ids.joinWithSeparator(sep)
+        if (q.classes != classIds) {
+            q.classes = classIds
+        }
+    }
+    
     // MARK: - Query
     
     let MaxTermCount = 5000
@@ -130,7 +157,7 @@ class QueryPagers: SequenceType {
             "creator:", currentPager.creator != nil ? currentPager.creator! : "nil",
             "classId:", currentPager.classId != nil ? currentPager.classId! : "nil")
         
-        currentPager.pagerPause = true
+        currentPager.pagerPause = Int64(NSEC_PER_SEC/100)
         
         currentPager.loadPage(currentPageNumber, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
             
@@ -325,7 +352,7 @@ class QueryPagers: SequenceType {
     
     func loadFirstPages(completionHandler completionHandler: (affectedRows: Range<Int>, totalResults: Int?, response: PagerResponse) -> Void) {
         for pager in self {
-            pager.pagerPause = true
+            pager.pagerPause = SetPager.DefaultPagerPause
             
             pager.loadPage(1, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
                 self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)

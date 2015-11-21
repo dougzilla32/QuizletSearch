@@ -16,6 +16,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     
     var window: UIWindow?
     
+    let QueriesViewController = "QueriesNavigationController"
+    let LoginViewController = "LoginViewController"
+    static let ErrorViewController = "ErrorViewController"
+    
     lazy var dataModel: DataModel = {
         return DataModel(managedObjectContext: self.managedObjectContext!, quizletSession: self.quizletSession)
     }()
@@ -26,17 +30,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
 
         var id: String
         if (managedObjectContext != nil) {
-            id = (dataModel.currentUser == nil) ? "LoginViewController" : "SearchViewController"
+            id = (dataModel.currentUser == nil) ? LoginViewController : QueriesViewController
         } else {
-            id = "ErrorViewController"
+            id = AppDelegate.ErrorViewController
         }
         
-//        setRootViewControllerWithIdentifier(id)
+        initRootViewControllerWithIdentifier(id)
 
         return true
     }
     
-    func setRootViewControllerWithIdentifier(id: String) {
+    func initRootViewControllerWithIdentifier(id: String) {
         let storyboard = self.window!.rootViewController!.storyboard!
         self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id)
     }
@@ -86,7 +90,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
 
         if (url.scheme == "quizletsearch") {
-            self.setRootViewControllerWithIdentifier("SearchViewController")
+            self.initRootViewControllerWithIdentifier(QueriesViewController)
             
             if (Common.isSampleMode) {
                 // Sustitute a sample user, for use when the quizlet authentication server is down
@@ -126,7 +130,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         self.saveContext()
         self.refreshAndRestartTimer(allowCellularAccess: true)
 
-        self.setRootViewControllerWithIdentifier("SearchViewController")
+        self.initRootViewControllerWithIdentifier(QueriesViewController)
     }
     
     func applicationWillResignActive(application: UIApplication) {
@@ -176,6 +180,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         } catch var error as NSError {
             coordinator = nil
             NSLog("Initialization error \(error), \(error.userInfo)")
+            
+            (UIApplication.sharedApplication().delegate as! AppDelegate).initRootViewControllerWithIdentifier(ErrorViewController)
             
             var reason = String(format: NSLocalizedString("Model load error", comment: ""),
                 (error.userInfo["reason"] as! String))

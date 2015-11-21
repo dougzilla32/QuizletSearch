@@ -17,6 +17,8 @@ class SetPager {
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     
     static let DefaultPaginationSize = 30
+    static let DefaultPagerPause = Int64(NSEC_PER_SEC/4)
+    
     static var firstChanceUsers = Set<String>()  // Users that definitively work with 'searchSetsWithQuery'
     static var secondChanceUsers = Set<String>() // Users that definitively do not work with 'searchSetsWithQuery'
 
@@ -24,8 +26,8 @@ class SetPager {
     var query: String?
     var creator: String?
     var classId: String?
-    var pagerPause = true
-
+    var pagerPause = DefaultPagerPause
+    
     var qsets: [[QSet]?]?
     var qsetsToken = 0
     var resetCounter = 0
@@ -188,8 +190,7 @@ class SetPager {
 
         trace("SEARCH IN", self.query, q, resetToken)
         // Insert a delay so that keyboard response on the iPhone is better
-        let t = pagerPause ? dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/4)) : DISPATCH_TIME_NOW
-        dispatch_after(t, dispatch_get_main_queue(), {
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, pagerPause), dispatch_get_main_queue(), {
             
             if (resetToken < self.resetCounter) {
                 self.loadingPages.remove(page)

@@ -520,7 +520,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
      */
     func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
         if (showActivityIndicator) {
-            return 44 // calculateHeight(tableView.dequeueReusableCellWithIdentifier("ActivityCell")!)
+            return UITableViewAutomaticDimension
         }
         
         configureCell(sizingCell, atIndexPath:indexPath)
