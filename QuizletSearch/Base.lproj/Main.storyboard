@@ -4,6 +4,7 @@
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="9049"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
+        <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
     </dependencies>
     <scenes>
         <!--Login View Controller-->
@@ -247,7 +248,7 @@
                                             <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <segue destination="YJo-Ot-ngx" kind="show" id="xX1-JT-wXW"/>
+                                            <segue destination="YJo-Ot-ngx" kind="show" identifier="EditUsers" id="xX1-JT-wXW"/>
                                         </connections>
                                     </button>
                                     <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Quizlet Search" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="Az0-7N-gFN">
@@ -321,7 +322,7 @@
                                             </constraints>
                                         </tableViewCellContentView>
                                         <connections>
-                                            <segue destination="bQl-lE-mnK" kind="show" id="SbH-H1-auB"/>
+                                            <segue destination="bQl-lE-mnK" kind="show" identifier="Search" id="SbH-H1-auB"/>
                                         </connections>
                                     </tableViewCell>
                                     <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="TextField" id="ylq-Ma-brs">
@@ -363,7 +364,7 @@
                                                         <color key="titleColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
                                                     </state>
                                                     <connections>
-                                                        <action selector="add:" destination="RWF-r3-wqn" eventType="primaryActionTriggered" id="xpS-ec-8ej"/>
+                                                        <segue destination="mBm-hZ-Rd7" kind="presentation" identifier="AddQuery" id="v9C-5y-1HI"/>
                                                     </connections>
                                                 </button>
                                             </subviews>
@@ -804,13 +805,41 @@
                     </tableView>
                     <extendedEdge key="edgesForExtendedLayout" bottom="YES"/>
                     <navigationItem key="navigationItem" title="Quizlet Sets" id="hJY-fZ-wS3">
-                        <barButtonItem key="leftBarButtonItem" systemItem="done" id="c6z-sf-a90">
-                            <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                            <connections>
-                                <segue destination="1du-tI-dW2" kind="unwind" identifier="Save" unwindAction="unwindFromAddQuery:" id="rct-yY-k3J"/>
-                            </connections>
-                        </barButtonItem>
+                        <leftBarButtonItems>
+                            <barButtonItem systemItem="cancel" id="3bG-3c-JmQ" userLabel="Cancel Add Query">
+                                <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <segue destination="1du-tI-dW2" kind="unwind" identifier="AddQueryCancel" unwindAction="unwindFromAddQuery:" id="DCo-Gb-GWB"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem systemItem="cancel" id="DNP-gO-kF1" userLabel="Cancel Edit Query">
+                                <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <segue destination="1du-tI-dW2" kind="unwind" identifier="EditQueryCancel" unwindAction="unwindFromEditQuery:" id="Kqz-ZV-lYv"/>
+                                </connections>
+                            </barButtonItem>
+                        </leftBarButtonItems>
+                        <rightBarButtonItems>
+                            <barButtonItem systemItem="save" id="c6z-sf-a90">
+                                <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <segue destination="1du-tI-dW2" kind="unwind" identifier="EditQuerySave" unwindAction="unwindFromEditQuery:" id="3s0-cI-y88"/>
+                                </connections>
+                            </barButtonItem>
+                            <barButtonItem title="Add" id="WMX-jT-5Qo">
+                                <color key="tintColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <connections>
+                                    <segue destination="1du-tI-dW2" kind="unwind" identifier="AddQueryAdd" unwindAction="unwindFromAddQuery:" id="0Cw-fM-kJW"/>
+                                </connections>
+                            </barButtonItem>
+                        </rightBarButtonItems>
                     </navigationItem>
+                    <connections>
+                        <outlet property="addButton" destination="WMX-jT-5Qo" id="gkM-7K-vDb"/>
+                        <outlet property="cancelAddQuery" destination="3bG-3c-JmQ" id="XKa-w4-01Z"/>
+                        <outlet property="cancelEditQuery" destination="DNP-gO-kF1" id="QvD-wo-VN0"/>
+                        <outlet property="saveButton" destination="c6z-sf-a90" id="ewV-vS-Dda"/>
+                    </connections>
                 </tableViewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="OF3-kq-hYV" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <exit id="1du-tI-dW2" userLabel="Exit" sceneMemberID="exit"/>
@@ -973,7 +1002,7 @@
                                             <color key="titleColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                         </state>
                                         <connections>
-                                            <segue destination="mBm-hZ-Rd7" kind="presentation" modalTransitionStyle="coverVertical" id="Dkh-38-rks"/>
+                                            <segue destination="mBm-hZ-Rd7" kind="presentation" identifier="EditQuery" modalTransitionStyle="coverVertical" id="Dkh-38-rks"/>
                                         </connections>
                                     </button>
                                 </subviews>
@@ -1125,7 +1154,7 @@
                 <placeholder placeholderIdentifier="IBFirstResponder" id="5Co-Ox-AjM" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <exit id="tBm-ae-7KW" userLabel="Exit" sceneMemberID="exit"/>
             </objects>
-            <point key="canvasLocation" x="2448" y="-552"/>
+            <point key="canvasLocation" x="2396" y="-294"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="oyw-ic-17H">
@@ -1177,4 +1206,7 @@
         <image name="Plus Button" width="21" height="21"/>
         <image name="User" width="1132" height="1132"/>
     </resources>
+    <inferredMetricsTieBreakers>
+        <segue reference="Dkh-38-rks"/>
+    </inferredMetricsTieBreakers>
 </document>

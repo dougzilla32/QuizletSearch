@@ -20,14 +20,36 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     let MaxDescriptionLength = 350
     
-    let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
     let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
     var model: AddQueryModel!
     var keyboardHeight: CGFloat = 0.0
     
+    var queryToLoad: Query?
+    
+    @IBOutlet var addButton: UIBarButtonItem!
+    @IBOutlet var cancelAddQuery: UIBarButtonItem!
+
+    @IBOutlet var saveButton: UIBarButtonItem!
+    @IBOutlet var cancelEditQuery: UIBarButtonItem!
+    
+    func configureForAdd() {
+        self.navigationItem.leftBarButtonItems = [cancelAddQuery]
+        self.navigationItem.rightBarButtonItems = [addButton]
+    }
+    
+    func configureForSave(queryToLoad: Query) {
+        self.navigationItem.leftBarButtonItems = [cancelEditQuery]
+        self.navigationItem.rightBarButtonItems = [saveButton]
+        self.queryToLoad = queryToLoad
+    }
+    
     // MARK: - View Controller
     
     override func viewWillAppear(animated: Bool) {
+        addButton.setTitleTextAttributes(
+            [ NSFontAttributeName: UIFont.boldSystemFontOfSize(17.0) ],
+            forState: UIControlState.Normal)
+
 //        navigationController!.setNavigationBarHidden(false, animated: false)
     }
     
@@ -58,8 +80,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 //            [NSFontAttributeName: UIFont(name: "Noteworthy-Bold", size: 18)!]
         
         model = AddQueryModel()
-        model.loadFromDataModel(dataModel.currentQuery!)
+        model.loadFromQuery(queryToLoad)
+        queryToLoad = nil
         model.reloadData()
+        
+        executeSearch()
     }
     
     override func shouldAutorotate() -> Bool {
@@ -89,11 +114,23 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     deinit {
         // Remove all 'self' observers
         NSNotificationCenter.defaultCenter().removeObserver(self)
+
+        addButton = nil
+        cancelAddQuery = nil
+        
+        saveButton = nil
+        cancelEditQuery = nil
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        print("prepareForSegue AddQueryViewController segue:", segue.identifier, "sender:", (sender as! UIBarButtonItem).title)
-        model.saveToDataModel(dataModel.currentQuery!)
+        trace("prepareForSegue AddQueryViewController segue:", segue.identifier, "sender:", (sender as! UIBarButtonItem).title)
+        
+        // Cancel current queries
+        quizletSession.cancelQueryTasks()
+    }
+    
+    func saveToQuery(query: Query) -> Bool {
+        return model.saveToQuery(query)
     }
 
     // MARK: - Search Bar
@@ -145,14 +182,18 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         executeSearch(model.indexPathToPagerIndex(indexPath), scrollTarget: scrollTarget)
     }
     
-    func executeSearch(pagerIndex: PagerIndex?, scrollTarget: ScrollTarget) {
+    func executeSearch() {
+        executeSearch(PagerIndex(type: .Query, index: 0), scrollTarget: nil)
+    }
+    
+    func executeSearch(pagerIndex: PagerIndex?, scrollTarget: ScrollTarget?) {
         var firstLoaded = true
         
         model.pagers.executeSearch(pagerIndex, completionHandler: { (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
             
             self.safelyReloadData(affectedResults: affectedResults, totalResults: totalResults)
-            if (firstLoaded && totalResults > 0) {
-                self.scrollTo(scrollTarget)
+            if (scrollTarget != nil && firstLoaded && totalResults > 0) {
+                self.scrollTo(scrollTarget!)
                 firstLoaded = false
             }
         })
@@ -983,6 +1024,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         if (section == ResultsSection) {
             if (searchBar == nil) {
                 searchBar = createSearchBar()
+                searchBar.text = model.pagers.queryPager?.query
                 searchBar.delegate = self
             }
 

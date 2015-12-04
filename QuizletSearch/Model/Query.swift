@@ -22,4 +22,5 @@ class Query: NSManagedObject {
     @NSManaged var user: User
     @NSManaged var sets: NSSet
 
+    var timeOfMostRecentSuccessfulRefresh: NSTimeInterval?
 }

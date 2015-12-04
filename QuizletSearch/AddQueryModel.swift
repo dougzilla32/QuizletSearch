@@ -403,34 +403,48 @@ class AddQueryModel {
     
     // MARK: - Load and Save
     
-    func loadFromDataModel(q: Query) {
+    func loadFromQuery(q: Query!) {
+        if (q == nil) {
+            // Initial UI values are ok for a new query, so no need to load an empty query
+            return
+        }
+        
         type = q.type
         title = q.title
         
-        pagers.loadFromDataModel(q)
+        pagers.loadFromQuery(q)
     }
     
-    func saveToDataModel(q: Query) {
+    func saveToQuery(q: Query) -> Bool {
+        var modified = false
         if (q.type != type) {
+            modified = true
             q.type = type
         }
         if (q.title != title) {
+            modified = true
             q.title = title
         }
         
-        pagers.saveToDataModel(q)
+        if (pagers.saveToQuery(q)) {
+            modified = true
+        }
 
         let includedIds = includedSets.joinWithSeparator(sep)
         if (q.includedSets != includedIds) {
+            modified = true
             q.includedSets = includedIds
         }
         
         let excludedIds = excludedSets.joinWithSeparator(sep)
         if (q.excludedSets != excludedIds) {
+            modified = true
             q.excludedSets = excludedIds
         }
         
         // @NSManaged var user: User
         // @NSManaged var sets: NSSet
+        
+        return modified
     }
 }

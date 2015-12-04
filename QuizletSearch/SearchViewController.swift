@@ -67,10 +67,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return .All
     }
     
-    override func loadView() {
-        super.loadView()
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
-    }
+//    override func loadView() {
+//        super.loadView()
+//        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
+//    }
     
     override func viewWillAppear(animated: Bool) {
         navigationController?.navigationBarHidden = true
@@ -119,10 +119,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
         
         // Set the placeholder text to the name of the current set
-        let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
+        let dataModel = self.dataModel()
         if (dataModel.currentQuery != nil) {
             searchBar.placeholder = "Search \(dataModel.currentQuery!.title)"
         }
+        
+        refreshTable(modified: false)
 
         dispatch_async(dispatch_get_main_queue(), {
             self.sortedTerms = SearchViewController.initSortedTerms()
@@ -179,21 +181,45 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         print("prepareForSegue SearchViewController sender:", sender)
+        
+        cancelRefresh()
+        
+        if (segue.identifier == "EditQuery") {
+            let addQueryViewController = segue.destinationViewController.childViewControllers[0] as! AddQueryViewController
+            addQueryViewController.configureForSave(dataModel().currentQuery!)
+        }
     }
     
-    @IBAction func unwindFromAddQuery(segue: UIStoryboardSegue) {
-        print("unwindFromAddQuery", segue)
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
+    @IBAction func unwindFromEditQuery(segue: UIStoryboardSegue) {
+        trace("unwindFromEditQuery segueId:", segue.identifier)
+        
+        if (segue.identifier == "EditQuerySave") {
+            let addQueryViewController = segue.sourceViewController as! AddQueryViewController
+            let modified = addQueryViewController.saveToQuery(dataModel().currentQuery!)
+            refreshTable(modified: modified)
+        }
+        else if (segue.identifier == "EditQueryCancel") {
+            refreshTable(modified: false)
+        }
     }
     
     deinit {
         NSNotificationCenter.defaultCenter().removeObserver(self)
     }
- 
-    func refreshTable() {
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, completionHandler: { (qsets: [QSet]?) in
+    
+    func dataModel() -> DataModel {
+        return (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
+    }
+    
+    func refreshTable(modified modified: Bool) {
+        trace("refreshTable in SearchViewController")
+        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, modified: modified, completionHandler: { (qsets: [QSet]?) in
             self.refreshControl.endRefreshing()
         })
+    }
+    
+    func cancelRefresh() {
+        (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()
     }
     
     // call back function by saveContext, support multi-thread
@@ -255,14 +281,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     class func initSortedTerms() -> SortedTerms<SortTerm> {
-        let dataModel = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
-        
         var AtoZterms: [SortTerm] = []
         var AtoZ: [SortSet<SortTerm>] = []
         var bySet: [SortSet<SortTerm>] = []
         var bySetAtoZ: [SortSet<SortTerm>] = []
         
-        if let query = dataModel.currentQuery {
+        if let query = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.currentQuery {
             for set in query.sets {
                 let quizletSet = set as! QuizletSet
                 var termsForSet = [SortTerm]()

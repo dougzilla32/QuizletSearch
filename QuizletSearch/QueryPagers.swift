@@ -83,24 +83,28 @@ class QueryPagers: SequenceType {
     convenience init(query: Query) {
         self.init()
         
-        loadFromDataModel(query)
+        loadFromQuery(query)
     }
     
-    func loadFromDataModel(q: Query) {
+    func loadFromQuery(q: Query) {
         queryPager = q.query.isEmpty ? nil : SetPager(query: q.query)
         
         // With Swift string: let usernames = q.creators.characters.split{$0 == ","}.map(String.init)
         // Using NSString for now because Swift strings are slow
-        let usernames = (q.creators as NSString).componentsSeparatedByString(sep)
-        usernamePagers.removeAll()
-        for name in usernames {
-            usernamePagers.append(SetPager(query: q.query, creator: name))
+        if (!q.creators.isEmpty) {
+            let usernames = (q.creators as NSString).componentsSeparatedByString(sep)
+            usernamePagers.removeAll()
+            for name in usernames {
+                usernamePagers.append(SetPager(query: q.query, creator: name))
+            }
         }
         
-        let classIds = (q.classes as NSString).componentsSeparatedByString(sep)
-        classPagers.removeAll()
-        for id in classIds {
-            classPagers.append(SetPager(query: q.query, classId: id))
+        if (!q.classes.isEmpty) {
+            let classIds = (q.classes as NSString).componentsSeparatedByString(sep)
+            classPagers.removeAll()
+            for id in classIds {
+                classPagers.append(SetPager(query: q.query, classId: id))
+            }
         }
         
         // includedSetsPager = SetPager(includedSets: (q.includedSets as NSString).componentsSeparatedByString(sep))
@@ -109,9 +113,11 @@ class QueryPagers: SequenceType {
     
     // TODO: FIX ME -- not working correctly with "query=hi" and "username=dougzilla32", runs the "hi" query separately
     // Also, before fixing test that the MaxTermLimit is working correctly
-    func saveToDataModel(q: Query) {
+    func saveToQuery(q: Query) -> Bool {
+        var modified = false
         let query = (queryPager?.query != nil) ? queryPager!.query! : ""
         if (q.query != query) {
+            modified = true
             q.query = query
         }
         
@@ -121,6 +127,7 @@ class QueryPagers: SequenceType {
         }
         let creators = usernames.joinWithSeparator(sep)
         if (q.creators != creators) {
+            modified = true
             q.creators = creators
         }
         
@@ -130,8 +137,11 @@ class QueryPagers: SequenceType {
         }
         let classIds = ids.joinWithSeparator(sep)
         if (q.classes != classIds) {
+            modified = true
             q.classes = classIds
         }
+        
+        return modified
     }
     
     // MARK: - Query
@@ -157,7 +167,7 @@ class QueryPagers: SequenceType {
             "creator:", currentPager.creator != nil ? currentPager.creator! : "nil",
             "classId:", currentPager.classId != nil ? currentPager.classId! : "nil")
         
-        currentPager.pagerPause = Int64(NSEC_PER_SEC/100)
+        currentPager.pagerPause = Int64(NSEC_PER_SEC/10000)
         
         currentPager.loadPage(currentPageNumber, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
             

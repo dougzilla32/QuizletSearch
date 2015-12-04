@@ -20,6 +20,8 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     let LoginViewController = "LoginViewController"
     static let ErrorViewController = "ErrorViewController"
     
+    let refreshInterval: NSTimeInterval = 60 * 5  // 5 minutes
+    
     lazy var dataModel: DataModel = {
         return DataModel(managedObjectContext: self.managedObjectContext!, quizletSession: self.quizletSession)
     }()
@@ -50,25 +52,39 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return true
     }
     
-    func refreshAndRestartTimer(allowCellularAccess allowCellularAccess: Bool, completionHandler: (([QSet]?) -> Void)? = nil) {
+    func refreshAndRestartTimer(allowCellularAccess allowCellularAccess: Bool, modified: Bool, completionHandler: (([QSet]?) -> Void)? = nil) {
         if (managedObjectContext == nil || dataModel.currentUser == nil) {
             return
+        }
+        
+        if (refreshTimer != nil) {
+            refreshTimer!.invalidate()
+            refreshTimer = nil
         }
 
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
-        // Refresh the data model
-        self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?, termCount: Int) in
-            if (completionHandler != nil) {
-                completionHandler!(qsets)
-            }
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
-        })
+        let currentTime = NSDate.timeIntervalSinceReferenceDate()
+        let query = dataModel.currentQuery!
+        let successTime = query.timeOfMostRecentSuccessfulRefresh != nil ? query.timeOfMostRecentSuccessfulRefresh! : 0
+        let timeRemaining = max(0, refreshInterval - (currentTime - successTime))
         
-        if (refreshTimer != nil) {
-            refreshTimer!.invalidate()
+        if (modified || timeRemaining == 0) {
+            self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?, termCount: Int) in
+                if (qsets != nil) {
+                    query.timeOfMostRecentSuccessfulRefresh = NSDate.timeIntervalSinceReferenceDate()
+                }
+                if (completionHandler != nil) {
+                    completionHandler!(qsets)
+                }
+                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+                
+                self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: "refresh", userInfo: nil, repeats: false)
+            })
         }
-        refreshTimer = NSTimer.scheduledTimerWithTimeInterval(60 * 5, target: self, selector: "refresh", userInfo: nil, repeats: true)
+        else {
+            self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(timeRemaining, target: self, selector: "refresh", userInfo: nil, repeats: false)
+        }
     }
     
     func cancelRefreshTimer() {
@@ -77,13 +93,22 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
             refreshTimer = nil
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         }
+        
+        quizletSession.cancelQueryTasks()
     }
     
     func refresh() {
+        let query = dataModel.currentQuery
+
         UIApplication.sharedApplication().networkActivityIndicatorVisible = true
         
         self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?, termCount: Int) in
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+            if (qsets != nil) {
+                query!.timeOfMostRecentSuccessfulRefresh = NSDate.timeIntervalSinceReferenceDate()
+            }
+
+            self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: "refresh", userInfo: nil, repeats: false)
         })
     }
     
@@ -97,7 +122,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                 let userAccount = UserAccount(accessToken: "1234", expiresIn: 3200, userName: "dougzilla32", userId: "1234")
                 self.dataModel.addOrUpdateUser(userAccount)
                 self.saveContext()
-                self.refreshAndRestartTimer(allowCellularAccess: true)
+//                self.refreshAndRestartTimer(allowCellularAccess: true)
             }
             else {
                 quizletSession.acquireAccessToken(url) {
@@ -105,7 +130,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                         let userAccount = try $0()
                         self.dataModel.addOrUpdateUser(userAccount)
                         self.saveContext()
-                        self.refreshAndRestartTimer(allowCellularAccess: true)
+//                        self.refreshAndRestartTimer(allowCellularAccess: true)
                     } catch let error as NSError {
                         let alert = UIAlertView(title: error.localizedDescription, message: error.localizedFailureReason, delegate: nil, cancelButtonTitle: "Dismiss")
                         alert.show()
@@ -128,7 +153,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: username!, userId: "")
         self.dataModel.addOrUpdateUser(userAccount)
         self.saveContext()
-        self.refreshAndRestartTimer(allowCellularAccess: true)
+//        self.refreshAndRestartTimer(allowCellularAccess: true)
 
         self.initRootViewControllerWithIdentifier(QueriesViewController)
     }

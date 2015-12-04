@@ -20,6 +20,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     var currentUser: User!
     var addingRow: Int?
     var editingRow: Int?
+    var addAnimationsEnabled: Bool?
     var currentFirstResponder: UITextField?
     var recursiveReloadCounter = 0
     var deferReloadRow: NSIndexPath?
@@ -40,9 +41,13 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
 
+        let enabled = UIView.areAnimationsEnabled()
         UIView.setAnimationsEnabled(false)
+        defer {
+            UIView.setAnimationsEnabled(enabled)
+        }
+
         navigationController?.setNavigationBarHidden(true, animated: false)
-        UIView.setAnimationsEnabled(true)
     }
     
     override func viewDidLoad() {
@@ -68,14 +73,18 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         let row = self.tableView(tableView, numberOfRowsInSection: 0)
         let indexPath = NSIndexPath(forRow: row, inSection: 0)
 
+        let enabled = UIView.areAnimationsEnabled()
         UIView.setAnimationsEnabled(false)
+        defer {
+            UIView.setAnimationsEnabled(enabled)
+        }
+
         self.extraRows++
         self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.None)
         if (options == .InsertAndDelete) {
             self.extraRows--
             self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.None)
         }
-        UIView.setAnimationsEnabled(true)
     }
     
     // Workaround for search bar positioning -- when programmatically manipulating the tableView, sometimes the contentOffset pops to zero such that the search bar becomes visible.  This workaround alleviates the improper behavior.
@@ -83,9 +92,17 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         if (overrideContentOffsetY == nil) {
             overrideContentOffsetY = currentContentOffsetY
         }
+
         let needsAdjustment = (overrideContentOffsetY >= searchBarHeight && tableView.contentOffset.y < searchBarHeight)
         trace("searchBarPositionWorkaround needsAdjustment:", needsAdjustment)
+        
         if (needsAdjustment) {
+            let enabled = UIView.areAnimationsEnabled()
+            UIView.setAnimationsEnabled(false)
+            defer {
+                UIView.setAnimationsEnabled(enabled)
+            }
+
             tableView.setContentOffset(CGPoint(x: 0, y: searchBarHeight), animated: false)
         }
     }
@@ -107,6 +124,20 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         return UIStatusBarStyle.LightContent
     }
     
+    
+    // MARK: - Navigation
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        trace("prepareForSegue", segue.destinationViewController, sender)
+        
+        if (segue.identifier == "AddQuery") {
+            (segue.destinationViewController.childViewControllers[0] as! AddQueryViewController).configureForAdd()
+        }
+        
+        // Get the new view controller using segue.destinationViewController.
+        // Pass the selected object to the new view controller.
+    }
+
     @IBAction func unwindFromUsers(segue: UIStoryboardSegue) {
         trace("unwindFromUsers QueriesViewController")
         let y = currentContentOffsetY
@@ -127,9 +158,16 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         }
     }
     
-    @IBAction func add(sender: AnyObject) {
+    @IBAction func unwindFromAddQuery(segue: UIStoryboardSegue) {
+        trace("unwindFromAddQuery QueriesViewController segueId:", segue.identifier)
+        
+        if (segue.identifier != "AddQueryAdd") {
+            return
+        }
+
         currentContentOffsetY = tableView.contentOffset.y
         if (currentFirstResponder != nil) {
+            addAnimationsEnabled = UIView.areAnimationsEnabled()
             UIView.setAnimationsEnabled(false)
             if (Common.isEmpty(currentFirstResponder!.text)) {
                 // Already have a blank textfield as first responder
@@ -138,8 +176,28 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             currentFirstResponder!.resignFirstResponder()
         }
         
-        // Workaround -- use dispatch_after to avoid race condition between the current textfield resigning the first responder and inserting the new row into the table
+        // Delete this comment when confirmed to work properly.  Workaround -- use dispatch_after to avoid race condition between the current textfield resigning the first responder and inserting the new row into the table
         let query = dataModel.newQueryForUser(dataModel.currentUser!)
+        let addQueryViewController = segue.sourceViewController as! AddQueryViewController
+        addQueryViewController.saveToQuery(query)
+
+        query.title = ""
+        if (!query.query.isEmpty) {
+            query.title += query.query
+        }
+        if (!query.creators.isEmpty) {
+            if (!query.title.isEmpty) {
+                query.title += " "
+            }
+            query.title += query.creators.stringByReplacingOccurrencesOfString(",", withString: " ")
+        }
+        if (!query.classes.isEmpty) {
+            if (!query.title.isEmpty) {
+                query.title += " "
+            }
+            query.title += query.classes.stringByReplacingOccurrencesOfString(",", withString: " ")
+        }
+        
         currentUser.addQuery(query)
         dataModel.saveChanges()
         
@@ -163,6 +221,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
     @IBAction func updateText(sender: AnyObject) {
         currentContentOffsetY = tableView.contentOffset.y
+        let enabled = UIView.areAnimationsEnabled()
         UIView.setAnimationsEnabled(false)
         updatingText = true
         let textField = sender as! UITextField
@@ -170,7 +229,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         textField.resignFirstResponder()
         trace("updateText OUT text:", textField.text, "defer:", deferReloadRow?.row)
         updatingText = false
-        UIView.setAnimationsEnabled(true)
+        UIView.setAnimationsEnabled(enabled)
         
         if (deferReloadRow != nil) {
             tableView.reloadRowsAtIndexPaths([deferReloadRow!], withRowAnimation: UITableViewRowAnimation.Automatic)
@@ -280,9 +339,11 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         if (editingStyle == UITableViewCellEditingStyle.Delete) {
             if (currentFirstResponder != nil) {
                 currentContentOffsetY = tableView.contentOffset.y
+                
+                let enabled = UIView.areAnimationsEnabled()
                 UIView.setAnimationsEnabled(false)
                 currentFirstResponder!.resignFirstResponder()
-                UIView.setAnimationsEnabled(true)
+                UIView.setAnimationsEnabled(enabled)
             }
 
             currentUser.removeQueryAtIndex(indexPath.row)
@@ -330,9 +391,13 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             if (!textField.isFirstResponder()) {
                 textField.becomeFirstResponder()
             }
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-                UIView.setAnimationsEnabled(true)
-            })
+            
+            if let enabled = addAnimationsEnabled {
+                addAnimationsEnabled = nil
+                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+                    UIView.setAnimationsEnabled(enabled)
+                })
+            }
         }
         
         return cell
@@ -380,13 +445,5 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
             return 44.0
-    }
-    
-    // MARK: - Navigation
-
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // trace("prepareForSegue", segue.destinationViewController, sender)
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
     }
 }

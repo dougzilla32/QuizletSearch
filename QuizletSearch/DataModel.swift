@@ -236,7 +236,7 @@ class DataModel: NSObject {
     }
     
     func updateTermsForQuery(query: Query, qsets: [QSet]?) {
-        if (qsets == nil || qsets!.count == 0) {
+        if (qsets == nil) {
             return
         }
         
