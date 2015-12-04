@@ -11,6 +11,6 @@ import CoreData
 
 class Root: NSManagedObject {
 
-    @NSManaged var users: NSOrderedSet
+    @NSManaged var users: NSOrderedSet // User
 
 }

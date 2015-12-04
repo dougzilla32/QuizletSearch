@@ -218,6 +218,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         })
     }
     
+    func refreshTable() {
+        self.refreshTable(modified: true)
+    }
+    
     func cancelRefresh() {
         (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()
     }
@@ -291,10 +295,14 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 let quizletSet = set as! QuizletSet
                 var termsForSet = [SortTerm]()
                 
-                for term in quizletSet.terms {
-                    let term = SortTerm(term: term as! Term)
-                    AtoZterms.append(term)
-                    termsForSet.append(term)
+                for termAny in quizletSet.terms {
+                    let term = termAny as! Term
+                    if (term.term.isWhitespace() && term.definition.isWhitespace()) {
+                        continue
+                    }
+                    let sortTerm = SortTerm(term: term)
+                    AtoZterms.append(sortTerm)
+                    termsForSet.append(sortTerm)
                 }
                 
                 // Use native term order for 'bySet'

@@ -17,7 +17,7 @@ class User: NSManagedObject {
     @NSManaged var id: String
 
     @NSManaged var root: Root
-    @NSManaged var queries: NSOrderedSet
+    @NSManaged var queries: NSOrderedSet // Query
 
     func copyFrom(userAccount: UserAccount) {
         self.accessToken = userAccount.accessToken

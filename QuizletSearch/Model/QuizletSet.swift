@@ -20,8 +20,8 @@ class QuizletSet: NSManagedObject {
     @NSManaged var createdDate: Int64
     @NSManaged var modifiedDate: Int64
     @NSManaged var classIds: String
-    @NSManaged var terms: NSOrderedSet
-    @NSManaged var queries: NSSet
+    @NSManaged var terms: NSOrderedSet // Term
+    @NSManaged var queries: NSSet // Query
 
     func initFrom(qset: QSet, moc: NSManagedObjectContext) {
         self.id = qset.id

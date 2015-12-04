@@ -20,7 +20,7 @@ class Query: NSManagedObject {
     @NSManaged var excludedSets: String  // comma separated list of excluded set IDs
     @NSManaged var maxModifiedDate: Int64
     @NSManaged var user: User
-    @NSManaged var sets: NSSet
+    @NSManaged var sets: NSSet // QuizletSet
 
     var timeOfMostRecentSuccessfulRefresh: NSTimeInterval?
 }

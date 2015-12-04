@@ -92,6 +92,8 @@ class QueryPagers: SequenceType {
         // With Swift string: let usernames = q.creators.characters.split{$0 == ","}.map(String.init)
         // Using NSString for now because Swift strings are slow
         if (!q.creators.isEmpty) {
+            queryPager?.enabled = false
+            
             let usernames = (q.creators as NSString).componentsSeparatedByString(sep)
             usernamePagers.removeAll()
             for name in usernames {
@@ -125,6 +127,8 @@ class QueryPagers: SequenceType {
         for pager in usernamePagers {
             usernames.append(pager.creator!)
         }
+        usernames.sortInPlace()
+        
         let creators = usernames.joinWithSeparator(sep)
         if (q.creators != creators) {
             modified = true
@@ -135,6 +139,8 @@ class QueryPagers: SequenceType {
         for pager in classPagers {
             ids.append(pager.classId!)
         }
+        ids.sortInPlace()
+        
         let classIds = ids.joinWithSeparator(sep)
         if (q.classes != classIds) {
             modified = true
@@ -150,6 +156,12 @@ class QueryPagers: SequenceType {
     
     func executeFullSearch(completionHandler completionHandler: ([QSet]?, Int) -> Void) {
         trace("executeFullSearch START")
+        
+        // Cancel previous queries
+        quizletSession.cancelQueryTasks()
+        
+        updateQuery()
+        
         let generator = generate()
         let qsets = [QSet]()
         loadNextPage(currentPager: generator.next(), currentPageNumber: 1, generator: generator, qsets: qsets, termCount: 0, completionHandler: completionHandler)
@@ -159,6 +171,11 @@ class QueryPagers: SequenceType {
         if (currentPager == nil) {
             trace("executeFullSearch COMPLETE qsets.count:", qsets.count, "termCount:", termCount)
             completionHandler(qsets, termCount)
+            return
+        }
+        
+        if (!currentPager.enabled) {
+            self.loadNextPage(currentPager: generator.next(), currentPageNumber: 1, generator: generator, qsets: qsets, termCount: termCount, completionHandler: completionHandler)
             return
         }
         
