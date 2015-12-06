@@ -8,7 +8,7 @@
 
 import UIKit
 
-let IsTraceEnabled = true
+let IsTraceEnabled = false
 
 func trace(items: Any?..., separator: String = " ", terminator: String = "\n") {
     if (!IsTraceEnabled) {
@@ -61,9 +61,9 @@ class Common {
         return s == nil || s!.trimWhitespace().isEmpty
     }
     
-    class func preferredSystemFontForTextStyle(textStyle: String) -> UIFont? {
+    class func preferredFontForTextStyle(textStyle: String) -> UIFont? {
         // choose the font size
-        let fontSize: CGFloat = preferredSystemFontSize()
+        let fontSize: CGFloat = preferredFontSize()
 
         // choose the font weight
         if (textStyle == UIFontTextStyleHeadline || textStyle == UIFontTextStyleSubheadline) {
@@ -73,7 +73,7 @@ class Common {
         }
     }
     
-    class func preferredSystemFontSize() -> CGFloat {
+    class func preferredFontSize() -> CGFloat {
         let fontSize: CGFloat
         
         switch (UIApplication.sharedApplication().preferredContentSizeCategory) {
@@ -107,22 +107,18 @@ class Common {
         
         return fontSize
     }
+    
+    static let Arial = "ArialMT"
+    static let ArialBold = "Arial-BoldMT"
 
-    class func preferredSearchFontForTextStyle(textStyle: String) -> UIFont? {
+    class func preferredFontForFamily(fontFamily: String) -> UIFont? {
         // NSLog("%@", UIFont.fontNamesForFamilyName("Arial"))
         
-        // choose the font size
-        let fontSize: CGFloat = preferredSearchFontSize(textStyle)
-        
-        // choose the font weight
-        if (textStyle == UIFontTextStyleHeadline || textStyle == UIFontTextStyleSubheadline) {
-            return UIFont(name: "Arial-BoldMT", size: fontSize)
-        } else {
-            return UIFont(name: "ArialMT", size: fontSize)
-        }
+        let fontSize: CGFloat = preferredFontSizeForFamily(fontFamily)
+        return UIFont(name: fontFamily, size: fontSize)
     }
     
-    class func preferredSearchFontSize(textStyle: String) -> CGFloat {
+    class func preferredFontSizeForFamily(fontFamily: String) -> CGFloat {
         let fontSize: CGFloat
         
         switch (UIApplication.sharedApplication().preferredContentSizeCategory) {

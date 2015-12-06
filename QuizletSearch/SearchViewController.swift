@@ -11,7 +11,7 @@ import CoreData
 import Foundation
 
 enum SortSelection: Int {
-    case AtoZ = 0, BySet, BySetAtoZ
+    case BySet = 0, BySetAtoZ, AtoZ
 }
 
 class SearchViewController: TableContainerController, UISearchBarDelegate {
@@ -133,6 +133,11 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         })
     }
     
+    deinit {
+        // Remove all 'self' observers
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
+    
     override func preferredStatusBarStyle() -> UIStatusBarStyle {
         return UIStatusBarStyle.LightContent
     }
@@ -142,11 +147,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     func preferredContentSizeChanged(notification: NSNotification) {
         resetFonts()
+        self.view.setNeedsLayout()
     }
     
     func resetFonts() {
-        preferredSearchFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
-        preferredBoldSearchFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleHeadline)
+        preferredSearchFont = UIFont.preferredFontForTextStyle(UIFontTextStyleBody)
+        preferredBoldSearchFont = UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
         
         sizingCell.termLabel.font = preferredSearchFont
         sizingCell.definitionLabel.font = preferredSearchFont
@@ -167,8 +173,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         searchTextField.font = preferredSearchFont
         searchTextField.autocapitalizationType = UITextAutocapitalizationType.None
         searchTextField.enablesReturnKeyAutomatically = false
-
-        self.view.setNeedsLayout()
     }
     
     // Called after the view was dismissed, covered or otherwise hidden.
@@ -180,7 +184,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // MARK: - Search View Controller
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        print("prepareForSegue SearchViewController sender:", sender)
+        trace("prepareForSegue SearchViewController sender:", sender)
         
         cancelRefresh()
         
@@ -201,10 +205,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         else if (segue.identifier == "EditQueryCancel") {
             refreshTable(modified: false)
         }
-    }
-    
-    deinit {
-        NSNotificationCenter.defaultCenter().removeObserver(self)
     }
     
     func dataModel() -> DataModel {

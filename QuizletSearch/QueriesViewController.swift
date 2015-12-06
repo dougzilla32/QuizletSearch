@@ -15,6 +15,8 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         return (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
     }()
     
+    let SearchBarEnabled = false
+    
     @IBOutlet weak var searchBar: UISearchBar!
 
     var currentUser: User!
@@ -41,6 +43,10 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
 
+        if (!SearchBarEnabled) {
+            tableView.tableHeaderView = nil
+        }
+        
         let enabled = UIView.areAnimationsEnabled()
         UIView.setAnimationsEnabled(false)
         defer {
@@ -52,19 +58,44 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         currentUser = dataModel.currentUser!
         
 //         tableView.rowHeight = UITableViewAutomaticDimension
 //         tableView.estimatedRowHeight = 44.0
         
-        // Scroll the tableView such that the search bar is not visible
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-            self.searchBarVisibilityWorkaround(.InsertAndDelete)
+        // Respond to dynamic type font changes
+        NSNotificationCenter.defaultCenter().addObserver(self,
+            selector: "preferredContentSizeChanged:",
+            name: UIContentSizeCategoryDidChangeNotification,
+            object: nil)
+        resetFonts()
 
-            self.searchBarHeight = self.searchBar.bounds.height
-            self.tableView.setContentOffset(CGPoint(x: 0, y: self.searchBarHeight), animated: false)
-        })
+        if (SearchBarEnabled) {
+            // Scroll the tableView such that the search bar is not visible
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+                self.searchBarVisibilityWorkaround(.InsertAndDelete)
+                
+                self.searchBarHeight = self.searchBar.bounds.height
+                self.tableView.setContentOffset(CGPoint(x: 0, y: self.searchBarHeight), animated: false)
+            })
+        }
+    }
+    
+    deinit {
+        // Remove all 'self' observers
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+    }
+    
+    var preferredFont: UIFont?
+    
+    func preferredContentSizeChanged(notification: NSNotification) {
+        resetFonts()        
+        self.view.setNeedsLayout()
+    }
+    
+    func resetFonts() {
+        preferredFont = UIFont.preferredFontForTextStyle(UIFontTextStyleBody)
     }
     
     // Workaround for search bar visibility -- there is a bug with UITableView where sometimes the search bar cannot be properly hidden when the user scrolls the table or when programmatically scrolling the table.  By quickly inserting and deleting an empty row in the table the incorrect behavior is alleviated.
@@ -141,17 +172,23 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     @IBAction func unwindFromUsers(segue: UIStoryboardSegue) {
         trace("unwindFromUsers QueriesViewController")
         let y = currentContentOffsetY
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-            self.searchBarPositionWorkaround(y)
-        })
+        
+        if (SearchBarEnabled) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+                self.searchBarPositionWorkaround(y)
+            })
+        }
     }
     
     @IBAction func unwindFromSearch(segue: UIStoryboardSegue) {
         trace("unwindFromSearch QueriesViewController")
         let y = currentContentOffsetY
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-            self.searchBarPositionWorkaround(y)
-        })
+
+        if (SearchBarEnabled) {
+            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+                self.searchBarPositionWorkaround(y)
+            })
+        }
 
         if (tableView.indexPathForSelectedRow != nil) {
             tableView.deselectRowAtIndexPath(tableView.indexPathForSelectedRow!, animated: false)
@@ -215,7 +252,9 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         recursiveReloadCounter++
         extraRows = 0
         tableView.reloadData()
-        self.searchBarVisibilityWorkaround(.InsertOnly)
+        if (SearchBarEnabled) {
+            self.searchBarVisibilityWorkaround(.InsertOnly)
+        }
         recursiveReloadCounter--
     }
     
@@ -297,7 +336,9 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         
         addingRow = nil
         currentFirstResponder = nil
-        searchBarPositionWorkaround()
+        if (SearchBarEnabled) {
+            searchBarPositionWorkaround()
+        }
     }
     
     func indexPathForTextField(textField: UITextField) -> NSIndexPath {
@@ -410,13 +451,14 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             if (inEditMode || indexPath.row == editingRow) {
                 let textField = cell.contentView.viewWithTag(100) as! UITextField
                 textField.text = text
+                textField.font = preferredFont
             }
             else {
                 let label = cell.contentView.viewWithTag(100) as! UILabel
                 label.text = text
+                label.font = preferredFont
             }
         }
-        // label.font = preferredSearchFont
     }
     
     lazy var labelSizingCell: UITableViewCell = {
@@ -445,5 +487,41 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     func tableView(tableView: UITableView,
         estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
             return 44.0
+    }
+
+    //
+    // Header
+    //
+    
+    func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let cell = tableView.dequeueReusableCellWithIdentifier("Header")!
+        configureHeaderCell(cell, section: section)
+        return cell
+    }
+    
+    func configureHeaderCell(cell: UITableViewCell, section: Int) {
+        let label = cell.contentView.viewWithTag(100) as! UILabel
+        label.text = "Filtered by sets containing:"
+        label.font = preferredFont
+    }
+    
+    //
+    // Header height
+    //
+    
+    lazy var headerSizingCell: UITableViewCell = {
+        return self.tableView.dequeueReusableCellWithIdentifier("Header")!
+    }()
+    
+    func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        configureHeaderCell(headerSizingCell, section: section)
+        return calculateHeaderHeight(headerSizingCell)
+    }
+    
+    func calculateHeaderHeight(cell: UITableViewCell) -> CGFloat {
+        // Workaround: setting the bounds for multi-line UILabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
+        let label = cell.contentView.viewWithTag(100) as! UILabel
+        label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        return calculateHeight(cell)
     }
 }

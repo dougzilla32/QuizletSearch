@@ -32,17 +32,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     @IBOutlet var saveButton: UIBarButtonItem!
     @IBOutlet var cancelEditQuery: UIBarButtonItem!
     
-    func configureForAdd() {
-        self.navigationItem.leftBarButtonItems = [cancelAddQuery]
-        self.navigationItem.rightBarButtonItems = [addButton]
-    }
-    
-    func configureForSave(queryToLoad: Query) {
-        self.navigationItem.leftBarButtonItems = [cancelEditQuery]
-        self.navigationItem.rightBarButtonItems = [saveButton]
-        self.queryToLoad = queryToLoad
-    }
-    
+    @IBOutlet weak var findSetsLabel: UILabel!
+
     // MARK: - View Controller
     
     override func viewWillAppear(animated: Bool) {
@@ -79,12 +70,61 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 //        self.navigationController!.navigationBar.titleTextAttributes =
 //            [NSFontAttributeName: UIFont(name: "Noteworthy-Bold", size: 18)!]
         
+        findSetsLabel.font = preferredFont
+        
         model = AddQueryModel()
         model.loadFromQuery(queryToLoad)
         queryToLoad = nil
         model.reloadData()
         
         executeSearch()
+    }
+    
+    deinit {
+        // Remove all 'self' observers
+        NSNotificationCenter.defaultCenter().removeObserver(self)
+        
+        addButton = nil
+        cancelAddQuery = nil
+        
+        saveButton = nil
+        cancelEditQuery = nil
+    }
+    
+    var preferredFont: UIFont!
+    var preferredBoldFont: UIFont!
+    var italicFont: UIFont!
+    var smallerFont: UIFont!
+    var estimatedHeightForSearchAssistCell: CGFloat?
+    var estimatedHeightForResultCell: CGFloat?
+    
+    func preferredContentSizeChanged(notification: NSNotification) {
+        resetFonts()
+        self.view.setNeedsLayout()
+    }
+    
+    func resetFonts() {
+        preferredFont = UIFont.preferredFontForTextStyle(UIFontTextStyleBody)
+        preferredBoldFont = UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
+        
+        let fontDescriptor = preferredFont.fontDescriptor().fontDescriptorWithSymbolicTraits(UIFontDescriptorSymbolicTraits.TraitItalic)
+        italicFont = UIFont(descriptor: fontDescriptor, size: preferredFont.pointSize)
+        
+        smallerFont = UIFont(descriptor: preferredFont.fontDescriptor(), size: preferredFont.pointSize - 3.0)
+        
+        estimatedHeightForSearchAssistCell = nil
+        estimatedHeightForResultCell = nil
+    }
+    
+    func configureForAdd() {
+        self.navigationItem.leftBarButtonItems = [cancelAddQuery]
+        self.navigationItem.rightBarButtonItems = [addButton]
+    }
+    
+    func configureForSave(queryToLoad: Query) {
+        self.navigationItem.leftBarButtonItems = [cancelEditQuery]
+        self.navigationItem.rightBarButtonItems = [saveButton]
+        self.queryToLoad = queryToLoad
     }
     
     override func shouldAutorotate() -> Bool {
@@ -111,17 +151,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 //        ensureLastRowIsVisible()
     }
 
-    deinit {
-        // Remove all 'self' observers
-        NSNotificationCenter.defaultCenter().removeObserver(self)
-
-        addButton = nil
-        cancelAddQuery = nil
-        
-        saveButton = nil
-        cancelEditQuery = nil
-    }
-    
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         trace("prepareForSegue AddQueryViewController segue:", segue.identifier, "sender:", (sender as! UIBarButtonItem).title)
         
@@ -451,32 +480,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 
         // Delete the pager after deleting the rows in the tableView so that the row heights are not disrupted
         model.deleteClassPagerAtIndexPath(indexPath)
-    }
-    
-    var preferredFont: UIFont!
-    var preferredBoldFont: UIFont!
-    var italicFont: UIFont!
-    var smallerFont: UIFont!
-    var estimatedHeightForSearchAssistCell: CGFloat?
-    var estimatedHeightForResultCell: CGFloat?
-    
-    func preferredContentSizeChanged(notification: NSNotification) {
-        resetFonts()
-    }
-    
-    func resetFonts() {
-        preferredFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleBody)
-        preferredBoldFont = Common.preferredSearchFontForTextStyle(UIFontTextStyleHeadline)
-        
-        let fontDescriptor = preferredFont.fontDescriptor().fontDescriptorWithSymbolicTraits(UIFontDescriptorSymbolicTraits.TraitItalic)
-        italicFont = UIFont(descriptor: fontDescriptor, size: preferredFont.pointSize)
-        
-        smallerFont = UIFont(descriptor: preferredFont.fontDescriptor(), size: preferredFont.pointSize - 3.0)
-        
-        estimatedHeightForSearchAssistCell = nil
-        estimatedHeightForResultCell = nil
-        
-        self.view.setNeedsLayout()
     }
     
     // MARK: - Scroll view data source
