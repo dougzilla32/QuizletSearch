@@ -70,8 +70,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 //        self.navigationController!.navigationBar.titleTextAttributes =
 //            [NSFontAttributeName: UIFont(name: "Noteworthy-Bold", size: 18)!]
         
-        findSetsLabel.font = preferredFont
-        
         model = AddQueryModel()
         model.loadFromQuery(queryToLoad)
         queryToLoad = nil
@@ -114,6 +112,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         
         estimatedHeightForSearchAssistCell = nil
         estimatedHeightForResultCell = nil
+        
+        findSetsLabel.font = preferredFont
+        if (searchBar != nil) {
+            let searchTextField = Common.findTextField(searchBar)!
+            searchTextField.font = preferredFont
+        }
     }
     
     func configureForAdd() {

@@ -92,6 +92,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     func preferredContentSizeChanged(notification: NSNotification) {
         resetFonts()        
         self.view.setNeedsLayout()
+        tableView.reloadData()
     }
     
     func resetFonts() {
