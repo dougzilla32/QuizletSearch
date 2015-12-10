@@ -24,12 +24,18 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     var showActivityIndicator = true
     
+    var animationBlock: ((CGPoint, completionHandler: () -> Void) -> Void)?
+    
+    let SearchBarPlaceholderPrefix = "Search \""
+    let SearchBarPlaceholderSuffix = "\" sets"
+    
     // MARK: - Sorting
     
     var sortedTerms = SortedTerms<SortTerm>()
     var searchTerms = SortedTerms<SearchTerm>()
     
     @IBAction func sortStyleChanged(sender: AnyObject) {
+        trace("SearchViewController.sortStyleChanged executeSearchForQuery", searchBar.text)
         executeSearchForQuery(searchBar.text)
     }
     
@@ -41,6 +47,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     // called when text changes (including clear)
     func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+        trace("SearchViewController.searchBar:textDidChange executeSearchForQuery", searchBar.text)
         executeSearchForQuery(searchBar.text)
     }
     
@@ -77,6 +84,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
 
     override func viewDidLoad() {
+        trace("SearchViewController viewDidLoad()")
         super.viewDidLoad()
         
         // Disable selections in the table
@@ -121,16 +129,50 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         // Set the placeholder text to the name of the current set
         let dataModel = self.dataModel()
         if (dataModel.currentQuery != nil) {
-            searchBar.placeholder = "Search \(dataModel.currentQuery!.title)"
+            let title = dataModel.currentQuery!.title
+            searchBar.placeholder = SearchBarPlaceholderPrefix + title + SearchBarPlaceholderSuffix
+            
+            let searchTextField = Common.findTextField(self.searchBar)!
+            let attributedPlaceholder = NSMutableAttributedString(attributedString: searchTextField.attributedPlaceholder!)
+            attributedPlaceholder.addAttribute(NSForegroundColorAttributeName, value: UIColor.clearColor(), range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
+            searchTextField.attributedPlaceholder = attributedPlaceholder
         }
         
         refreshTable(modified: false)
-
+        isFirstViewDidLayoutSubviews = true
+    }
+    
+    var isFirstViewDidLayoutSubviews = false
+    
+    override func viewDidLayoutSubviews() {
+        if (!isFirstViewDidLayoutSubviews) { return }
+        isFirstViewDidLayoutSubviews = false
+        
         dispatch_async(dispatch_get_main_queue(), {
+            trace("SearchViewController.executeSearchForQuery from viewDidLayoutSubviews")
             self.sortedTerms = SearchViewController.initSortedTerms()
             self.showActivityIndicator = false
             self.executeSearchForQuery(self.searchBar.text)
         })
+        
+        // Cause the search bar's textfield to be positioned correctly
+        searchBar.layoutIfNeeded()
+        
+        if (animationBlock != nil) {
+            let searchTextField = Common.findTextField(self.searchBar)!
+
+            let absoluteOrigin = searchTextField.superview!.convertPoint(searchTextField.frame.origin, toView: UIApplication.sharedApplication().keyWindow!)
+            let placeholderBounds = searchTextField.placeholderRectForBounds(searchTextField.bounds)
+            let prefixSize = self.SearchBarPlaceholderPrefix.sizeWithAttributes([NSFontAttributeName: searchTextField.font!])
+            let targetPoint = CGPoint(x: absoluteOrigin.x + placeholderBounds.origin.x + prefixSize.width + 1, y: absoluteOrigin.y + placeholderBounds.origin.y - 0.5)
+
+            self.animationBlock!(targetPoint, completionHandler: {
+                let searchTextField = Common.findTextField(self.searchBar)!
+                searchTextField.attributedPlaceholder = nil
+                self.searchBar.placeholder = self.SearchBarPlaceholderPrefix + self.dataModel().currentQuery!.title + self.SearchBarPlaceholderSuffix
+            })
+            self.animationBlock = nil
+        }
     }
     
     deinit {
@@ -212,7 +254,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     func refreshTable(modified modified: Bool) {
-        trace("refreshTable in SearchViewController")
+        trace("refreshTable in SearchViewController modified:", modified)
         (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, modified: modified, completionHandler: { (qsets: [QSet]?) in
             self.refreshControl.endRefreshing()
         })
@@ -224,6 +266,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     func cancelRefresh() {
         (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()
+        
+        currentSearchOperation?.cancel()
     }
     
     // call back function by saveContext, support multi-thread
@@ -265,6 +309,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
             dispatch_sync_main({
+                trace("SearchViewController.contextDidSave executeSearchForQuery", self.searchBar.text)
                 self.sortedTerms = sortedTerms
                 self.executeSearchForQuery(self.searchBar.text)
             })
@@ -398,6 +443,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     var currentSearchOperation: SearchOperation?
     
     func executeSearchForQuery(query: String?) {
+        trace("SearchViewController.executeSearchForQuery", query)
         currentSearchOperation?.cancel()
         
         let searchOp = SearchOperation(query: query == nil ? "" : query!, sortSelection: currentSortSelection(), sortedTerms: sortedTerms)

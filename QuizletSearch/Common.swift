@@ -257,6 +257,11 @@ class Common {
 
         return firstCharacter
     }
+    
+    class func cloneView(view: UIView) -> UIView {
+        let archivedData = NSKeyedArchiver.archivedDataWithRootObject(view)
+        return NSKeyedUnarchiver.unarchiveObjectWithData(archivedData) as! UIView
+    }
 }
 
 class StringWithBoundaries {

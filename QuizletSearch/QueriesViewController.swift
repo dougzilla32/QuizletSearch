@@ -165,6 +165,76 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         if (segue.identifier == "AddQuery") {
             (segue.destinationViewController.childViewControllers[0] as! AddQueryViewController).configureForAdd()
         }
+        else if (segue.identifier == "Search") {
+            // Animate the filter's characters into the SearchViewController's search bar
+            let indexPath = tableView.indexPathForSelectedRow!
+            let cell = tableView.cellForRowAtIndexPath(indexPath)!
+            let label = cell.contentView.viewWithTag(100) as! UILabel
+            let origin = label.frame.origin
+            
+            let mainWindow = UIApplication.sharedApplication().keyWindow!
+            let sourcePoint = label.superview!.convertPoint(origin, toView: mainWindow)
+
+            let searchViewController = segue.destinationViewController as! SearchViewController
+            searchViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: () -> Void) in
+                let text = (label.text != nil ? label.text! : "") as NSString
+                var velocityFactor: CGFloat = 0
+                let clearColor = UIColor.clearColor()
+                var index = 0
+                
+                while (index < text.length) {
+                    let animationLabel = Common.cloneView(label) as! UILabel
+                    mainWindow.addSubview(animationLabel)
+                    animationLabel.frame = label.frame
+                    animationLabel.frame.origin = sourcePoint
+
+                    let attrText = NSMutableAttributedString(string: text as String)
+                    if (index != 0) {
+                        attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: 0, length: index))
+                    }
+                    
+                    if (index != text.length) {
+                        index++
+                        if (index != text.length) {
+                            attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: index, length: text.length - index))
+                        }
+                    }
+                    
+                    animationLabel.attributedText = attrText
+                    
+                    velocityFactor = (CGFloat(index+1) * 20.0 / CGFloat(text.length+1)) * 0.33
+                    if (index == 5) {
+                        velocityFactor += 0.5
+                    }
+                    switch (velocityFactor) {
+                    case 3.5 ..< 4.3:
+                        velocityFactor = 4.3
+                    case 4.3 ..< 4.5:
+                        velocityFactor = 4.5
+                    default:
+                        break
+                    }
+                    trace("velocityFactor index:", index, "factor:", velocityFactor)
+
+                    let isLast = (index == text.length)
+                    UIView.animateWithDuration(1.33, delay: 0, usingSpringWithDamping: 100, initialSpringVelocity: velocityFactor, options: UIViewAnimationOptions.CurveLinear, animations: {
+                        animationLabel.frame = CGRectMake(targetPoint.x, targetPoint.y, animationLabel.frame.width, animationLabel.frame.height)
+                        animationLabel.alpha = 0.5
+                        }, completion: {
+                            (value: Bool) in
+                            animationLabel.superview!.setNeedsDisplay()
+                            animationLabel.removeFromSuperview()
+                            
+                            if (isLast) {
+                                label.hidden = false
+                                completionHandler()
+                            }
+                    })
+                }
+
+                label.hidden = true
+            }
+        }
         
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
@@ -183,6 +253,10 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
     @IBAction func unwindFromSearch(segue: UIStoryboardSegue) {
         trace("unwindFromSearch QueriesViewController")
+
+        let searchViewController = segue.sourceViewController as! SearchViewController
+        searchViewController.cancelRefresh()
+
         let y = currentContentOffsetY
 
         if (SearchBarEnabled) {

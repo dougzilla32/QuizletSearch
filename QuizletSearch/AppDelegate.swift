@@ -57,19 +57,17 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
             return
         }
         
-        if (refreshTimer != nil) {
-            refreshTimer!.invalidate()
-            refreshTimer = nil
-        }
+        cancelRefreshTimer()
 
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
-        
         let currentTime = NSDate.timeIntervalSinceReferenceDate()
         let query = dataModel.currentQuery!
         let successTime = query.timeOfMostRecentSuccessfulRefresh != nil ? query.timeOfMostRecentSuccessfulRefresh! : 0
         let timeRemaining = max(0, refreshInterval - (currentTime - successTime))
         
+        trace("refreshAndRestartTimer modified:", modified, "timeRemaining:", timeRemaining)
         if (modified || timeRemaining == 0) {
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+            
             self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?, termCount: Int) in
                 if (qsets != nil) {
                     query.timeOfMostRecentSuccessfulRefresh = NSDate.timeIntervalSinceReferenceDate()
@@ -91,9 +89,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         if (refreshTimer != nil) {
             refreshTimer!.invalidate()
             refreshTimer = nil
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
         }
         
+        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+
         quizletSession.cancelQueryTasks()
     }
     
@@ -107,6 +106,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
             if (qsets != nil) {
                 query!.timeOfMostRecentSuccessfulRefresh = NSDate.timeIntervalSinceReferenceDate()
             }
+            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
 
             self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: "refresh", userInfo: nil, repeats: false)
         })
