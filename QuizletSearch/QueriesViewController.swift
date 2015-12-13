@@ -202,34 +202,55 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
                     
                     animationLabel.attributedText = attrText
                     
-                    velocityFactor = (CGFloat(index+1) * 20.0 / CGFloat(text.length+1)) * 0.33
-                    if (index == 5) {
-                        velocityFactor += 0.5
-                    }
-                    switch (velocityFactor) {
-                    case 3.5 ..< 4.3:
-                        velocityFactor = 4.3
-                    case 4.3 ..< 4.5:
-                        velocityFactor = 4.5
-                    default:
-                        break
-                    }
-                    trace("velocityFactor index:", index, "factor:", velocityFactor)
+                    velocityFactor = CGFloat(index+1) * 7.5 / CGFloat(text.length+1)
 
                     let isLast = (index == text.length)
-                    UIView.animateWithDuration(1.33, delay: 0, usingSpringWithDamping: 100, initialSpringVelocity: velocityFactor, options: UIViewAnimationOptions.CurveLinear, animations: {
-                        animationLabel.frame = CGRectMake(targetPoint.x, targetPoint.y, animationLabel.frame.width, animationLabel.frame.height)
-                        animationLabel.alpha = 0.5
-                        }, completion: {
-                            (value: Bool) in
-                            animationLabel.superview!.setNeedsDisplay()
-                            animationLabel.removeFromSuperview()
-                            
-                            if (isLast) {
-                                label.hidden = false
-                                completionHandler()
-                            }
+                    
+                    //enable layer actions
+                    CATransaction.begin()
+                    CATransaction.setDisableActions(false)
+                    
+                    let duration = 1.0
+                    let position = CGPoint(
+                        x: targetPoint.x + animationLabel.frame.size.width / 2.0,
+                        y: targetPoint.y + animationLabel.frame.size.height / 2.0)
+                    let opacity: Float = 0.5
+                    
+                    animationLabel.layer.addAnimation(
+                        SpringAnimation.createSpringAnimationWithDuration(duration,
+                            delay: 0,
+                            options: nil,
+                            springDamping: 1.0,
+                            springVelocity: velocityFactor,
+                            keyPath: "position",
+                            fromValue: NSValue(CGPoint: animationLabel.layer.position),
+                            toValue: NSValue(CGPoint: position)),
+                        forKey: "position")
+
+                    animationLabel.layer.position = position
+
+                    animationLabel.layer.addAnimation(
+                        SpringAnimation.createBasicAnimationWithDuration(duration,
+                            delay: 0,
+                            options: nil,
+                            keyPath: "opacity",
+                            fromValue: animationLabel.layer.opacity,
+                            toValue: opacity),
+                        forKey: "opacity")
+                    
+                    animationLabel.layer.opacity = opacity
+
+                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(Double(NSEC_PER_SEC) * duration)), dispatch_get_main_queue(), {
+                        animationLabel.superview!.setNeedsDisplay()
+                        animationLabel.removeFromSuperview()
+                        
+                        if (isLast) {
+                            label.hidden = false
+                            completionHandler()
+                        }
                     })
+
+                    CATransaction.commit()
                 }
 
                 label.hidden = true

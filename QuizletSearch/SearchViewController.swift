@@ -164,7 +164,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             let absoluteOrigin = searchTextField.superview!.convertPoint(searchTextField.frame.origin, toView: UIApplication.sharedApplication().keyWindow!)
             let placeholderBounds = searchTextField.placeholderRectForBounds(searchTextField.bounds)
             let prefixSize = self.SearchBarPlaceholderPrefix.sizeWithAttributes([NSFontAttributeName: searchTextField.font!])
-            let targetPoint = CGPoint(x: absoluteOrigin.x + placeholderBounds.origin.x + prefixSize.width + 1, y: absoluteOrigin.y + placeholderBounds.origin.y - 0.5)
+            let targetPoint = CGPoint(x: absoluteOrigin.x + placeholderBounds.origin.x + prefixSize.width + 1, y: absoluteOrigin.y + placeholderBounds.origin.y)
 
             self.animationBlock!(targetPoint, completionHandler: {
                 let searchTextField = Common.findTextField(self.searchBar)!

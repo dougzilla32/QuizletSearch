@@ -40,6 +40,13 @@
 		9170E7C21BCC949500C70847 /* InsetTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9170E7C11BCC949500C70847 /* InsetTextField.swift */; };
 		9187F47B1B68AD1500FA528F /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9187F47A1B68AD1500FA528F /* Common.swift */; };
 		9187F4801B69FECC00FA528F /* SampleQuizletData.json in Resources */ = {isa = PBXBuildFile; fileRef = 9187F47F1B69FECC00FA528F /* SampleQuizletData.json */; };
+		918C96AE1C1D2FE100AA80DE /* EAAnimationDelayed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A71C1D2FE100AA80DE /* EAAnimationDelayed.swift */; };
+		918C96AF1C1D2FE100AA80DE /* EasyAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */; };
+		918C96B01C1D2FE100AA80DE /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 918C96AA1C1D2FE100AA80DE /* LICENSE */; };
+		918C96B11C1D2FE100AA80DE /* RBBBlockBasedArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */; };
+		918C96B21C1D2FE100AA80DE /* RBBLinearInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AC1C1D2FE100AA80DE /* RBBLinearInterpolation.swift */; };
+		918C96B31C1D2FE100AA80DE /* RBBSpringAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AD1C1D2FE100AA80DE /* RBBSpringAnimation.swift */; };
+		918C96B51C1D401300AA80DE /* SpringAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96B41C1D401300AA80DE /* SpringAnimation.swift */; };
 		91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */; };
 		91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B4AB511B683D2F0043675A /* LevenshteinDistance.swift */; };
 		91B4AB581B6845EB0043675A /* StringScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B4AB571B6845EB0043675A /* StringScore.swift */; };
@@ -99,6 +106,13 @@
 		9170E7C11BCC949500C70847 /* InsetTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsetTextField.swift; sourceTree = "<group>"; };
 		9187F47A1B68AD1500FA528F /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		9187F47F1B69FECC00FA528F /* SampleQuizletData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SampleQuizletData.json; sourceTree = "<group>"; };
+		918C96A71C1D2FE100AA80DE /* EAAnimationDelayed.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EAAnimationDelayed.swift; sourceTree = "<group>"; };
+		918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EasyAnimation.swift; sourceTree = "<group>"; };
+		918C96AA1C1D2FE100AA80DE /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBBlockBasedArray.swift; sourceTree = "<group>"; };
+		918C96AC1C1D2FE100AA80DE /* RBBLinearInterpolation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBLinearInterpolation.swift; sourceTree = "<group>"; };
+		918C96AD1C1D2FE100AA80DE /* RBBSpringAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBSpringAnimation.swift; sourceTree = "<group>"; };
+		918C96B41C1D401300AA80DE /* SpringAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpringAnimation.swift; sourceTree = "<group>"; };
 		91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetTableViewCell.swift; sourceTree = "<group>"; };
 		91B4AB511B683D2F0043675A /* LevenshteinDistance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LevenshteinDistance.swift; sourceTree = "<group>"; };
 		91B4AB571B6845EB0043675A /* StringScore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringScore.swift; sourceTree = "<group>"; };
@@ -139,6 +153,7 @@
 				910AAEB01BAB612000655131 /* TableContainerController.swift */,
 				916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */,
 				912DFCF61BBAD106002D67FA /* SetPager.swift */,
+				918C96B41C1D401300AA80DE /* SpringAnimation.swift */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -178,6 +193,7 @@
 				9126FDB81B1D0E1000642E56 /* QuizletSearch */,
 				9126FDCE1B1D0E1100642E56 /* QuizletSearchTests */,
 				9126FDB71B1D0E1000642E56 /* Products */,
+				918C96A61C1D2FE100AA80DE /* EasyAnimation */,
 			);
 			sourceTree = "<group>";
 		};
@@ -248,6 +264,27 @@
 				9187F47F1B69FECC00FA528F /* SampleQuizletData.json */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		918C96A61C1D2FE100AA80DE /* EasyAnimation */ = {
+			isa = PBXGroup;
+			children = (
+				918C96A71C1D2FE100AA80DE /* EAAnimationDelayed.swift */,
+				918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */,
+				918C96A91C1D2FE100AA80DE /* RBBSpringAnimation */,
+			);
+			path = EasyAnimation;
+			sourceTree = "<group>";
+		};
+		918C96A91C1D2FE100AA80DE /* RBBSpringAnimation */ = {
+			isa = PBXGroup;
+			children = (
+				918C96AA1C1D2FE100AA80DE /* LICENSE */,
+				918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */,
+				918C96AC1C1D2FE100AA80DE /* RBBLinearInterpolation.swift */,
+				918C96AD1C1D2FE100AA80DE /* RBBSpringAnimation.swift */,
+			);
+			path = RBBSpringAnimation;
 			sourceTree = "<group>";
 		};
 		91B4AB501B683CF40043675A /* Algorithms */ = {
@@ -347,6 +384,7 @@
 				91D4DCCB1B43A83500F545A3 /* Localizable.strings in Resources */,
 				9187F4801B69FECC00FA528F /* SampleQuizletData.json in Resources */,
 				9126FDC11B1D0E1000642E56 /* Main.storyboard in Resources */,
+				918C96B01C1D2FE100AA80DE /* LICENSE in Resources */,
 				9126FDC61B1D0E1000642E56 /* LaunchScreen.xib in Resources */,
 				9126FDC31B1D0E1000642E56 /* Images.xcassets in Resources */,
 				911A0D351B3CF69E00B219D7 /* QuizletSearchModel.strings in Resources */,
@@ -383,6 +421,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				918C96B51C1D401300AA80DE /* SpringAnimation.swift in Sources */,
 				910AAEB11BAB612000655131 /* TableContainerController.swift in Sources */,
 				912DFCF91BBAD3BD002D67FA /* QueryResult.swift in Sources */,
 				911A0D511B41772C00B219D7 /* SearchViewController.swift in Sources */,
@@ -398,23 +437,28 @@
 				912DFCF71BBAD106002D67FA /* SetPager.swift in Sources */,
 				912DFCFB1BBAD5F4002D67FA /* UnexpectedResponse.swift in Sources */,
 				91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */,
+				918C96B21C1D2FE100AA80DE /* RBBLinearInterpolation.swift in Sources */,
 				91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */,
 				911C41091BA10A21007E0AEE /* SearchOperation.swift in Sources */,
+				918C96AE1C1D2FE100AA80DE /* EAAnimationDelayed.swift in Sources */,
 				91EF24241BCC4C8300CABA3C /* TextInputTableViewCell.swift in Sources */,
 				911A0D4B1B3F2AE900B219D7 /* DataModel.swift in Sources */,
 				911C41051B9F7A7C007E0AEE /* SearchTableViewCell.swift in Sources */,
 				914D0AE11B6AA4ED0025C585 /* QuizletSet.swift in Sources */,
 				911A0D4D1B41264200B219D7 /* LoginViewController.swift in Sources */,
+				918C96AF1C1D2FE100AA80DE /* EasyAnimation.swift in Sources */,
 				9170E7C21BCC949500C70847 /* InsetTextField.swift in Sources */,
 				910722FA1B360DC20066DC87 /* Boyer-Moore.swift in Sources */,
 				911A0D021B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld in Sources */,
 				914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */,
+				918C96B11C1D2FE100AA80DE /* RBBBlockBasedArray.swift in Sources */,
 				9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */,
 				910AAEB31BAB67E100655131 /* QueriesViewController.swift in Sources */,
 				911C410B1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift in Sources */,
 				91EDA14A1B3161D300E1152D /* DropboxSession.swift in Sources */,
 				91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */,
 				914D0AE41B6AA4ED0025C585 /* User.swift in Sources */,
+				918C96B31C1D2FE100AA80DE /* RBBSpringAnimation.swift in Sources */,
 				910722F61B35FE200066DC87 /* QSet.swift in Sources */,
 				910BC27D1BCA19B9007F1A9E /* AddQueryModel.swift in Sources */,
 				914D0AE31B6AA4ED0025C585 /* Term.swift in Sources */,
