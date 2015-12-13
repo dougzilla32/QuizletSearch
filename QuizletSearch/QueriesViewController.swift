@@ -32,6 +32,10 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     var searchBarHeight: CGFloat!
     var currentContentOffsetY: CGFloat?
     
+    var animationBlock: ((CGPoint, completionHandler: () -> Void) -> Void)?
+    var animationContext: WhooshAnimationContext?
+    var hideRefCount = [NSIndexPath: Int]()
+    
     enum ExtraRowOptions {
         case InsertOnly, InsertAndDelete
     }
@@ -59,6 +63,9 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
+        tableView.layer.cornerRadius = 12
+        // view.clipsToBounds = true
+        
         currentUser = dataModel.currentUser!
         
 //         tableView.rowHeight = UITableViewAutomaticDimension
@@ -170,99 +177,62 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             let indexPath = tableView.indexPathForSelectedRow!
             let cell = tableView.cellForRowAtIndexPath(indexPath)!
             let label = cell.contentView.viewWithTag(100) as! UILabel
-            let origin = label.frame.origin
             
+            let origin = label.frame.origin
             let mainWindow = UIApplication.sharedApplication().keyWindow!
             let sourcePoint = label.superview!.convertPoint(origin, toView: mainWindow)
 
+            if (animationContext != nil) {
+                animationContext!.cancel()
+                animationContext = nil
+            }
+            
             let searchViewController = segue.destinationViewController as! SearchViewController
             searchViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: () -> Void) in
-                let text = (label.text != nil ? label.text! : "") as NSString
-                var velocityFactor: CGFloat = 0
-                let clearColor = UIColor.clearColor()
-                var index = 0
-                
-                while (index < text.length) {
-                    let animationLabel = Common.cloneView(label) as! UILabel
-                    mainWindow.addSubview(animationLabel)
-                    animationLabel.frame = label.frame
-                    animationLabel.frame.origin = sourcePoint
+                searchViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .FadeOut, completionHandler: {
+                    searchViewController.animationContext = nil
+                    self.showLabelAtIndexPath(indexPath, label: label)
+                    completionHandler()
+                })
 
-                    let attrText = NSMutableAttributedString(string: text as String)
-                    if (index != 0) {
-                        attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: 0, length: index))
-                    }
-                    
-                    if (index != text.length) {
-                        index++
-                        if (index != text.length) {
-                            attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: index, length: text.length - index))
-                        }
-                    }
-                    
-                    animationLabel.attributedText = attrText
-                    
-                    velocityFactor = CGFloat(index+1) * 7.5 / CGFloat(text.length+1)
-
-                    let isLast = (index == text.length)
-                    
-                    //enable layer actions
-                    CATransaction.begin()
-                    CATransaction.setDisableActions(false)
-                    
-                    let duration = 1.0
-                    let position = CGPoint(
-                        x: targetPoint.x + animationLabel.frame.size.width / 2.0,
-                        y: targetPoint.y + animationLabel.frame.size.height / 2.0)
-                    let opacity: Float = 0.5
-                    
-                    animationLabel.layer.addAnimation(
-                        SpringAnimation.createSpringAnimationWithDuration(duration,
-                            delay: 0,
-                            options: nil,
-                            springDamping: 1.0,
-                            springVelocity: velocityFactor,
-                            keyPath: "position",
-                            fromValue: NSValue(CGPoint: animationLabel.layer.position),
-                            toValue: NSValue(CGPoint: position)),
-                        forKey: "position")
-
-                    animationLabel.layer.position = position
-
-                    animationLabel.layer.addAnimation(
-                        SpringAnimation.createBasicAnimationWithDuration(duration,
-                            delay: 0,
-                            options: nil,
-                            keyPath: "opacity",
-                            fromValue: animationLabel.layer.opacity,
-                            toValue: opacity),
-                        forKey: "opacity")
-                    
-                    animationLabel.layer.opacity = opacity
-
-                    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(Double(NSEC_PER_SEC) * duration)), dispatch_get_main_queue(), {
-                        animationLabel.superview!.setNeedsDisplay()
-                        animationLabel.removeFromSuperview()
-                        
-                        if (isLast) {
-                            label.hidden = false
-                            completionHandler()
-                        }
-                    })
-
-                    CATransaction.commit()
-                }
-
-                label.hidden = true
+                self.hideLabelAtIndexPath(indexPath, label: label)
             }
         }
         
         // Get the new view controller using segue.destinationViewController.
         // Pass the selected object to the new view controller.
     }
+    
+    func showLabelAtIndexPath(indexPath: NSIndexPath, label: UILabel) {
+        var count = self.hideRefCount[indexPath]
+        if (count == nil) {
+            label.hidden = false
+        }
+        else {
+            count!--
+            if (count == 0) {
+                label.hidden = false
+                self.hideRefCount[indexPath] = nil
+            }
+            else {
+                self.hideRefCount[indexPath] = count
+            }
+        }
+    }
+    
+    func hideLabelAtIndexPath(indexPath: NSIndexPath, label: UILabel) {
+        var count = self.hideRefCount[indexPath]
+        if (count == nil) {
+            count = 1
+            label.hidden = true
+        }
+        else {
+            count!++
+        }
+        self.hideRefCount[indexPath] = count
+    }
 
     @IBAction func unwindFromUsers(segue: UIStoryboardSegue) {
-        trace("unwindFromUsers QueriesViewController")
         let y = currentContentOffsetY
         
         if (SearchBarEnabled) {
@@ -273,8 +243,6 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     }
     
     @IBAction func unwindFromSearch(segue: UIStoryboardSegue) {
-        trace("unwindFromSearch QueriesViewController")
-
         let searchViewController = segue.sourceViewController as! SearchViewController
         searchViewController.cancelRefresh()
 
@@ -286,14 +254,28 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             })
         }
 
+        let indexPath = tableView.indexPathForSelectedRow
         if (tableView.indexPathForSelectedRow != nil) {
             tableView.deselectRowAtIndexPath(tableView.indexPathForSelectedRow!, animated: false)
+        }
+
+        if (animationBlock != nil) {
+            let cell = tableView.cellForRowAtIndexPath(indexPath!)!
+            let label = cell.contentView.viewWithTag(100) as! UILabel
+            
+            let origin = label.frame.origin
+            let mainWindow = UIApplication.sharedApplication().keyWindow!
+            let targetPoint = label.superview!.convertPoint(origin, toView: mainWindow)
+            
+            hideLabelAtIndexPath(indexPath!, label: label)
+            self.animationBlock!(targetPoint, completionHandler: {
+                self.showLabelAtIndexPath(indexPath!, label: label)
+            })
+            self.animationBlock = nil
         }
     }
     
     @IBAction func unwindFromAddQuery(segue: UIStoryboardSegue) {
-        trace("unwindFromAddQuery QueriesViewController segueId:", segue.identifier)
-        
         if (segue.identifier != "AddQueryAdd") {
             return
         }

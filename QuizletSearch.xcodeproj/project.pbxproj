@@ -46,7 +46,7 @@
 		918C96B11C1D2FE100AA80DE /* RBBBlockBasedArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */; };
 		918C96B21C1D2FE100AA80DE /* RBBLinearInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AC1C1D2FE100AA80DE /* RBBLinearInterpolation.swift */; };
 		918C96B31C1D2FE100AA80DE /* RBBSpringAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AD1C1D2FE100AA80DE /* RBBSpringAnimation.swift */; };
-		918C96B51C1D401300AA80DE /* SpringAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96B41C1D401300AA80DE /* SpringAnimation.swift */; };
+		918C96B51C1D401300AA80DE /* CommonAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96B41C1D401300AA80DE /* CommonAnimation.swift */; };
 		91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */; };
 		91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B4AB511B683D2F0043675A /* LevenshteinDistance.swift */; };
 		91B4AB581B6845EB0043675A /* StringScore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B4AB571B6845EB0043675A /* StringScore.swift */; };
@@ -112,7 +112,7 @@
 		918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBBlockBasedArray.swift; sourceTree = "<group>"; };
 		918C96AC1C1D2FE100AA80DE /* RBBLinearInterpolation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBLinearInterpolation.swift; sourceTree = "<group>"; };
 		918C96AD1C1D2FE100AA80DE /* RBBSpringAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBSpringAnimation.swift; sourceTree = "<group>"; };
-		918C96B41C1D401300AA80DE /* SpringAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SpringAnimation.swift; sourceTree = "<group>"; };
+		918C96B41C1D401300AA80DE /* CommonAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonAnimation.swift; sourceTree = "<group>"; };
 		91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetTableViewCell.swift; sourceTree = "<group>"; };
 		91B4AB511B683D2F0043675A /* LevenshteinDistance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LevenshteinDistance.swift; sourceTree = "<group>"; };
 		91B4AB571B6845EB0043675A /* StringScore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = StringScore.swift; sourceTree = "<group>"; };
@@ -146,6 +146,7 @@
 			isa = PBXGroup;
 			children = (
 				9187F47A1B68AD1500FA528F /* Common.swift */,
+				918C96B41C1D401300AA80DE /* CommonAnimation.swift */,
 				9170E7C11BCC949500C70847 /* InsetTextField.swift */,
 				911C41061B9FB64F007E0AEE /* DynamicLabel.swift */,
 				910BC27A1BC8DD28007F1A9E /* LabelTableViewCell.swift */,
@@ -153,7 +154,6 @@
 				910AAEB01BAB612000655131 /* TableContainerController.swift */,
 				916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */,
 				912DFCF61BBAD106002D67FA /* SetPager.swift */,
-				918C96B41C1D401300AA80DE /* SpringAnimation.swift */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -421,7 +421,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				918C96B51C1D401300AA80DE /* SpringAnimation.swift in Sources */,
+				918C96B51C1D401300AA80DE /* CommonAnimation.swift in Sources */,
 				910AAEB11BAB612000655131 /* TableContainerController.swift in Sources */,
 				912DFCF91BBAD3BD002D67FA /* QueryResult.swift in Sources */,
 				911A0D511B41772C00B219D7 /* SearchViewController.swift in Sources */,

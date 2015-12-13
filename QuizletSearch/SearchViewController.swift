@@ -25,6 +25,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     var showActivityIndicator = true
     
     var animationBlock: ((CGPoint, completionHandler: () -> Void) -> Void)?
+    var animationContext: WhooshAnimationContext?
     
     let SearchBarPlaceholderPrefix = "Search \""
     let SearchBarPlaceholderSuffix = "\" sets"
@@ -131,11 +132,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         if (dataModel.currentQuery != nil) {
             let title = dataModel.currentQuery!.title
             searchBar.placeholder = SearchBarPlaceholderPrefix + title + SearchBarPlaceholderSuffix
-            
-            let searchTextField = Common.findTextField(self.searchBar)!
-            let attributedPlaceholder = NSMutableAttributedString(attributedString: searchTextField.attributedPlaceholder!)
-            attributedPlaceholder.addAttribute(NSForegroundColorAttributeName, value: UIColor.clearColor(), range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
-            searchTextField.attributedPlaceholder = attributedPlaceholder
         }
         
         refreshTable(modified: false)
@@ -158,21 +154,40 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         // Cause the search bar's textfield to be positioned correctly
         searchBar.layoutIfNeeded()
         
+        trace("*** SearchBar frame", searchBar.frame)
+        
         if (animationBlock != nil) {
-            let searchTextField = Common.findTextField(self.searchBar)!
-
-            let absoluteOrigin = searchTextField.superview!.convertPoint(searchTextField.frame.origin, toView: UIApplication.sharedApplication().keyWindow!)
-            let placeholderBounds = searchTextField.placeholderRectForBounds(searchTextField.bounds)
-            let prefixSize = self.SearchBarPlaceholderPrefix.sizeWithAttributes([NSFontAttributeName: searchTextField.font!])
-            let targetPoint = CGPoint(x: absoluteOrigin.x + placeholderBounds.origin.x + prefixSize.width + 1, y: absoluteOrigin.y + placeholderBounds.origin.y)
-
+            let targetPoint = hideTitleText()
+            trace("*** titleTargetPoint", targetPoint)
             self.animationBlock!(targetPoint, completionHandler: {
-                let searchTextField = Common.findTextField(self.searchBar)!
-                searchTextField.attributedPlaceholder = nil
-                self.searchBar.placeholder = self.SearchBarPlaceholderPrefix + self.dataModel().currentQuery!.title + self.SearchBarPlaceholderSuffix
+                self.showTitleText()
             })
             self.animationBlock = nil
         }
+    }
+    
+    func hideTitleText() -> CGPoint {
+        let searchTextField = Common.findTextField(self.searchBar)!
+        let title = dataModel().currentQuery!.title
+
+        // Set the title text to clearColor
+        let attributedPlaceholder = NSMutableAttributedString(attributedString: searchTextField.attributedPlaceholder!)
+        attributedPlaceholder.addAttribute(NSForegroundColorAttributeName, value: UIColor.clearColor(), range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
+        searchTextField.attributedPlaceholder = attributedPlaceholder
+
+        // Calculate the frame for the title text
+        let absoluteOrigin = searchTextField.superview!.convertPoint(searchTextField.frame.origin, toView: UIApplication.sharedApplication().keyWindow!)
+        let placeholderBounds = searchTextField.placeholderRectForBounds(searchTextField.bounds)
+        let fontAttributes = [NSFontAttributeName: searchTextField.font!]
+        let prefixSize = SearchBarPlaceholderPrefix.sizeWithAttributes(fontAttributes)
+        
+        return CGPoint(x: absoluteOrigin.x + placeholderBounds.origin.x + prefixSize.width + 1, y: absoluteOrigin.y + placeholderBounds.origin.y)
+    }
+    
+    func showTitleText() {
+        let searchTextField = Common.findTextField(searchBar)!
+        searchTextField.attributedPlaceholder = nil
+        self.searchBar.placeholder = SearchBarPlaceholderPrefix + dataModel().currentQuery!.title + SearchBarPlaceholderSuffix
     }
     
     deinit {
@@ -204,14 +219,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], forState: UIControlState.Normal)
         
         // Update the appearance of the search bar's textfield
-        let searchTextField: UITextField
-        // appearanceWhenContainedInInstancesOfClasses causes a crash when loading the search view, not sure why this doesn't work
-        // if #available(iOS 9.0, *) {
-        //     searchTextField = UITextField.appearanceWhenContainedInInstancesOfClasses([UISearchBar.self])
-        // } else {
-        // Fallback on earlier versions
-        searchTextField = Common.findTextField(self.searchBar)!
-        // }
+        let searchTextField = Common.findTextField(self.searchBar)!
         searchTextField.font = preferredSearchFont
         searchTextField.autocapitalizationType = UITextAutocapitalizationType.None
         searchTextField.enablesReturnKeyAutomatically = false
@@ -226,19 +234,40 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // MARK: - Search View Controller
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        trace("prepareForSegue SearchViewController sender:", sender)
-        
         cancelRefresh()
         
         if (segue.identifier == "EditQuery") {
             let addQueryViewController = segue.destinationViewController.childViewControllers[0] as! AddQueryViewController
             addQueryViewController.configureForSave(dataModel().currentQuery!)
         }
+        else if (segue.identifier == "SearchUnwind" /* && Common.isEmpty(searchBar.text) */) {
+            searchBar.text = nil
+            let queriesViewController = segue.destinationViewController as! QueriesViewController
+
+            let sourcePoint = hideTitleText()
+
+            let label = UILabel()
+            let searchTextField = Common.findTextField(self.searchBar)!
+            label.text = dataModel().currentQuery!.title
+            label.font = searchTextField.font
+            label.frame = CGRect(origin: sourcePoint, size: label.intrinsicContentSize())
+            
+            if (animationContext != nil) {
+                animationContext!.cancel()
+                animationContext = nil
+            }
+            
+            queriesViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: () -> Void) in
+                queriesViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .FadeIn, completionHandler: {
+                        queriesViewController.animationContext = nil
+                        self.showTitleText()
+                        completionHandler()
+                })
+            }
+        }
     }
     
     @IBAction func unwindFromEditQuery(segue: UIStoryboardSegue) {
-        trace("unwindFromEditQuery segueId:", segue.identifier)
-        
         if (segue.identifier == "EditQuerySave") {
             let addQueryViewController = segue.sourceViewController as! AddQueryViewController
             let modified = addQueryViewController.saveToQuery(dataModel().currentQuery!)

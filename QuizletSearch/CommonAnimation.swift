@@ -2,8 +2,11 @@
 //  SpringAnimation.swift
 //  QuizletSearch
 //
+//  Created by Doug Stein on 9/29/15.
+//  Copyright © 2015 Doug Stein. All rights reserved.
 //
-// Derived from: Easy Animation
+//
+// 'createSpringAnimationWithDuration' is derived from Easy Animation, covered by the MIT License as follows:
 // https://github.com/icanzilb/EasyAnimation
 //
 // The MIT License (MIT)
@@ -31,7 +34,132 @@
 
 import UIKit
 
-class SpringAnimation {
+enum WhooshStyle {
+    case FadeIn, FadeOut
+}
+
+class WhooshAnimationContext {
+    let animationLabels: [UILabel]
+    
+    init(animationLabels: [UILabel]) {
+        self.animationLabels = animationLabels
+    }
+    
+    func cancel() {
+        trace("Animation cancelled!!", animationLabels.count > 0 ? animationLabels[0].text : "")
+        CATransaction.begin()
+        for label in animationLabels {
+            label.layer.removeAllAnimations()
+        }
+        CATransaction.commit()
+    }
+}
+
+// Problems:
+//   5) Go to the 'Users' view and back.  Subsequently the target point for the animation is way off.
+
+class CommonAnimation {
+    /* Animate all characters in the label's text from the label's location to the
+     * target point.  Each letter is animated separately to give a whooshing effect.
+     *
+     * 'label' must be a member of the 'keyWindow' view hieracrhy
+     * 'sourcePoint' is a location relative to 'keyWindow' where the animation starts
+     * 'targetPoint' is a location relative to 'keyWindow' where the animation ends */
+    class func letterWhooshAnimationForLabel(label: UILabel, sourcePoint: CGPoint, targetPoint: CGPoint, style: WhooshStyle, completionHandler: () -> Void) -> WhooshAnimationContext  {
+        
+        let mainWindow = UIApplication.sharedApplication().keyWindow!
+        let text = (label.text != nil ? label.text! : "") as NSString
+        var velocityFactor: CGFloat = 0
+        let clearColor = UIColor.clearColor()
+        var index = 0
+        var animationLabels = [UILabel]()
+        
+        while (index < text.length) {
+            let animationLabel = Common.cloneView(label) as! UILabel
+            animationLabel.hidden = false
+            animationLabels.append(animationLabel)
+            
+            mainWindow.addSubview(animationLabel)
+            animationLabel.frame = label.frame
+            
+            // Starting value for position
+            animationLabel.frame.origin = sourcePoint
+            
+            let attrText = NSMutableAttributedString(string: text as String)
+            if (index != 0) {
+                attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: 0, length: index))
+            }
+            
+            if (index != text.length) {
+                index++
+                if (index != text.length) {
+                    attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: index, length: text.length - index))
+                }
+            }
+            
+            animationLabel.attributedText = attrText
+            
+            let multiplier = (sourcePoint.x < targetPoint.x) ? index+1 : text.length-index
+            velocityFactor = CGFloat(multiplier) * 7.5 / CGFloat(text.length+1)
+            
+            let fadedOpacity: Float = 0.5
+            let unfadedOpacity: Float = 1.0
+            let fromOpacity = (style == .FadeIn) ? fadedOpacity : unfadedOpacity
+            let toOpacity = (style == .FadeIn) ? unfadedOpacity : fadedOpacity
+            
+            // Starting value for opacity
+            animationLabel.layer.opacity = fromOpacity
+            
+            //enable layer actions
+            CATransaction.begin()
+            CATransaction.setDisableActions(false)
+            
+            let isLast = (index == text.length)
+            CATransaction.setCompletionBlock({
+                animationLabel.superview!.setNeedsDisplay()
+                animationLabel.removeFromSuperview()
+                
+                if (isLast) {
+                    completionHandler()
+                }
+            })
+
+            let duration = 1.0
+            let position = CGPoint(
+                x: targetPoint.x + animationLabel.frame.size.width / 2.0,
+                y: targetPoint.y + animationLabel.frame.size.height / 2.0)
+            // trace("Animating from", animationLabel.layer.position, "to", position, "where width is", animationLabel.frame.width, "and height is", animationLabel.frame.height)
+            
+            animationLabel.layer.addAnimation(
+                CommonAnimation.createSpringAnimationWithDuration(duration,
+                    delay: 0,
+                    options: nil,
+                    springDamping: 1.0,
+                    springVelocity: velocityFactor,
+                    keyPath: "position",
+                    fromValue: NSValue(CGPoint: animationLabel.layer.position),
+                    toValue: NSValue(CGPoint: position)),
+                forKey: "position")
+            
+            animationLabel.layer.position = position
+            
+            animationLabel.layer.addAnimation(
+                CommonAnimation.createBasicAnimationWithDuration(duration,
+                    delay: 0,
+                    options: nil,
+                    keyPath: "opacity",
+                    fromValue: fromOpacity,
+                    toValue: toOpacity),
+                forKey: "opacity")
+            
+            animationLabel.layer.opacity = toOpacity
+            
+            CATransaction.commit()
+        }
+        
+        return WhooshAnimationContext(animationLabels: animationLabels)
+    }
+    
     class func createBasicAnimationWithDuration(duration: NSTimeInterval, delay: NSTimeInterval, options: UIViewAnimationOptions?,
         keyPath: String, fromValue: AnyObject, toValue: AnyObject) -> CAAnimation {
             return createSpringAnimationWithDuration(duration, delay: delay, options: options, springDamping: 0, springVelocity: 0, keyPath: keyPath, fromValue: fromValue, toValue: toValue)
@@ -70,7 +198,7 @@ class SpringAnimation {
                     anim.from = fromValue
                     anim.to = toValue
                     
-                    //TODO: refine the spring animation setup
+                    //todo: refine the spring animation setup
                     //lotta magic numbers to mimic UIKit springs
                     let epsilon = 0.001
                     anim.damping = -2.0 * log(epsilon) / duration

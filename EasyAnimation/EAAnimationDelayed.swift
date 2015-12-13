@@ -176,7 +176,7 @@ public class EAAnimationDelayed: Equatable, CustomStringConvertible {
         if debug {
             print("run animation #\(debugNumber)")
         }
-        //TODO: Check if layer-only animations fire a proper completion block
+        //todo: Check if layer-only animations fire a proper completion block
         if let animations = animations {
             options.insert(.BeginFromCurrentState)
             let animationDelay = dispatch_time(DISPATCH_TIME_NOW, Int64( Double(NSEC_PER_SEC) * self.delay ))
