@@ -55,17 +55,18 @@ class WhooshAnimationContext {
     }
 }
 
-// Problems:
-//   5) Go to the 'Users' view and back.  Subsequently the target point for the animation is way off.
-
 class CommonAnimation {
     /* Animate all characters in the label's text from the label's location to the
      * target point.  Each letter is animated separately to give a whooshing effect.
      *
-     * 'label' must be a member of the 'keyWindow' view hieracrhy
+     * 'label' is cloned for each animation label, therefore the animation labels inherit all style attributes
      * 'sourcePoint' is a location relative to 'keyWindow' where the animation starts
      * 'targetPoint' is a location relative to 'keyWindow' where the animation ends */
-    class func letterWhooshAnimationForLabel(label: UILabel, sourcePoint: CGPoint, targetPoint: CGPoint, style: WhooshStyle, completionHandler: () -> Void) -> WhooshAnimationContext  {
+    class func letterWhooshAnimationForLabel(var label: UILabel, sourcePoint: CGPoint, targetPoint: CGPoint, style: WhooshStyle, completionHandler: () -> Void) -> WhooshAnimationContext  {
+        
+        label = Common.cloneView(label) as! UILabel
+        label.hidden = false
+        label.frame = CGRect(origin: sourcePoint, size: label.intrinsicContentSize())
         
         let mainWindow = UIApplication.sharedApplication().keyWindow!
         let text = (label.text != nil ? label.text! : "") as NSString
@@ -74,9 +75,10 @@ class CommonAnimation {
         var index = 0
         var animationLabels = [UILabel]()
         
+        // trace("letterWhooshAnimationForLabel sourcePoint:", sourcePoint, "targetPoint:", targetPoint, "mainWindow.layer.position:", mainWindow.layer.position, "mainWindow.layer.anchorPoint:", mainWindow.layer.anchorPoint)
+        
         while (index < text.length) {
             let animationLabel = Common.cloneView(label) as! UILabel
-            animationLabel.hidden = false
             animationLabels.append(animationLabel)
             
             mainWindow.addSubview(animationLabel)
@@ -115,14 +117,17 @@ class CommonAnimation {
             CATransaction.setDisableActions(false)
             
             let isLast = (index == text.length)
-            CATransaction.setCompletionBlock({
-                animationLabel.superview!.setNeedsDisplay()
-                animationLabel.removeFromSuperview()
-                
-                if (isLast) {
+            if (isLast) {
+                CATransaction.setCompletionBlock({
                     completionHandler()
-                }
-            })
+
+                    for al in animationLabels {
+                        al.superview!.setNeedsDisplay()
+                        al.removeFromSuperview()
+                    }
+                    animationLabels = []
+                })
+            }
 
             let duration = 1.0
             let position = CGPoint(

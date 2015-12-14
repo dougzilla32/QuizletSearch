@@ -243,9 +243,6 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     }
     
     @IBAction func unwindFromSearch(segue: UIStoryboardSegue) {
-        let searchViewController = segue.sourceViewController as! SearchViewController
-        searchViewController.cancelRefresh()
-
         let y = currentContentOffsetY
 
         if (SearchBarEnabled) {

@@ -154,11 +154,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         // Cause the search bar's textfield to be positioned correctly
         searchBar.layoutIfNeeded()
         
-        trace("*** SearchBar frame", searchBar.frame)
-        
         if (animationBlock != nil) {
             let targetPoint = hideTitleText()
-            trace("*** titleTargetPoint", targetPoint)
             self.animationBlock!(targetPoint, completionHandler: {
                 self.showTitleText()
             })
@@ -250,7 +247,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             let searchTextField = Common.findTextField(self.searchBar)!
             label.text = dataModel().currentQuery!.title
             label.font = searchTextField.font
-            label.frame = CGRect(origin: sourcePoint, size: label.intrinsicContentSize())
+            label.textColor = searchTextField.textColor
+            label.textAlignment = searchTextField.textAlignment
             
             if (animationContext != nil) {
                 animationContext!.cancel()
