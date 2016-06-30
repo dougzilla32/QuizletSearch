@@ -73,7 +73,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         
         // Respond to dynamic type font changes
         NSNotificationCenter.defaultCenter().addObserver(self,
-            selector: "preferredContentSizeChanged:",
+            selector: #selector(QueriesViewController.preferredContentSizeChanged(_:)),
             name: UIContentSizeCategoryDidChangeNotification,
             object: nil)
         resetFonts()
@@ -118,21 +118,19 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             UIView.setAnimationsEnabled(enabled)
         }
 
-        self.extraRows++
+        self.extraRows += 1
         self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.None)
         if (options == .InsertAndDelete) {
-            self.extraRows--
+            self.extraRows -= 1
             self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.None)
         }
     }
     
     // Workaround for search bar positioning -- when programmatically manipulating the tableView, sometimes the contentOffset pops to zero such that the search bar becomes visible.  This workaround alleviates the improper behavior.
-    func searchBarPositionWorkaround(var overrideContentOffsetY: CGFloat? = nil) {
-        if (overrideContentOffsetY == nil) {
-            overrideContentOffsetY = currentContentOffsetY
-        }
+    func searchBarPositionWorkaround(overrideContentOffsetY: CGFloat? = nil) {
+        let offsetY = (overrideContentOffsetY != nil) ? overrideContentOffsetY! : currentContentOffsetY
 
-        let needsAdjustment = (overrideContentOffsetY >= searchBarHeight && tableView.contentOffset.y < searchBarHeight)
+        let needsAdjustment = (offsetY >= searchBarHeight && tableView.contentOffset.y < searchBarHeight)
         trace("searchBarPositionWorkaround needsAdjustment:", needsAdjustment)
         
         if (needsAdjustment) {
@@ -209,7 +207,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             label.hidden = false
         }
         else {
-            count!--
+            count! -= 1
             if (count == 0) {
                 label.hidden = false
                 self.hideRefCount[indexPath] = nil
@@ -227,7 +225,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             label.hidden = true
         }
         else {
-            count!++
+            count! += 1
         }
         self.hideRefCount[indexPath] = count
     }
@@ -251,6 +249,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             })
         }
 
+        // TODO cannnnot count on this being set, need to track separately (nil unwrap error)
         let indexPath = tableView.indexPathForSelectedRow
         if (tableView.indexPathForSelectedRow != nil) {
             tableView.deselectRowAtIndexPath(tableView.indexPathForSelectedRow!, animated: false)
@@ -324,13 +323,15 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         inEditMode = tableView.editing
         editButton.setTitle(tableView.editing ? "Done" : "Edit", forState: UIControlState.Normal)
 
-        recursiveReloadCounter++
+        recursiveReloadCounter += 1
         extraRows = 0
         tableView.reloadData()
         if (SearchBarEnabled) {
             self.searchBarVisibilityWorkaround(.InsertOnly)
         }
-        recursiveReloadCounter--
+        recursiveReloadCounter -= 1
+        
+        CommonAnimation.letterSpin()
     }
     
     @IBAction func updateText(sender: AnyObject) {
@@ -476,7 +477,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var numRows = currentUser.queries.count
         if (!inEditMode) {
-            numRows++
+            numRows += 1
         }
         numRows += extraRows
         return numRows
@@ -497,7 +498,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             cellId = "Label"
         }
         
-        trace("cellForRow row:", indexPath.row, "cellId:", cellId)
+        // trace("cellForRow row:", indexPath.row, "cellId:", cellId)
         
         let cell = tableView.dequeueReusableCellWithIdentifier(cellId, forIndexPath: indexPath)
         configureCell(cell, atIndexPath: indexPath)

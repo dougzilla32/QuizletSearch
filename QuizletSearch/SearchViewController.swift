@@ -92,7 +92,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         tableView.allowsSelection = false
         
         // Dismiss keyboard when user touches the table
-        let gestureRecognizer = UITapGestureRecognizer(target: self,  action: "hideKeyboard:")
+        let gestureRecognizer = UITapGestureRecognizer(target: self,  action: #selector(SearchViewController.hideKeyboard(_:)))
         gestureRecognizer.cancelsTouchesInView = false
         tableView.addGestureRecognizer(gestureRecognizer)
         
@@ -104,7 +104,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         
         // Respond to dynamic type font changes
         NSNotificationCenter.defaultCenter().addObserver(self,
-            selector: "preferredContentSizeChanged:",
+            selector: #selector(SearchViewController.preferredContentSizeChanged(_:)),
             name: UIContentSizeCategoryDidChangeNotification,
             object: nil)
         resetFonts()
@@ -114,7 +114,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         
         let moc = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext
         NSNotificationCenter.defaultCenter().addObserver(self,
-            selector: "contextDidSaveNotification:",
+            selector: #selector(SearchViewController.contextDidSaveNotification(_:)),
             name: NSManagedObjectContextDidSaveNotification,
             object: moc)
 
@@ -400,14 +400,15 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return SortedTerms(AtoZ: AtoZ, bySet: bySet, bySetAtoZ: bySetAtoZ)
     }
     
-    class func collateAtoZ(var AtoZterms: [SortTerm]) -> [SortSet<SortTerm>] {
-        AtoZterms.sortInPlace(termComparator)
+    class func collateAtoZ(unsortedAtoZterms: [SortTerm]) -> [SortSet<SortTerm>] {
+        var sortedAtoZterms = unsortedAtoZterms
+        sortedAtoZterms.sortInPlace(termComparator)
 
         var currentCharacter: Character? = nil
         var currentTerms: [SortTerm]? = nil
         var AtoZbySet: [SortSet<SortTerm>] = []
 
-        for term in AtoZterms {
+        for term in sortedAtoZterms {
             var text = term.termForDisplay.string
             //var text = term.definitionForDisplay.string
             text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())

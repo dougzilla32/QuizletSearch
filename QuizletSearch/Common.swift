@@ -235,10 +235,31 @@ class Common {
         return up[up.startIndex]
     }
     
+    class func isAlphaNumeric(c: Character) -> Bool {
+// Looping over the unicodeScalars performs better than using the utf16 accessor method
+//        return String(c).rangeOfCharacterFromSet(NSCharacterSet.alphanumericCharacterSet()) != nil
+//        return NSCharacterSet.alphanumericCharacterSet().characterIsMember(String(c).utf16.first!)
+        
+        for uc in String(c).unicodeScalars {
+            if (!NSCharacterSet.alphanumericCharacterSet().longCharacterIsMember(uc.value)) {
+                return false
+            }
+        }
+        return true
+    }
+
     class func isWhitespace(c: Character) -> Bool {
-        let s = String(c)
-        let uc = s.utf16[s.utf16.startIndex] as unichar
-        return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(uc)
+// Looping over the unicodeScalars performs better than using the utf16 accessor method
+//        let s = String(c)
+//        let uc = s.utf16[s.utf16.startIndex] as unichar
+//        return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(uc)
+
+        for uc in String(c).unicodeScalars {
+            if (!NSCharacterSet.whitespaceAndNewlineCharacterSet().longCharacterIsMember(uc.value)) {
+                return false
+            }
+        }
+        return true
     }
     
     class func firstNonWhitespaceCharacter(text: String) -> Character? {
@@ -349,6 +370,31 @@ extension String {
         return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
     }
     
+    func guessLanguage() -> String? {
+        return CFStringTokenizerCopyBestStringLanguage(self, CFRangeMake(0, 0)) as String
+    }
+    
+    func spellCheckForLanguage(lang: String) -> [String]? {
+        let textChecker = UITextChecker()
+        let range = NSMakeRange(0, (self as NSString).length)
+        
+        let misspelled = textChecker.rangeOfMisspelledWordInString(self, range: range, startingAt: range.location, wrap: false, language: lang)
+        if (misspelled.location == NSNotFound) {
+            return nil
+        }
+        
+        let guesses = textChecker.guessesForWordRange(misspelled, inString: self, language: lang)
+        if (guesses == nil) {
+            return nil
+        }
+        
+        var guessStrings = [String]()
+        for g in guesses! {
+            guessStrings.append(g as! String)
+        }
+        return guessStrings
+    }
+
     private class StringAndIndex {
         let string: StringWithBoundaries
         var unicharIndex: Int
@@ -386,27 +432,27 @@ extension String {
         }
         
         func advance() {
-            unicharIndex++
+            unicharIndex += 1
             if (unicharIndex == string.characterBoundaries[characterIndex + 1]) {
-                characterIndex++
+                characterIndex += 1
                 characterSubIndex = 0
             } else {
-                characterSubIndex++
+                characterSubIndex += 1
             }
         }
         
         func advanceToCharacterBoundary() {
             if (unicharIndex != string.characterBoundaries[characterIndex]) {
                 while (unicharIndex != string.characterBoundaries[characterIndex + 1]) {
-                    unicharIndex++
+                    unicharIndex += 1
                 }
-                characterIndex++
+                characterIndex += 1
                 characterSubIndex = 0
             }
         }
         
         func advanceCharacter() {
-            characterIndex++
+            characterIndex += 1
             unicharIndex = string.characterBoundaries[characterIndex]
             characterSubIndex = 0
         }
@@ -492,7 +538,7 @@ extension String {
                 }
                 else {
                     to.append(fromUnichar)
-                    boundaryIndex++
+                    boundaryIndex += 1
                 }
             }
             index += sequenceLength

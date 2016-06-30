@@ -212,7 +212,7 @@ class QueryPagers: SequenceType {
                 currentPageNumber = 1
             }
             else {
-                currentPageNumber++
+                currentPageNumber += 1
             }
             
             self.loadNextPage(currentPager: currentPager, currentPageNumber: currentPageNumber, generator: generator, qsets: qsets, termCount: termCount, completionHandler: completionHandler)
@@ -316,7 +316,7 @@ class QueryPagers: SequenceType {
 
     func generate() -> AnyGenerator<SetPager> {
         let index = PagerIndex()
-        return anyGenerator {
+        return AnyGenerator {
             Restart:
                 while (true) {
                     switch (index.type) {
@@ -331,13 +331,17 @@ class QueryPagers: SequenceType {
                             index.advance()
                             continue Restart
                         }
-                        return self.usernamePagers[index.index++]
+                        let pager = self.usernamePagers[index.index]
+                        index.index += 1
+                        return pager
                     case .Class:
                         if (index.index == self.classPagers.count) {
                             index.advance()
                             continue Restart
                         }
-                        return self.classPagers[index.index++]
+                        let pager = self.classPagers[index.index]
+                        index.index += 1
+                        return pager
                     case .IncludedSets:
                         index.advance()
                         if (self.includedSetsPager == nil) {

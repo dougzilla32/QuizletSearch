@@ -55,14 +55,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         
         // Respond to dynamic type font changes
         NSNotificationCenter.defaultCenter().addObserver(self,
-            selector: "preferredContentSizeChanged:",
+            selector: #selector(AddQueryViewController.preferredContentSizeChanged(_:)),
             name: UIContentSizeCategoryDidChangeNotification,
             object: nil)
         resetFonts()
         
         // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardDidHide:", name: UIKeyboardDidHideNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AddQueryViewController.keyboardWillShow(_:)), name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(AddQueryViewController.keyboardDidHide(_:)), name: UIKeyboardDidHideNotification, object: nil)
 
         // Delay "touches began" so that swipe to delete for textfield cells works properly
         self.tableView.panGestureRecognizer.delaysTouchesBegan = true
@@ -195,10 +195,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     // MARK: - Search
     
-    func executeSearchForQuery(var query: String!, scrollTarget: ScrollTarget) {
-        if (query == nil) {
-            query = ""
-        }
+    func executeSearchForQuery(queryOpt: String?, scrollTarget: ScrollTarget) {
+        var query = (queryOpt != nil) ? queryOpt! : ""
         query = query.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
         
         if (model.pagers.queryPager == nil && !query.isEmpty) {
@@ -243,17 +241,14 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     var prevTotalResultsHighWaterMark = 0
     
     // Workaround for a UITableView bug where it will crash when reloadData is called on the table if the search bar currently has the keyboard focus
-    func safelyReloadData(var affectedResults affectedResults: Range<Int>!, var totalResults: Int!) {
-        trace("safelyReload: totalResults=", totalResults, " prevTotalResults=", prevTotalResults, /* "totalResultRows=", model.pagers.totalResultRows, */ " prevTotalResultsHighWaterMark=", prevTotalResultsHighWaterMark, separator: "")
+    func safelyReloadData(affectedResults affected: Range<Int>?, totalResults total: Int?) {
+        trace("safelyReload: totalResults=", total, " prevTotalResults=", prevTotalResults, /* "totalResultRows=", model.pagers.totalResultRows, */ " prevTotalResultsHighWaterMark=", prevTotalResultsHighWaterMark, separator: "")
 
         let offset = model.rowTypes[ResultsSection].count
         
-        if (affectedResults == nil) {
-            affectedResults = 0..<0
-        }
-        if (totalResults == nil) {
-            totalResults = 0
-        }
+        let affectedResults = (affected != nil) ? affected! : 0..<0
+        let totalResults = (total != nil) ? total! : 0
+
         let totalResultsHighWaterMark = (model.pagers.totalResultsHighWaterMark != nil) ? model.pagers.totalResultsHighWaterMark! : 0
         
         trace("affectedResults", affectedResults)
@@ -518,11 +513,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         }
         
         if (disableViewDidScroll == 0) {
-            disableViewDidScroll++
+            disableViewDidScroll += 1
 //            trace("increment #1 disableViewDidScroll", disableViewDidScroll)
             defer {
 //                trace("decrement #1 disableViewDidScroll", disableViewDidScroll)
-                disableViewDidScroll--
+                disableViewDidScroll -= 1
             }
             
             if (!fingerIsDown) {
@@ -577,7 +572,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 return
             }
 
-            disableViewDidScroll++
+            disableViewDidScroll += 1
 //            trace("increment #2 disableViewDidScroll", disableViewDidScroll)
 
 //            trace("enforceScrollTo YES \(scrollToIndexPath.row)")
@@ -589,7 +584,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                     }, completion: {
                         (value: Bool) in
 //                            trace("decrement #2 disableViewDidScroll", self.disableViewDidScroll)
-                        self.disableViewDidScroll--
+                        self.disableViewDidScroll -= 1
                 })
             })
         }
@@ -620,9 +615,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             self.tableView.setContentOffset(CGPointMake(0, originalOffset), animated: false)
             
 //            trace("scrollTo \(scrollTarget)")
-            self.disableViewDidScroll++
+            self.disableViewDidScroll += 1
 //            trace("increment #3 disabledViewDidScroll", self.disableViewDidScroll)
-            self.scrollingTo++
+            self.scrollingTo += 1
             
             // Do the scroll with animation so `scrollViewDidEndScrollingAnimation:` will execute
             self.tableView.scrollToRowAtIndexPath(indexPath, atScrollPosition: atScrollPosition, animated: true)
@@ -632,9 +627,9 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     override func scrollViewDidEndScrollingAnimation(scrollView: UIScrollView) {
 //        trace("decrement #3 disableViewDidScroll", disableViewDidScroll, scrollingTo)
         if (scrollingTo > 0) {
-            disableViewDidScroll--
+            disableViewDidScroll -= 1
         }
-        scrollingTo--
+        scrollingTo -= 1
     }
     
     // MARK: - Table view data source
@@ -814,7 +809,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 ownerIndex = (labelText as NSString).length
                 if (ownerIndex > 0) {
                     labelText += "\n"
-                    ownerIndex++
+                    ownerIndex += 1
                 }
                 labelText += owner
             }
@@ -828,7 +823,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 descriptionIndex = (labelText as NSString).length
                 if (descriptionIndex > 0) {
                     labelText += "\n"
-                    descriptionIndex++
+                    descriptionIndex += 1
                 }
                 labelText += description
             }

@@ -221,45 +221,44 @@ class AddQueryModel {
         return path
     }
     
-    func updateUser(var name: String!, atIndexPath indexPath: NSIndexPath) {
+    func updateUser(name: String?, atIndexPath indexPath: NSIndexPath) {
         assert(indexPath.section == ResultsSection)
-        if (name == nil) {
-            name = ""
-        }
-
+        let username = (name != nil) ? name! : ""
+        
         let pager = pagers.usernamePagers[indexPath.row - UsernameOffset]
-        pager.reset(query: pagers.queryPager?.query, creator: name)
-        rowItems[indexPath.section][indexPath.row] = name
+        pager.reset(query: pagers.queryPager?.query, creator: username)
+        rowItems[indexPath.section][indexPath.row] = username
     }
     
-    func updateAndSortUser(var name: String!, var atIndexPath indexPath: NSIndexPath) -> NSIndexPath {
+    func updateAndSortUser(name: String?, atIndexPath indexPath: NSIndexPath) -> NSIndexPath {
         assert(indexPath.section == ResultsSection)
-        if (name == nil) {
-            name = ""
-        }
+        let username = (name != nil) ? name! : ""
         
         let query = pagers.queryPager?.query
-        
         let oldIndex = indexPath.row - UsernameOffset
-        var newIndex = insertionSortIndexForUser(name, atIndex: oldIndex, list: pagers.usernamePagers)
+        var newIndex = insertionSortIndexForUser(username, atIndex: oldIndex, list: pagers.usernamePagers)
+        var newIndexPath: NSIndexPath
+
         if (oldIndex != newIndex) {
             let pager = pagers.usernamePagers.removeAtIndex(oldIndex)
             rowItems[indexPath.section].removeAtIndex(oldIndex + UsernameOffset)
 
             if (newIndex > oldIndex) {
-                newIndex--
+                newIndex -= 1
             }
 
             pagers.usernamePagers.insert(pager, atIndex: newIndex)
-            rowItems[indexPath.section].insert(name, atIndex: newIndex + UsernameOffset)
+            rowItems[indexPath.section].insert(username, atIndex: newIndex + UsernameOffset)
 
-            indexPath = NSIndexPath(forRow: newIndex + UsernameOffset, inSection: indexPath.section)
+            newIndexPath = NSIndexPath(forRow: newIndex + UsernameOffset, inSection: indexPath.section)
         }
         else {
-            pagers.usernamePagers[oldIndex].reset(query: query, creator: name)
-            rowItems[indexPath.section][indexPath.row] = name
+            pagers.usernamePagers[oldIndex].reset(query: query, creator: username)
+            rowItems[indexPath.section][indexPath.row] = username
+            newIndexPath = indexPath
         }
-        return indexPath
+        
+        return newIndexPath
     }
     
     func deleteUsernamePagerAtIndexPath(indexPath: NSIndexPath) {
@@ -288,45 +287,45 @@ class AddQueryModel {
         return path
     }
     
-    func updateClass(var name: String!, atIndexPath indexPath: NSIndexPath) {
+    func updateClass(name: String?, atIndexPath indexPath: NSIndexPath) {
         assert(indexPath.section == ResultsSection)
-        if (name == nil) {
-            name = ""
-        }
+        let username = (name != nil) ? name! : ""
         
         let pager = pagers.classPagers[indexPath.row - ClassOffset()]
-        pager.reset(query: pagers.queryPager?.query, classId: name)
-        rowItems[indexPath.section][indexPath.row] = name
+        pager.reset(query: pagers.queryPager?.query, classId: username)
+        rowItems[indexPath.section][indexPath.row] = username
     }
     
-    func updateAndSortClass(var name: String!, var atIndexPath indexPath: NSIndexPath) -> NSIndexPath {
+    func updateAndSortClass(name: String?, atIndexPath indexPath: NSIndexPath) -> NSIndexPath {
         assert(indexPath.section == ResultsSection)
-        if (name == nil) {
-            name = ""
-        }
+        let username = (name != nil) ? name! : ""
         
         let query = pagers.queryPager?.query
         
         let oldIndex = indexPath.row - ClassOffset()
-        var newIndex = insertionSortIndexForClass(name, atIndex: oldIndex, list: pagers.classPagers)
+        var newIndex = insertionSortIndexForClass(username, atIndex: oldIndex, list: pagers.classPagers)
+        let newIndexPath: NSIndexPath
+        
         if (oldIndex != newIndex) {
             let pager = pagers.classPagers.removeAtIndex(oldIndex)
             rowItems[indexPath.section].removeAtIndex(oldIndex + ClassOffset())
             
             if (newIndex > oldIndex) {
-                newIndex--
+                newIndex -= 1
             }
             
             pagers.classPagers.insert(pager, atIndex: newIndex)
-            rowItems[indexPath.section].insert(name, atIndex: newIndex + ClassOffset())
+            rowItems[indexPath.section].insert(username, atIndex: newIndex + ClassOffset())
             
-            indexPath = NSIndexPath(forRow: newIndex + ClassOffset(), inSection: indexPath.section)
+            newIndexPath = NSIndexPath(forRow: newIndex + ClassOffset(), inSection: indexPath.section)
         }
         else {
             pagers.classPagers[oldIndex].reset(query: query, classId: name)
-            rowItems[indexPath.section][indexPath.row] = name
+            rowItems[indexPath.section][indexPath.row] = username
+            
+            newIndexPath = indexPath
         }
-        return indexPath
+        return newIndexPath
     }
     
     func deleteClassPagerAtIndexPath(indexPath: NSIndexPath) {

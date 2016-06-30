@@ -63,15 +63,19 @@ private class CompletionBlock {
     func wrapCompletion(completed: Bool) {
         // if no uikit animations uikit calls completion immediately
         if context.nrOfUIKitAnimations > 0 ||
-            
+        
             //if no layer animations DO call completion
-            context.pendingAnimations.count == 0 ||
-            
+            context.pendingAnimations.count == 0 {
+
+                completion(completed)
+        }
+        else {
             //skip every other call if no uikit and there are layer animations
             //(e.g. jump over the first immediate uikit call to completion)
-            ++nrOfExecutions % 2 == 0 {
-                
+            nrOfExecutions += 1
+            if (nrOfExecutions % 2 == 0) {
                 completion(completed)
+            }
         }
     }
 }
@@ -132,22 +136,22 @@ extension UIView {
         
         //replace actionForLayer...
         method_exchangeImplementations(
-            class_getInstanceMethod(self, "actionForLayer:forKey:"),
-            class_getInstanceMethod(self, "EA_actionForLayer:forKey:"))
+            class_getInstanceMethod(self, #selector(NSObject.actionForLayer(_:forKey:))),
+            class_getInstanceMethod(self, #selector(UIView.EA_actionForLayer(_:forKey:))))
         
         //replace animateWithDuration...
         method_exchangeImplementations(
-            class_getClassMethod(self, "animateWithDuration:animations:"),
-            class_getClassMethod(self, "EA_animateWithDuration:animations:"))
+            class_getClassMethod(self, #selector(UIView.animateWithDuration(_:animations:))),
+            class_getClassMethod(self, #selector(UIView.EA_animateWithDuration(_:animations:))))
         method_exchangeImplementations(
-            class_getClassMethod(self, "animateWithDuration:animations:completion:"),
-            class_getClassMethod(self, "EA_animateWithDuration:animations:completion:"))
+            class_getClassMethod(self, #selector(UIView.animateWithDuration(_:animations:completion:))),
+            class_getClassMethod(self, #selector(UIView.EA_animateWithDuration(_:animations:completion:))))
         method_exchangeImplementations(
-            class_getClassMethod(self, "animateWithDuration:delay:options:animations:completion:"),
-            class_getClassMethod(self, "EA_animateWithDuration:delay:options:animations:completion:"))
+            class_getClassMethod(self, #selector(UIView.animateWithDuration(_:delay:options:animations:completion:))),
+            class_getClassMethod(self, #selector(UIView.EA_animateWithDuration(_:delay:options:animations:completion:))))
         method_exchangeImplementations(
-            class_getClassMethod(self, "animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:"),
-            class_getClassMethod(self, "EA_animateWithDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:"))
+            class_getClassMethod(self, #selector(UIView.animateWithDuration(_:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:))),
+            class_getClassMethod(self, #selector(UIView.EA_animateWithDuration(_:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:))))
         
     }
     
@@ -176,7 +180,7 @@ extension UIView {
                         }
                 }
             } else {
-                activeContext.nrOfUIKitAnimations++
+                activeContext.nrOfUIKitAnimations += 1
             }
         }
         
@@ -259,7 +263,7 @@ extension UIView {
         
         //try a timer now, than see about animation delegate
         if let completionBlock = completionBlock where context.nrOfUIKitAnimations == 0 && context.pendingAnimations.count > 0 {
-            NSTimer.scheduledTimerWithTimeInterval(context.duration, target: self, selector: "EA_wrappedCompletionHandler:", userInfo: completionBlock, repeats: false)
+            NSTimer.scheduledTimerWithTimeInterval(context.duration, target: self, selector: #selector(UIView.EA_wrappedCompletionHandler(_:)), userInfo: completionBlock, repeats: false)
         }
         
         CATransaction.commit()
@@ -451,8 +455,8 @@ extension CALayer {
         
         //replace actionForKey
         method_exchangeImplementations(
-            class_getInstanceMethod(self, "actionForKey:"),
-            class_getInstanceMethod(self, "EA_actionForKey:"))
+            class_getInstanceMethod(self, #selector(CALayer.actionForKey(_:))),
+            class_getInstanceMethod(self, #selector(CALayer.EA_actionForKey(_:))))
     }
     
     public func EA_actionForKey(key: String!) -> CAAction! {
