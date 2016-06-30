@@ -167,7 +167,13 @@ class QueryPagers: SequenceType {
         loadNextPage(currentPager: generator.next(), currentPageNumber: 1, generator: generator, qsets: qsets, termCount: 0, completionHandler: completionHandler)
     }
     
-    func loadNextPage(var currentPager currentPager: SetPager!, var currentPageNumber: Int, generator: AnyGenerator<SetPager>, var qsets: [QSet], var termCount: Int, completionHandler: ([QSet]?, Int) -> Void) {
+    func loadNextPage(currentPager currentPagerParam: SetPager!, currentPageNumber currentPageNumberParam: Int, generator: AnyGenerator<SetPager>, qsets qsetsParam: [QSet], termCount termCountParam: Int, completionHandler: ([QSet]?, Int) -> Void) {
+
+        var currentPager = currentPagerParam
+        var currentPageNumber = currentPageNumberParam
+        var qsets = qsetsParam
+        var termCount = termCountParam
+        
         if (currentPager == nil) {
             trace("executeFullSearch COMPLETE qsets.count:", qsets.count, "termCount:", termCount)
             completionHandler(qsets, termCount)

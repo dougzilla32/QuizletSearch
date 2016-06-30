@@ -77,11 +77,11 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
                 }
                 UIApplication.sharedApplication().networkActivityIndicatorVisible = false
                 
-                self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: "refresh", userInfo: nil, repeats: false)
+                self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
             })
         }
         else {
-            self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(timeRemaining, target: self, selector: "refresh", userInfo: nil, repeats: false)
+            self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(timeRemaining, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
         }
     }
     
@@ -108,7 +108,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
             }
             UIApplication.sharedApplication().networkActivityIndicatorVisible = false
 
-            self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: "refresh", userInfo: nil, repeats: false)
+            self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
         })
     }
     
@@ -145,12 +145,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return false
     }
     
-    func proceedAsGuest(var username: String?) {
-        if (username == nil) {
-            username = ""
-        }
+    func proceedAsGuest(name: String?) {
+        let username = (name != nil) ? name! : ""
+        let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: username, userId: "")
         
-        let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: username!, userId: "")
         self.dataModel.addOrUpdateUser(userAccount)
         self.saveContext()
 //        self.refreshAndRestartTimer(allowCellularAccess: true)

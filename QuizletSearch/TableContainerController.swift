@@ -30,17 +30,20 @@ class TableContainerController: UIViewController, UITableViewDelegate, UIScrollV
         super.viewDidLoad()
         
         // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillShow:", name: UIKeyboardWillShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: "keyboardWillHide:", name: UIKeyboardWillHideNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TableContainerController.keyboardWillShow(_:)), name: UIKeyboardWillShowNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TableContainerController.keyboardWillHide(_:)), name: UIKeyboardWillHideNotification, object: nil)
         
         if (refreshing) {
             // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
             refreshControl = UIRefreshControl()
-            refreshControl.addTarget(self, action: "refreshTable", forControlEvents: UIControlEvents.ValueChanged)
+            refreshControl.addTarget(self, action: #selector(TableContainerController.refreshTable), forControlEvents: UIControlEvents.ValueChanged)
             tableView.addSubview(refreshControl)
             tableView.sendSubviewToBack(refreshControl)
         }
     }
+    
+    // Implemented by subclasses
+    func refreshTable() { }
     
     func keyboardWillShow(notification: NSNotification) {
         if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {

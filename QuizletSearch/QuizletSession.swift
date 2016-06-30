@@ -429,7 +429,7 @@ class QuizletSession {
         }
     }
     
-    func invokeQuery(path: String, var queryItems: [NSURLQueryItem]?, allowCellularAccess: Bool, jsonCallback: ((AnyObject?, response: NSURLResponse?, error: NSError?) -> Void)) {
+    func invokeQuery(path: String, queryItems: [NSURLQueryItem]?, allowCellularAccess: Bool, jsonCallback: ((AnyObject?, response: NSURLResponse?, error: NSError?) -> Void)) {
         let accessToken = currentUser?.accessToken
         if (accessToken == nil) {
             NSLog("Access token is not set")
@@ -445,12 +445,13 @@ class QuizletSession {
         let config = NSURLSessionConfiguration.defaultSessionConfiguration()
         config.allowsCellularAccess = allowCellularAccess
 
+        var modifiedQueryItems = queryItems
         if (accessToken!.isEmpty) {
             let queryClientId = NSURLQueryItem(name: "client_id", value: quizletClientId)
-            if (queryItems != nil) {
-                queryItems!.append(queryClientId)
+            if (modifiedQueryItems != nil) {
+                modifiedQueryItems!.append(queryClientId)
             } else {
-                queryItems = [queryClientId]
+                modifiedQueryItems = [queryClientId]
             }
         } else {
             config.HTTPAdditionalHeaders = [
@@ -468,7 +469,7 @@ class QuizletSession {
         }
         */
         
-        url.queryItems = queryItems
+        url.queryItems = modifiedQueryItems
 
         let session = NSURLSession(configuration: config)
         let request = NSMutableURLRequest(URL: url.URL!)

@@ -236,49 +236,62 @@ class Common {
     }
     
     class func isAlphaNumeric(c: Character) -> Bool {
-// Looping over the unicodeScalars performs better than using the utf16 accessor method
-//        return String(c).rangeOfCharacterFromSet(NSCharacterSet.alphanumericCharacterSet()) != nil
-//        return NSCharacterSet.alphanumericCharacterSet().characterIsMember(String(c).utf16.first!)
+        let s = String(c)
+        let view = s.utf16
+        let uc: unichar = view[view.startIndex]
+        return NSCharacterSet.alphanumericCharacterSet().characterIsMember(uc)
         
-        for uc in String(c).unicodeScalars {
-            if (!NSCharacterSet.alphanumericCharacterSet().longCharacterIsMember(uc.value)) {
-                return false
-            }
-        }
-        return true
+        // Over 4x slower:
+        // return String(c).rangeOfCharacterFromSet(NSCharacterSet.alphanumericCharacterSet()) != nil
+        
+        // 2.5x slower:
+        // return NSCharacterSet.alphanumericCharacterSet().characterIsMember(String(c).utf16.first!)
+        
+        // 1.2x slower:
+        // let alphaNumCharSet = NSCharacterSet.alphanumericCharacterSet()
+        // for uc in String(c).unicodeScalars {
+        //     if (!alphaNumCharSet.longCharacterIsMember(uc.value)) {
+        //         return false
+        //     }
+        // }
+        // return true
     }
 
     class func isWhitespace(c: Character) -> Bool {
-// Looping over the unicodeScalars performs better than using the utf16 accessor method
-//        let s = String(c)
-//        let uc = s.utf16[s.utf16.startIndex] as unichar
-//        return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(uc)
-
-        for uc in String(c).unicodeScalars {
-            if (!NSCharacterSet.whitespaceAndNewlineCharacterSet().longCharacterIsMember(uc.value)) {
-                return false
-            }
-        }
-        return true
+        let s = String(c)
+        let view = s.utf16
+        let uc: unichar = view[view.startIndex]
+        return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(uc)
+        
+        // Over 4x slower:
+        // return String(c).rangeOfCharacterFromSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()) != nil
+        
+        // 1.2x slower
+        // let whiteCharSet = NSCharacterSet.whitespaceCharacterSet()
+        // for uc in String(c).unicodeScalars {
+        //     if (!whiteCharSet.longCharacterIsMember(uc.value)) {
+        //         return false
+        //     }
+        // }
+        // return true
     }
     
     class func firstNonWhitespaceCharacter(text: String) -> Character? {
-        // Not sure which way is more efficient, have not timed it yet -- Swift strings can be slow
-        // text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
-        // return !text.isEmpty ? text[text.startIndex] : nil
+        let trimmedText = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+        return !trimmedText.isEmpty ? trimmedText[trimmedText.startIndex] : nil
 
-        var firstCharacter: Character? = nil
-        for (var index = text.startIndex; index != text.endIndex; index = index.successor()) {
-            let c = text[index]
-            if (!Common.isWhitespace(c)) {
-                firstCharacter = c
-                break
-            }
-        }
-
-        return firstCharacter
+        // Can be over 20x slower, depending on the amount of leading whitespace:
+        // var firstCharacter: Character? = nil
+        // for index in text.startIndex ..< text.endIndex {
+        //     let c = text[index]
+        //     if (!Common.isWhitespace(c)) {
+        //         firstCharacter = c
+        //         break
+        //     }
+        // }
+        // return firstCharacter
     }
-    
+
     class func cloneView(view: UIView) -> UIView {
         let archivedData = NSKeyedArchiver.archivedDataWithRootObject(view)
         return NSKeyedUnarchiver.unarchiveObjectWithData(archivedData) as! UIView

@@ -99,7 +99,7 @@ class QuizletSet: NSManagedObject {
                 let mutableItems = self.terms.mutableCopy() as! NSMutableOrderedSet
 
                 // Delete extra terms (if any)
-                for var i = self.terms.count - 1; i >= minCount; i -= 1 {
+                for i in (minCount ..< self.terms.count).reverse() {
                     moc.deleteObject(mutableItems[i] as! Term)
                     mutableItems.removeObjectAtIndex(i)
                 }

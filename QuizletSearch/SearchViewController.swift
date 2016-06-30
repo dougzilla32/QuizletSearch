@@ -287,7 +287,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         })
     }
     
-    func refreshTable() {
+    override func refreshTable() {
         self.refreshTable(modified: true)
     }
     
