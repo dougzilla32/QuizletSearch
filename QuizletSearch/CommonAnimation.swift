@@ -56,20 +56,166 @@ class WhooshAnimationContext {
 }
 
 class CommonAnimation {
+    class func letterSpin() {
+        let letter = "Jun and Doug"
+        let label = UILabel()
+        label.text = letter
+        
+        let mainWindow = UIApplication.sharedApplication().keyWindow!
+        mainWindow.addSubview(label)
+        
+        let startPosition = CGPoint(x: 60, y: 60)
+        let endPosition = CGPoint(x: 150, y: 150)
+//        label.frame = CGRect(origin: startPosition, size: label.intrinsicContentSize())
+        let intrinsicSize = label.intrinsicContentSize()
+        label.frame = CGRect(origin: startPosition, size: CGSize(width: intrinsicSize.width*2, height: intrinsicSize.height*4))
+        
+        /*
+        keyframe animation:
+
+        CGFloat direction = 1.0f;  // -1.0f to rotate other way
+        view.transform = CGAffineTransformIdentity;
+        [UIView animateKeyframesWithDuration:1.0 delay:0.0
+            options:UIViewKeyframeAnimationOptionCalculationModePaced | UIViewAnimationOptionCurveEaseInOut
+            animations:^{
+                [UIView addKeyframeWithRelativeStartTime:0.0 relativeDuration:0.0 animations:^{
+                view.transform = CGAffineTransformMakeRotation(M_PI * 2.0f / 3.0f * direction);
+            }];
+        [UIView addKeyframeWithRelativeStartTime:0.0 relativeDuration:0.0 animations:^{
+            view.transform = CGAffineTransformMakeRotation(M_PI * 4.0f / 3.0f * direction);
+        }];
+        [UIView addKeyframeWithRelativeStartTime:0.0 relativeDuration:0.0 animations:^{
+            view.transform = CGAffineTransformIdentity;
+        }];
+        }
+        completion:^(BOOL finished) {}];
+        */
+
+        if (false) {
+        CATransaction.begin()
+
+        let spinAnimation = CABasicAnimation(keyPath: "transform.rotation")
+        spinAnimation.toValue = 3 * 2 * M_PI
+        spinAnimation.duration = 3.0
+        label.layer.addAnimation(spinAnimation, forKey: "spinAnimation")
+/*
+        let positionAnimation = CABasicAnimation(keyPath: "position")
+        positionAnimation.fromValue = NSValue(CGPoint: startPosition)
+        positionAnimation.toValue = NSValue(CGPoint: endPosition)
+        positionAnimation.duration = 3.0
+        label.layer.addAnimation(spinAnimation, forKey: "positionAnimation")
+*/
+        
+        CATransaction.commit()
+        }
+        
+        if (true) {
+        UIView.animateWithDuration(1.5, animations: {
+            label.layer.transform = CATransform3DMakeRotation(CGFloat(M_PI), -1, 0, 1)
+            }, completion: { _ in label.removeFromSuperview() })
+        }
+        
+        if (false) {
+        UIView.animateAndChainWithDuration(1.0, delay: 0.0, /* usingSpringWithDamping: 0.33, initialSpringVelocity: 0.0, */ options: [ .CurveLinear ], animations: {
+
+            let translate = CGAffineTransformMakeTranslation(endPosition.x - startPosition.x, endPosition.y - startPosition.y)
+            // let scale = CGAffineTransformMakeScale(0.6, 0.6)
+            // let transform =  CGAffineTransformConcat(translate, scale)
+             let transform = CGAffineTransformRotate(translate, CGFloat(M_PI + 0.01))
+
+            label.transform = transform
+            
+            // label.layer.cornerRadius = 62.5
+            //label.layer.borderWidth = 2.0
+            //label.layer.borderColor = UIColor.redColor().CGColor
+            }, completion: nil)
+            .animateWithDuration(1.0, delay: 0.0, options: [ .CurveLinear /* .CurveEaseOut, .Repeat */ ], animations: {
+                label.transform = CGAffineTransformIdentity
+                // label.layer.cornerRadius = 0.0
+                //label.layer.borderWidth = 0.0
+                //label.layer.borderColor = UIColor.blackColor().CGColor
+                }, completion: {_ in label.removeFromSuperview() })
+        }
+        
+        
+        if (false) {
+        CATransaction.begin()
+        
+        CATransaction.setCompletionBlock({
+            label.removeFromSuperview()
+        })
+
+        label.layer.addAnimation(
+            CommonAnimation.createBasicAnimationWithDuration(1.33,
+                delay: 0,
+                options: nil,
+                keyPath: "position",
+                fromValue: NSValue(CGPoint: startPosition),
+                toValue: NSValue(CGPoint: endPosition)),
+            forKey: "position")
+        
+        label.layer.position = endPosition
+        
+        let translateByValueY = CGRectGetMidY(mainWindow.bounds) - CGRectGetMidY(label.bounds)
+        
+        let animRotateZ = CABasicAnimation(keyPath: "transform.rotation.z")
+        animRotateZ.duration = 1.5
+        animRotateZ.toValue = -0.2 // NSNumber(double: -0.2)
+        animRotateZ.byValue = NSNumber(double: 2.0 * M_PI)
+        animRotateZ.delegate = self
+        animRotateZ.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+        // animRotateZ.setValue(self.diaplayLayer, forKey: "animationLayer")
+        // self.animationSequence.append(animRotateZ)
+        label.layer.addAnimation(animRotateZ, forKey: "transform.translation.z")
+
+        if (false) {
+        let animTranslateY = CABasicAnimation(keyPath: "transform.translation.y")
+        animTranslateY.duration = 1.5
+        animTranslateY.toValue = NSNumber(double: Double(CGRectGetMidY(mainWindow.bounds)))
+        animTranslateY.byValue = NSNumber(double: Double(translateByValueY))
+        animTranslateY.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+        // animTranslateY.setValue(self.diaplayLayer, forKey: "animationLayer")
+        // self.animationSequence.append(animTranslateY)
+        label.layer.addAnimation(animTranslateY, forKey: "transform.translation.y")
+        }
+
+        /*
+        let Down = 2.0
+        let UP = 2.0
+
+        let animation = CABasicAnimation(keyPath: "transform.rotation.z")
+        animation.fromValue = 1 * M_PI/Down
+        animation.toValue = 1 * M_PI/UP
+        animation.repeatCount = 0
+        animation.duration = 0.8
+        animation.removedOnCompletion = true
+        //animation.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionLinear];
+
+        label.layer.addAnimation(animation, forKey: "transform.rotation.z")
+        var transform = CATransform3DIdentity
+        transform.m34 = (1/500.0)
+        transform = CATransform3DRotate(transform, CGFloat(1 * M_PI/UP), 1, 0,0)
+        label.layer.transform = transform
+        */
+        
+        CATransaction.commit()
+        }
+    }
+    
     /* Animate all characters in the label's text from the label's location to the
      * target point.  Each letter is animated separately to give a whooshing effect.
      *
      * 'label' is cloned for each animation label, therefore the animation labels inherit all style attributes
      * 'sourcePoint' is a location relative to 'keyWindow' where the animation starts
      * 'targetPoint' is a location relative to 'keyWindow' where the animation ends */
-    class func letterWhooshAnimationForLabel(var label: UILabel, sourcePoint: CGPoint, targetPoint: CGPoint, style: WhooshStyle, completionHandler: () -> Void) -> WhooshAnimationContext  {
+    class func letterWhooshAnimationForLabel(labelParam: UILabel, sourcePoint: CGPoint, targetPoint: CGPoint, style: WhooshStyle, completionHandler: () -> Void) -> WhooshAnimationContext  {
         
-        label = Common.cloneView(label) as! UILabel
-        label.hidden = false
-        label.frame = CGRect(origin: sourcePoint, size: label.intrinsicContentSize())
+        let labelCopy = Common.cloneView(labelParam) as! UILabel
+        labelCopy.hidden = false
+        labelCopy.frame = CGRect(origin: sourcePoint, size: labelCopy.intrinsicContentSize())
         
         let mainWindow = UIApplication.sharedApplication().keyWindow!
-        let text = (label.text != nil ? label.text! : "") as NSString
+        let text = (labelCopy.text != nil ? labelCopy.text! : "") as NSString
         var velocityFactor: CGFloat = 0
         let clearColor = UIColor.clearColor()
         var index = 0
@@ -78,11 +224,11 @@ class CommonAnimation {
         // trace("letterWhooshAnimationForLabel sourcePoint:", sourcePoint, "targetPoint:", targetPoint, "mainWindow.layer.position:", mainWindow.layer.position, "mainWindow.layer.anchorPoint:", mainWindow.layer.anchorPoint)
         
         while (index < text.length) {
-            let animationLabel = Common.cloneView(label) as! UILabel
+            let animationLabel = Common.cloneView(labelCopy) as! UILabel
             animationLabels.append(animationLabel)
             
             mainWindow.addSubview(animationLabel)
-            animationLabel.frame = label.frame
+            animationLabel.frame = labelCopy.frame
             
             // Starting value for position
             animationLabel.frame.origin = sourcePoint
@@ -93,7 +239,7 @@ class CommonAnimation {
             }
             
             if (index != text.length) {
-                index++
+                index += 1
                 if (index != text.length) {
                     attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: index, length: text.length - index))
                 }
