@@ -13,12 +13,12 @@ class InsetTextField: UITextField {
     var dy = CGFloat(10.0)
     
     // placeholder position
-    override func textRectForBounds(bounds: CGRect) -> CGRect {
-        return CGRectInset(bounds, dx, dy)
+    override func textRect(forBounds bounds: CGRect) -> CGRect {
+        return bounds.insetBy(dx: dx, dy: dy)
     }
     
     // text position
-    override func editingRectForBounds(bounds: CGRect) -> CGRect {
-        return CGRectInset(bounds, dx, dy);
+    override func editingRect(forBounds bounds: CGRect) -> CGRect {
+        return bounds.insetBy(dx: dx, dy: dy);
     }
 }

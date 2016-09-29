@@ -33,19 +33,19 @@ class DropboxSession {
     // force_reapprove  : true or false
     // disable_signup   : true or false
     //
-    func authorizeURL() -> NSURL {
-        let url = NSURLComponents()
+    func authorizeURL() -> URL {
+        var url = URLComponents()
         url.scheme = "https"
         url.host = "www.dropbox.com"
         url.path = "/1/oauth2/authorize"
         url.queryItems = [
-            NSURLQueryItem(name: "response_type", value: "token"),
-            NSURLQueryItem(name: "client_id", value: dropboxAppKey),
-            NSURLQueryItem(name: "redirect_uri", value: dropboxRedirectUri),
-            NSURLQueryItem(name: "state", value: dropboxState)
+            URLQueryItem(name: "response_type", value: "token"),
+            URLQueryItem(name: "client_id", value: dropboxAppKey),
+            URLQueryItem(name: "redirect_uri", value: dropboxRedirectUri),
+            URLQueryItem(name: "state", value: dropboxState)
         ]
         
-        return url.URL!
+        return url.url!
     }
     
     // Dropbox authorize response parameters:
@@ -55,7 +55,7 @@ class DropboxSession {
     // uid          : user id
     // state        : should match state from request
     //
-    func acquireAccessToken(url: NSURL) {
+    func acquireAccessToken(_ url: URL) {
         // The URL fragment contains the "/1/oauth2/authorize" response parameters
         let fragment = url.fragment
         if (fragment == nil) {
@@ -64,7 +64,7 @@ class DropboxSession {
         }
         
         // Parse the response parameters
-        let parseFragment = NSURLComponents()
+        var parseFragment = URLComponents()
         parseFragment.percentEncodedQuery = fragment
         var responseParams = [String: String]()
         for item in parseFragment.queryItems! {
@@ -89,7 +89,7 @@ class DropboxSession {
             NSLog("Error: \(responseError!)")
             let responseErrorDescription = responseParams["error_description"]
             if (responseErrorDescription != nil) {
-                NSLog(responseErrorDescription!.stringByReplacingOccurrencesOfString("+", withString: " "))
+                NSLog(responseErrorDescription!.replacingOccurrences(of: "+", with: " "))
             }
             return
         }

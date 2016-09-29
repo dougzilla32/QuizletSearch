@@ -10,7 +10,7 @@
 import Foundation
 
 extension NSString {
-    struct StringScoreOptions: OptionSetType {
+    struct StringScoreOptions: OptionSet {
         let rawValue: Int
         
         static let None = StringScoreOptions(rawValue: 0b00)
@@ -18,8 +18,8 @@ extension NSString {
         static let ReducedLongStringPenalty = StringScoreOptions(rawValue: 0b10)
     }
     
-    var invalidCharacterSet: NSCharacterSet {
-        return NSCharacterSet.punctuationCharacterSet()
+    var invalidCharacterSet: CharacterSet {
+        return CharacterSet.punctuationCharacters
     }
     
     /*
@@ -32,17 +32,17 @@ extension NSString {
     }
     */
     
-    func scoreAgainst(otherString: NSString) -> Double {
+    func scoreAgainst(_ otherString: NSString) -> Double {
         return self.scoreAgainst(otherString, fuzziness: nil)
     }
     
-    func scoreAgainst(otherString: NSString, fuzziness: Double?) -> Double {
+    func scoreAgainst(_ otherString: NSString, fuzziness: Double?) -> Double {
         return self.scoreAgainst(otherString, fuzziness: fuzziness, options: .None)
     }
     
-    func scoreAgainst(anotherString: NSString, fuzziness: Double?, options: StringScoreOptions) -> Double {
-        var string = self.precomposedStringWithCanonicalMapping.componentsSeparatedByCharactersInSet(invalidCharacterSet).joinWithSeparator("") as NSString
-        let otherString = anotherString.precomposedStringWithCanonicalMapping.componentsSeparatedByCharactersInSet(invalidCharacterSet).joinWithSeparator("") as NSString
+    func scoreAgainst(_ anotherString: NSString, fuzziness: Double?, options: StringScoreOptions) -> Double {
+        var string = self.precomposedStringWithCanonicalMapping.components(separatedBy: invalidCharacterSet).joined(separator: "") as NSString
+        let otherString = anotherString.precomposedStringWithCanonicalMapping.components(separatedBy: invalidCharacterSet).joined(separator: "") as NSString
         
         // If the string is equal to the abbreviation, perfect match.
         if (string == otherString) {
@@ -70,11 +70,11 @@ extension NSString {
             var rangeChrLowercase: NSRange
             var rangeChrUppercase: NSRange
 
-            chr = (otherString as NSString).substringWithRange(NSMakeRange(index, 1))
+            chr = (otherString as NSString).substring(with: NSMakeRange(index, 1))
             
             //make these next few lines leverage NSNotfound, methinks.
-            rangeChrLowercase = string.rangeOfString(chr.lowercaseString)
-            rangeChrUppercase = string.rangeOfString(chr.uppercaseString)
+            rangeChrLowercase = string.range(of: chr.lowercased())
+            rangeChrUppercase = string.range(of: chr.uppercased())
             
             if (rangeChrLowercase.location == NSNotFound && rangeChrUppercase.location == NSNotFound) {
                 if (fuzziness != nil) {
@@ -84,20 +84,20 @@ extension NSString {
                 }
                 
             } else if rangeChrLowercase.location != NSNotFound && rangeChrUppercase.location != NSNotFound {
-                indexInString = min(rangeChrLowercase.location, rangeChrUppercase.location)
+                indexInString = Swift.min(rangeChrLowercase.location, rangeChrUppercase.location)
                 
             } else if rangeChrLowercase.location != NSNotFound || rangeChrUppercase.location != NSNotFound {
                 indexInString = rangeChrLowercase.location != NSNotFound ? rangeChrLowercase.location : rangeChrUppercase.location
                 
             } else {
-                indexInString = min(rangeChrLowercase.location, rangeChrUppercase.location)
+                indexInString = Swift.min(rangeChrLowercase.location, rangeChrUppercase.location)
                 
             }
             
             // Set base score for matching chr
             
             // Same case bonus.
-            if (indexInString != NSNotFound && string.substringWithRange(NSMakeRange(indexInString, 1)) == chr) {
+            if (indexInString != NSNotFound && string.substring(with: NSMakeRange(indexInString, 1)) == chr) {
                 characterScore += 0.1
             }
             
@@ -115,7 +115,7 @@ extension NSString {
                 // Acronym Bonus
                 // Weighing Logic: Typing the first character of an acronym is as if you
                 // preceded it with two perfect character matches.
-                if  (string.substringWithRange(NSMakeRange(indexInString - 1, 1)) == " ")  {
+                if  (string.substring(with: NSMakeRange(indexInString - 1, 1)) == " ")  {
                     characterScore += 0.8
                 }
             }
@@ -123,7 +123,7 @@ extension NSString {
             // Left trim the already matched part of the string
             // (forces sequential matching).
             if (indexInString != NSNotFound) {
-                string = string.substringFromIndex(indexInString + 1)
+                string = string.substring(from: indexInString + 1) as NSString
             }
             
             totalCharacterScore += characterScore

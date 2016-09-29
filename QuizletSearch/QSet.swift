@@ -38,16 +38,16 @@ class QSet {
         self.terms = []
     }
     
-    class func setFromJSON(jsonSet: NSDictionary) -> QSet? {
+    class func setFromJSON(_ jsonSet: NSDictionary) -> QSet? {
         var qset: QSet? = nil
-        if  let id = (jsonSet["id"] as? NSNumber)?.longLongValue,
+        if  let id = (jsonSet["id"] as? NSNumber)?.int64Value,
             let url = jsonSet["url"] as? String,
             let title = jsonSet["title"] as? String,
             let description = jsonSet["description"] as? String,
             let createdBy = jsonSet["created_by"] as? String,
-            let creatorId = (jsonSet["creator_id"] as? NSNumber)?.longLongValue,
-            let createdDate = (jsonSet["created_date"] as? NSNumber)?.longLongValue,
-            let modifiedDate = (jsonSet["modified_date"] as? NSNumber)?.longLongValue {
+            let creatorId = (jsonSet["creator_id"] as? NSNumber)?.int64Value,
+            let createdDate = (jsonSet["created_date"] as? NSNumber)?.int64Value,
+            let modifiedDate = (jsonSet["modified_date"] as? NSNumber)?.int64Value {
                 var classIds = ""
                 if let ids = jsonSet["class_ids"] as? NSArray {
                     for id in ids {
@@ -55,17 +55,19 @@ class QSet {
                             if (!classIds.isEmpty) {
                                 classIds += ","
                             }
-                            classIds += String(idNumber)
+                            classIds += String(describing: idNumber)
                         }
                     }
                 }
                 qset = QSet(id: id, url: url, title: title, description: description, createdBy: createdBy, creatorId: creatorId, createdDate: createdDate, modifiedDate: modifiedDate, classIds: classIds)
                 if let terms = jsonSet["terms"] as? NSArray {
                     for termObject in terms {
-                        if  let id = (termObject["id"] as? NSNumber)?.longLongValue,
-                            let term = termObject["term"] as? String,
-                            let definition = termObject["definition"] as? String {
-                                qset!.terms.append(QTerm(id: id, term: term, definition: definition))
+                        if let termObjectDictionary = termObject as? NSDictionary {
+                            if  let id = (termObjectDictionary["id"] as? NSNumber)?.int64Value,
+                                let term = termObjectDictionary["term"] as? String,
+                                let definition = termObjectDictionary["definition"] as? String {
+                                    qset!.terms.append(QTerm(id: id, term: term, definition: definition))
+                            }
                         }
                     }
                 }
@@ -73,7 +75,7 @@ class QSet {
         return qset
     }
     
-    class func setsFromJSON(json: Array<NSDictionary>) -> Array<QSet>? {
+    class func setsFromJSON(_ json: Array<NSDictionary>) -> Array<QSet>? {
         var qsets = [QSet]()
         for jsonSet in json {
             let qset = QSet.setFromJSON(jsonSet)
@@ -86,7 +88,7 @@ class QSet {
         return qsets
     }
 
-    func appendTerm(term: QTerm) {
+    func appendTerm(_ term: QTerm) {
         self.terms.append(term)
     }
 }

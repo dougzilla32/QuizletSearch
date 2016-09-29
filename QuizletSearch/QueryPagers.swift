@@ -7,13 +7,33 @@
 //
 
 import UIKit
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l >= r
+  default:
+    return !(lhs < rhs)
+  }
+}
+
 
 class PagerIndex {
     enum PagerType {
-        case Query, Username, Class, IncludedSets, End
+        case query, username, `class`, includedSets, end
     }
     
-    var type = PagerType.Query
+    var type = PagerType.query
     var index = 0
     
     init() { }
@@ -25,27 +45,27 @@ class PagerIndex {
     
     func advance() {
         switch (type) {
-        case .Query:
-            type = .Username
-        case .Username:
-            type = .Class
-        case .Class:
-            type = .IncludedSets
-        case .IncludedSets:
-            type = .End
+        case .query:
+            type = .username
+        case .username:
+            type = .class
+        case .class:
+            type = .includedSets
+        case .includedSets:
+            type = .end
         default:
-            type = .End
+            type = .end
         }
         index = 0
     }
 }
 
-class QueryPagers: SequenceType {
+class QueryPagers: Sequence {
     let sep = ","
     let MinTotalResultsHighWaterMark = 10
     let MaxTotalResults = 300
     
-    let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
+    let quizletSession = (UIApplication.shared.delegate as! AppDelegate).dataModel.quizletSession
     
     var queryPager: SetPager?
     var usernamePagers: [SetPager] = []
@@ -70,9 +90,9 @@ class QueryPagers: SequenceType {
                 stillLoading = true
             }
         }
-        totalResults = (stillLoading && total == 0) ? nil : min(total, MaxTotalResults)
+        totalResults = (stillLoading && total == 0) ? nil : Swift.min(total, MaxTotalResults)
         totalResultsNoMax = (stillLoading && total == 0) ? nil : total
-        totalResultsHighWaterMark = max(totalResults, totalResultsHighWaterMark, MinTotalResultsHighWaterMark)
+        totalResultsHighWaterMark = Swift.max(totalResults ?? 0, totalResultsHighWaterMark ?? 0, MinTotalResultsHighWaterMark)
     }
     
     init() {
@@ -86,7 +106,7 @@ class QueryPagers: SequenceType {
         loadFromQuery(query)
     }
     
-    func loadFromQuery(q: Query) {
+    func loadFromQuery(_ q: Query) {
         queryPager = q.query.isEmpty ? nil : SetPager(query: q.query)
         
         // With Swift string: let usernames = q.creators.characters.split{$0 == ","}.map(String.init)
@@ -94,7 +114,7 @@ class QueryPagers: SequenceType {
         if (!q.creators.isEmpty) {
             queryPager?.enabled = false
             
-            let usernames = (q.creators as NSString).componentsSeparatedByString(sep)
+            let usernames = (q.creators as NSString).components(separatedBy: sep)
             usernamePagers.removeAll()
             for name in usernames {
                 usernamePagers.append(SetPager(query: q.query, creator: name))
@@ -102,7 +122,7 @@ class QueryPagers: SequenceType {
         }
         
         if (!q.classes.isEmpty) {
-            let classIds = (q.classes as NSString).componentsSeparatedByString(sep)
+            let classIds = (q.classes as NSString).components(separatedBy: sep)
             classPagers.removeAll()
             for id in classIds {
                 classPagers.append(SetPager(query: q.query, classId: id))
@@ -115,7 +135,7 @@ class QueryPagers: SequenceType {
     
     // TODO: FIX ME -- not working correctly with "query=hi" and "username=dougzilla32", runs the "hi" query separately
     // Also, before fixing test that the MaxTermLimit is working correctly
-    func saveToQuery(q: Query) -> Bool {
+    func saveToQuery(_ q: Query) -> Bool {
         var modified = false
         let query = (queryPager?.query != nil) ? queryPager!.query! : ""
         if (q.query != query) {
@@ -127,9 +147,9 @@ class QueryPagers: SequenceType {
         for pager in usernamePagers {
             usernames.append(pager.creator!)
         }
-        usernames.sortInPlace()
+        usernames.sort()
         
-        let creators = usernames.joinWithSeparator(sep)
+        let creators = usernames.joined(separator: sep)
         if (q.creators != creators) {
             modified = true
             q.creators = creators
@@ -139,9 +159,9 @@ class QueryPagers: SequenceType {
         for pager in classPagers {
             ids.append(pager.classId!)
         }
-        ids.sortInPlace()
+        ids.sort()
         
-        let classIds = ids.joinWithSeparator(sep)
+        let classIds = ids.joined(separator: sep)
         if (q.classes != classIds) {
             modified = true
             q.classes = classIds
@@ -154,7 +174,9 @@ class QueryPagers: SequenceType {
     
     let MaxTermCount = 5000
     
-    func executeFullSearch(completionHandler completionHandler: ([QSet]?, Int) -> Void) {
+    let MaxCharacters = 1000000
+    
+    func executeFullSearch(completionHandler: @escaping ([QSet]?, Int) -> Void) {
         trace("executeFullSearch START")
         
         // Cancel previous queries
@@ -162,14 +184,14 @@ class QueryPagers: SequenceType {
         
         updateQuery()
         
-        let generator = generate()
+        let generator = makeIterator()
         let qsets = [QSet]()
         loadNextPage(currentPager: generator.next(), currentPageNumber: 1, generator: generator, qsets: qsets, termCount: 0, completionHandler: completionHandler)
     }
     
-    func loadNextPage(currentPager currentPagerParam: SetPager!, currentPageNumber currentPageNumberParam: Int, generator: AnyGenerator<SetPager>, qsets qsetsParam: [QSet], termCount termCountParam: Int, completionHandler: ([QSet]?, Int) -> Void) {
+    func loadNextPage(currentPager currentPagerParam: SetPager!, currentPageNumber currentPageNumberParam: Int, generator: AnyIterator<SetPager>, qsets qsetsParam: [QSet], termCount termCountParam: Int, completionHandler: @escaping ([QSet]?, Int) -> Void) {
 
-        var currentPager = currentPagerParam
+        var currentPager: SetPager! = currentPagerParam
         var currentPageNumber = currentPageNumberParam
         var qsets = qsetsParam
         var termCount = termCountParam
@@ -186,15 +208,15 @@ class QueryPagers: SequenceType {
         }
         
         trace("loadNextPage",
-            "query:", currentPager.query != nil ? currentPager.query! : "nil",
-            "creator:", currentPager.creator != nil ? currentPager.creator! : "nil",
-            "classId:", currentPager.classId != nil ? currentPager.classId! : "nil")
+            "query:", currentPager.query ?? "nil",
+            "creator:", currentPager.creator ?? "nil",
+            "classId:", currentPager.classId ?? "nil")
         
         currentPager.pagerPause = Int64(NSEC_PER_SEC/10000)
         
-        currentPager.loadPage(currentPageNumber, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+        currentPager.loadPage(currentPageNumber, completionHandler: { (affectedRows: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
             
-            if (response != .Complete) {
+            if (response != .complete) {
                 return
             }
             
@@ -225,7 +247,7 @@ class QueryPagers: SequenceType {
         })
     }
     
-    func executeSearch(pagerIndex: PagerIndex?, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+    func executeSearch(_ pagerIndex: PagerIndex?, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         
         // Cancel previous queries
         quizletSession.cancelQueryTasks()
@@ -236,7 +258,7 @@ class QueryPagers: SequenceType {
         
         if (isEmpty()) {
             self.updateTotals()
-            completionHandler(affectedResults: nil, totalResults: totalResults, response: PagerResponse.Complete)
+            completionHandler(nil, totalResults, PagerResponse.complete)
         }
         else {
             loadFirstPages(completionHandler: completionHandler)
@@ -273,7 +295,7 @@ class QueryPagers: SequenceType {
         return (queryPager == nil && usernamePagers.count == 0 && classPagers.count == 0 && includedSetsPager == nil)
     }
     
-    func updateDuplicates(pagerIndex pagerIndex: PagerIndex?) {
+    func updateDuplicates(pagerIndex: PagerIndex?) {
         do {
             var duplicates = Set<String>()
             for p in usernamePagers {
@@ -320,19 +342,19 @@ class QueryPagers: SequenceType {
     }
     */
 
-    func generate() -> AnyGenerator<SetPager> {
+    func makeIterator() -> AnyIterator<SetPager> {
         let index = PagerIndex()
-        return AnyGenerator {
+        return AnyIterator {
             Restart:
                 while (true) {
                     switch (index.type) {
-                    case .Query:
+                    case .query:
                         index.advance()
                         if (self.queryPager == nil) {
                             continue Restart
                         }
                         return self.queryPager
-                    case .Username:
+                    case .username:
                         if (index.index == self.usernamePagers.count) {
                             index.advance()
                             continue Restart
@@ -340,7 +362,7 @@ class QueryPagers: SequenceType {
                         let pager = self.usernamePagers[index.index]
                         index.index += 1
                         return pager
-                    case .Class:
+                    case .class:
                         if (index.index == self.classPagers.count) {
                             index.advance()
                             continue Restart
@@ -348,20 +370,20 @@ class QueryPagers: SequenceType {
                         let pager = self.classPagers[index.index]
                         index.index += 1
                         return pager
-                    case .IncludedSets:
+                    case .includedSets:
                         index.advance()
                         if (self.includedSetsPager == nil) {
                             return nil
                         }
                         return self.includedSetsPager
-                    case .End:
+                    case .end:
                         return nil
                     }
             }
         }
     }
     
-    func loadComplete(pager: SetPager, affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse, completionHandler: (affectedRows: Range<Int>, totalResults: Int?, response: PagerResponse) -> Void) {
+    func loadComplete(_ pager: SetPager, affectedRows: CountableRange<Int>?, totalResults: Int?, response: PagerResponse, completionHandler: (_ affectedRows: CountableRange<Int>, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         self.updateTotals()
         
         var t = 0
@@ -375,23 +397,23 @@ class QueryPagers: SequenceType {
             return
         }
         
-        var r = (affectedRows!.startIndex + t)..<(affectedRows!.endIndex + t)
-        if (r.startIndex >= MaxTotalResults) {
+        var r: CountableRange = (affectedRows!.lowerBound + t)..<(affectedRows!.upperBound + t)
+        if (r.lowerBound >= MaxTotalResults) {
             return
         }
-        r.endIndex = min(r.endIndex, MaxTotalResults)
+        r = r.clamped(to: 0..<Swift.min(r.upperBound, MaxTotalResults))
 
         completionHandler(
-            affectedRows: r,
-            totalResults: self.totalResults,
-            response: response)
+            r,
+            self.totalResults,
+            response)
     }
     
-    func loadFirstPages(completionHandler completionHandler: (affectedRows: Range<Int>, totalResults: Int?, response: PagerResponse) -> Void) {
+    func loadFirstPages(completionHandler: @escaping (_ affectedRows: CountableRange<Int>, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         for pager in self {
             pager.pagerPause = SetPager.DefaultPagerPause
             
-            pager.loadPage(1, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+            pager.loadPage(1, completionHandler: { (affectedRows: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
                 self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)
             })
         }
@@ -413,7 +435,7 @@ class QueryPagers: SequenceType {
         return false
     }
     
-    func peekQSetForRow(row: Int) -> QSet? {
+    func peekQSetForRow(_ row: Int) -> QSet? {
         if (row >= MaxTotalResults) {
             return nil
         }
@@ -432,7 +454,7 @@ class QueryPagers: SequenceType {
         return nil
     }
     
-    func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet? {
+    func getQSetForRow(_ row: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) -> QSet? {
         if (row >= MaxTotalResults) {
             return nil
         }
@@ -441,7 +463,7 @@ class QueryPagers: SequenceType {
         for pager in self {
             if let t = pager.totalResults {
                 if case index..<index+t = row {
-                    return pager.getQSetForRow(row-index, completionHandler: { (affectedRows: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+                    return pager.getQSetForRow(row-index, completionHandler: { (affectedRows: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
                         self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)
                     })
                 }

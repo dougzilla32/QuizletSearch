@@ -22,5 +22,5 @@ class Query: NSManagedObject {
     @NSManaged var user: User
     @NSManaged var sets: NSSet // QuizletSet
 
-    var timeOfMostRecentSuccessfulRefresh: NSTimeInterval?
+    var timeOfMostRecentSuccessfulRefresh: TimeInterval?
 }

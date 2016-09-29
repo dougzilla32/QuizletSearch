@@ -8,6 +8,26 @@
 
 import Foundation
 import AVFoundation
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func > <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l > r
+  default:
+    return rhs < lhs
+  }
+}
+
 
 func ==(lhs: QuizletSession.Task, rhs: QuizletSession.Task) -> Bool {
     return (lhs.task == rhs.task && lhs.description == rhs.description)
@@ -33,12 +53,12 @@ class QuizletSession {
     var currentUser: UserAccount?
     
     class Task: Hashable {
-        var task: NSURLSessionDataTask!
+        var task: URLSessionDataTask!
         var description: String!
         
         init() { }
         
-        init(task: NSURLSessionDataTask, description: String) {
+        init(task: URLSessionDataTask, description: String) {
             self.task = task
             self.description = description
         }
@@ -48,8 +68,8 @@ class QuizletSession {
         }
     }
     
-    private var currentTokenTask: Task?
-    private var currentQueryTasks = Set<Task>()
+    fileprivate var currentTokenTask: Task?
+    fileprivate var currentQueryTasks = Set<Task>()
 
     func close() {
         for task in currentQueryTasks {
@@ -75,20 +95,20 @@ class QuizletSession {
     // state            : arbitrary data
     // redirect_uri     : app URI
     //
-    func authorizeURL() -> NSURL {
-        let url = NSURLComponents()
+    func authorizeURL() -> URL {
+        var url = URLComponents()
         url.scheme = "https"
         url.host = "www.quizlet.com"
         url.path = "/authorize"
         url.queryItems = [
-            NSURLQueryItem(name: "scope", value: "read"),
-            NSURLQueryItem(name: "client_id", value: quizletClientId),
-            NSURLQueryItem(name: "response_type", value: "code"),
-            NSURLQueryItem(name: "redirect_uri", value: quizletRedirectUri),
-            NSURLQueryItem(name: "state", value: quizletState)
+            URLQueryItem(name: "scope", value: "read"),
+            URLQueryItem(name: "client_id", value: quizletClientId),
+            URLQueryItem(name: "response_type", value: "code"),
+            URLQueryItem(name: "redirect_uri", value: quizletRedirectUri),
+            URLQueryItem(name: "state", value: quizletState)
         ]
         
-        return url.URL!
+        return url.url!
     }
     
     // Acquire token parameters:
@@ -99,8 +119,8 @@ class QuizletSession {
     //
     // Include HTTP basic authorization containing the client ID and secret
     //
-    func acquireAccessToken(url: NSURL,
-        completion: (() throws -> UserAccount) -> Void) {
+    func acquireAccessToken(_ url: URL,
+        completion: @escaping (() throws -> UserAccount) -> Void) {
         
         // The URL query contains the "/oauth/authorize" response parameters
         if (url.query == nil) {
@@ -109,7 +129,7 @@ class QuizletSession {
         }
         
         // Parse the response parameters
-        let parseQuery = NSURLComponents(URL: url, resolvingAgainstBaseURL: false)
+        let parseQuery = URLComponents(url: url, resolvingAgainstBaseURL: false)
         var responseParams = [String: String]()
         for item in parseQuery!.queryItems! {
             responseParams[item.name] = item.value
@@ -131,7 +151,7 @@ class QuizletSession {
         if (responseError != nil) {
             var responseErrorDescription = responseParams["error_description"]
             if (responseErrorDescription != nil) {
-                responseErrorDescription = responseErrorDescription!.stringByReplacingOccurrencesOfString("+", withString: " ")
+                responseErrorDescription = responseErrorDescription!.replacingOccurrences(of: "+", with: " ")
             } else {
                 responseErrorDescription = "Unable to complete login"
             }
@@ -154,44 +174,44 @@ class QuizletSession {
             return
         }
         
-        let url = NSURLComponents()
+        var url = URLComponents()
         url.scheme = "https"
         url.host = "api.quizlet.com"
         url.path = "/oauth/token"
         
-        let parameters = NSURLComponents()
+        var parameters = URLComponents()
         parameters.queryItems = [
-            NSURLQueryItem(name: "grant_type", value: "authorization_code"),
-            NSURLQueryItem(name: "code", value: code!),
-            NSURLQueryItem(name: "redirect_uri", value: quizletRedirectUri)
+            URLQueryItem(name: "grant_type", value: "authorization_code"),
+            URLQueryItem(name: "code", value: code!),
+            URLQueryItem(name: "redirect_uri", value: quizletRedirectUri)
             // NSURLQueryItem(name: "client_id", value: quizletClientId),
             // NSURLQueryItem(name: "client_secret", value: quizletSecretKey)
         ]
         
         let authString = "\(quizletClientId):\(quizletSecretKey)"
-        let authData = authString.dataUsingEncoding(NSUTF8StringEncoding)
-        let base64AuthString = authData!.base64EncodedStringWithOptions(.Encoding64CharacterLineLength)
+        let authData = authString.data(using: String.Encoding.utf8)
+        let base64AuthString = authData!.base64EncodedString(options: .lineLength64Characters)
         
-        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
-        config.HTTPAdditionalHeaders = [
+        let config = URLSessionConfiguration.default
+        config.httpAdditionalHeaders = [
             "Accept": "application/json",
             "Authorization": "Basic \(base64AuthString)"
             // "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8"
         ]
-        let session = NSURLSession(configuration: config)
-        let request = NSMutableURLRequest(URL: url.URL!)
-        request.HTTPMethod = "POST"
-        request.HTTPBody = parameters.percentEncodedQuery?.dataUsingEncoding(NSUTF8StringEncoding)
+        let session = URLSession(configuration: config)
+        var request = URLRequest(url: url.url!)
+        request.httpMethod = "POST"
+        request.httpBody = parameters.percentEncodedQuery?.data(using: String.Encoding.utf8)
         
         if (currentTokenTask != nil) {
             NSLog("Warning: task already running: \(currentTokenTask!.description)")
         }
         
-        let task = session.dataTaskWithRequest(request,
-            completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
+        let task = session.dataTask(with: request,
+            completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
                 self.currentTokenTask = nil
                 
-                let jsonAny: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)
+                let jsonAny: Any? = QuizletSession.checkJSONResponseFromUrl(url.url!, data: data, response: response, error: error)
                 
                 if let json = jsonAny as? NSDictionary,
                     let accessToken = json["access_token"] as? String,
@@ -207,35 +227,37 @@ class QuizletSession {
                 }
         })
         
-        currentTokenTask = Task(task: task, description: String(url.URL!))
+        currentTokenTask = Task(task: task, description: String(describing: url.url!))
         task.resume()
     }
     
-    class func checkJSONResponseFromUrl(url: NSURL, data: NSData?, response: NSURLResponse? , error: NSError?) -> AnyObject? {
+    class func checkJSONResponseFromUrl(_ url: URL, data: Data?, response: URLResponse? , error: Error?) -> Any? {
         if (error != nil) {
-            if (error!.domain == "NSURLErrorDomain" && error!.code == NSURLErrorCancelled) {
-                // The task was cancelled -- no need to log a message
+            if let nsError = error as? NSError {
+                if (nsError.domain == "NSURLErrorDomain" && nsError.code == NSURLErrorCancelled) {
+                    // The task was cancelled -- no need to log a message
+                    return nil
+                }
             }
-            else {
-                NSLog("\(url)\n\(error!)")
-            }
+
+            NSLog("\(url)\n\(error!)")
             return nil
         }
         
         // Status code 200 is 'ok', code 404 is 'not found' and code 410 is 'gone'.  Code 404 and 410 are not errors and indicate the class or user in the query either was not found or has been deleted.
-        let httpResponse = response as! NSHTTPURLResponse
+        let httpResponse = response as! HTTPURLResponse
         if (httpResponse.statusCode != 200) {
             if (httpResponse.statusCode != 404 && httpResponse.statusCode != 410) {
-                NSLog("Unexpected response for \(url) request: \(NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode))")
+                NSLog("Unexpected response for \(url) request: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                 QuizletSession.logData(data)
             }
             return nil
         }
         
         var jsonError: NSError?
-        var jsonAny: AnyObject?
+        var jsonAny: Any?
         do {
-            jsonAny = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
+            jsonAny = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
         } catch let error as NSError {
             jsonError = error
             jsonAny = nil
@@ -248,9 +270,9 @@ class QuizletSession {
         return jsonAny
     }
     
-    class func logData(data: NSData?) {
+    class func logData(_ data: Data?) {
         if (data != nil) {
-            let str = NSString(data: data!, encoding: NSUTF8StringEncoding)
+            let str = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
             if (str != nil) {
                 NSLog(str as! String)
             }
@@ -261,9 +283,9 @@ class QuizletSession {
     // Possible failures: not connected, session expired, others
     //
     
-    class func qsetsFromJSONAny(jsonAny: AnyObject?, response: NSURLResponse?, error: NSError?, functionName: String, completionHandler: ([QSet]?, response: NSURLResponse?, error: NSError?) -> Void) {
+    class func qsetsFromJSONAny(_ jsonAny: Any?, response: URLResponse?, error: Error?, functionName: String, completionHandler: ([QSet]?, _ response: URLResponse?, _ error: Error?) -> Void) {
         if (jsonAny == nil) {
-            completionHandler(nil, response: response, error: error)
+            completionHandler(nil, response, error)
             return
         }
         
@@ -272,15 +294,15 @@ class QuizletSession {
             if (qsets == nil) {
                 NSLog("Invalid Quizlet Set in \(functionName)")
             }
-            completionHandler(qsets, response: response, error: error)
+            completionHandler(qsets, response, error)
         } else {
             NSLog("Unexpected response in \(functionName): \(jsonAny)")
-            completionHandler(nil, response: response, error: error)
+            completionHandler(nil, response, error)
         }
     }
     
-    class func queryItemsForModifiedSince(modifiedSince: Int64?) -> [NSURLQueryItem] {
-        let queryItems: [NSURLQueryItem] = []
+    class func queryItemsForModifiedSince(_ modifiedSince: Int64?) -> [URLQueryItem] {
+        let queryItems: [URLQueryItem] = []
         
         /** The following code is commented out because the "modified_since" parameter does not work in all cases.  If the user has edited a term or moved a term, the "modified_date" for the set is not updated.  If the user inserts or deletes a term then the "modified_date" is updated as expected.
         if (modifiedSince != nil) {
@@ -296,124 +318,124 @@ class QuizletSession {
         return queryItems
     }
     
-    func searchSetsWithQuery(query: String?, creator: String?, autocomplete: Bool?, imagesOnly: Bool?, modifiedSince: Int64?, page: Int?, perPage: Int?, allowCellularAccess: Bool, completionHandler: (QueryResult?, response: NSURLResponse?, error: NSError?) -> Void) {
+    func searchSetsWithQuery(_ query: String?, creator: String?, autocomplete: Bool?, imagesOnly: Bool?, modifiedSince: Int64?, page: Int?, perPage: Int?, allowCellularAccess: Bool, completionHandler: @escaping (QueryResult?, _ response: URLResponse?, _ error: Error?) -> Void) {
         // perPage: between 1 and 50
         if (perPage < 1 || perPage > 50) {
             NSLog("Invalid perPage parameter")
             abort()
         }
         
-        var params = [NSURLQueryItem]()
+        var params = [URLQueryItem]()
         if (query != nil) {
-            params.append(NSURLQueryItem(name: "q", value: query!))
+            params.append(URLQueryItem(name: "q", value: query!))
         }
         if (creator != nil) {
-            params.append(NSURLQueryItem(name: "creator", value: creator!))
+            params.append(URLQueryItem(name: "creator", value: creator!))
         }
         if (autocomplete != nil) {
-            params.append(NSURLQueryItem(name: "autocomplete", value: autocomplete! ? "1" : "0"))
+            params.append(URLQueryItem(name: "autocomplete", value: autocomplete! ? "1" : "0"))
         }
         if (imagesOnly != nil) {
-            params.append(NSURLQueryItem(name: "images_only", value: String(imagesOnly! ? 1 : 0)))
+            params.append(URLQueryItem(name: "images_only", value: String(imagesOnly! ? 1 : 0)))
         }
         if (modifiedSince != nil) {
             // params.append(NSURLQueryItem(name: "modified_since", value: String(modifiedSince!)))
         }
         if (page != nil) {
-            params.append(NSURLQueryItem(name: "page", value: String(page!)))
+            params.append(URLQueryItem(name: "page", value: String(page!)))
         }
         if (perPage != nil) {
-            params.append(NSURLQueryItem(name: "perPage", value: String(perPage!)))
+            params.append(URLQueryItem(name: "perPage", value: String(perPage!)))
         }
         // params.append(NSURLQueryitem(name: "whitespace", value: "1"))
         // params.append(NSURLQueryItem(name: "sort", value: "title"))
         
         self.invokeQuery("/2.0/search/sets", queryItems: params,
-            allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: AnyObject?, response: NSURLResponse?, nsError: NSError?) in
+            allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
                 if (jsonAny == nil) {
-                    completionHandler(nil, response: response, error: nsError)
+                    completionHandler(nil, response, error)
                     return
                 }
 
                 do {
                     let result = try QueryResult(jsonAny: jsonAny!)
-                    completionHandler(result, response: response, error: nsError)
+                    completionHandler(result, response, error)
                 }
                 catch {
                     NSLog("Unexpected response in searchSetsWithQuery: \(jsonAny)")
-                    completionHandler(nil, response: response, error: nsError)
+                    completionHandler(nil, response, error)
                 }
         })
     }
     
-    func getSetsForIds(setIds: [Int64], modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?, response: NSURLResponse?, error: NSError?) -> Void) {
+    func getSetsForIds(_ setIds: [Int64], modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: @escaping ([QSet]?, _ response: URLResponse?, _ error: Error?) -> Void) {
         
         var stringIds = [String]()
         for id in setIds {
             stringIds.append(String(id))
         }
         
-        var queryItems = [NSURLQueryItem]()
+        var queryItems = [URLQueryItem]()
         queryItems += QuizletSession.queryItemsForModifiedSince(modifiedSince)
-        queryItems.append(NSURLQueryItem(name: "set_ids", value: stringIds.joinWithSeparator(",")))
+        queryItems.append(URLQueryItem(name: "set_ids", value: stringIds.joined(separator: ",")))
         
         self.invokeQuery("/2.0/sets",
             queryItems: queryItems,
             allowCellularAccess: allowCellularAccess,
-            jsonCallback: { (jsonAny: AnyObject?, response: NSURLResponse?, error: NSError?) in
+            jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
                 QuizletSession.qsetsFromJSONAny(jsonAny, response: response, error: error, functionName: "getSets", completionHandler: completionHandler)
         })
     }
     
-    func getSetsInClass(classId: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?, response: NSURLResponse?, error: NSError?) -> Void) {
+    func getSetsInClass(_ classId: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: @escaping ([QSet]?, _ response: URLResponse?, _ error: Error?) -> Void) {
         self.invokeQuery("/2.0/classes/\(classId)/sets",
             queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince),
             allowCellularAccess: allowCellularAccess,
-            jsonCallback: { (jsonAny: AnyObject?, response: NSURLResponse?, error: NSError?) in
+            jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
                 
                 QuizletSession.qsetsFromJSONAny(jsonAny, response: response, error: error, functionName: "getSetsInClass", completionHandler: completionHandler)
         })
     }
     
-    func getFavoriteSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?, response: NSURLResponse?, error: NSError?) -> Void) {
-        self.invokeQuery("/2.0/users/\(user)/favorites", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: AnyObject?, response: NSURLResponse?, error: NSError?) in
+    func getFavoriteSetsForUser(_ user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: @escaping ([QSet]?, _ response: URLResponse?, _ error: Error?) -> Void) {
+        self.invokeQuery("/2.0/users/\(user)/favorites", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
 
             QuizletSession.qsetsFromJSONAny(jsonAny, response: response, error: error, functionName: "getFavoriteSetsForUser", completionHandler: completionHandler)
         })
     }
     
-    func getStudiedSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?, response: NSURLResponse?, error: NSError?) -> Void) {
-        self.invokeQuery("/2.0/users/\(user)/studied", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: AnyObject?, response: NSURLResponse?, error: NSError?) in
+    func getStudiedSetsForUser(_ user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: @escaping ([QSet]?, _ response: URLResponse?, _ error: Error?) -> Void) {
+        self.invokeQuery("/2.0/users/\(user)/studied", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
 
             QuizletSession.qsetsFromJSONAny(jsonAny, response: response, error: error, functionName: "getStudiedSetsForUser", completionHandler: completionHandler)
         })
     }
     
-    func getAllSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?, response: NSURLResponse?, error: NSError?) -> Void) {
+    func getAllSetsForUser(_ user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: @escaping ([QSet]?, _ response: URLResponse?, _ error: Error?) -> Void) {
 
-        self.invokeQuery("/2.0/users/\(user)/sets", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: AnyObject?, response: NSURLResponse?, error: NSError?) in
+        self.invokeQuery("/2.0/users/\(user)/sets", queryItems: QuizletSession.queryItemsForModifiedSince(modifiedSince), allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
 
             QuizletSession.qsetsFromJSONAny(jsonAny, response: response, error: error, functionName: "getAllSetsForUser", completionHandler: completionHandler)
         })
     }
     
-    func getAllSampleSetsForUser(user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?, response: NSURLResponse?, error: NSError?) -> Void) {
+    func getAllSampleSetsForUser(_ user: String, modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: ([QSet]?, _ response: URLResponse?, _ error: Error?) -> Void) {
 
-        let sampleFilePath = NSBundle.mainBundle().pathForResource("SampleQuizletData", ofType: "json")
+        let sampleFilePath = Bundle.main.path(forResource: "SampleQuizletData", ofType: "json")
         if (sampleFilePath == nil) {
             NSLog("Resource not found: SampleQuizletData.json")
-            completionHandler(nil, response: nil, error: nil)
+            completionHandler(nil, nil, nil)
             return
         }
 
-        let data = NSData(contentsOfFile: sampleFilePath!)
+        let data = try? Data(contentsOf: URL(fileURLWithPath: sampleFilePath!))
 
-        var jsonAny: AnyObject?
+        var jsonAny: Any?
         do {
-            jsonAny = try NSJSONSerialization.JSONObjectWithData(data!, options: .AllowFragments)
-        } catch let error as NSError {
+            jsonAny = try JSONSerialization.jsonObject(with: data!, options: .allowFragments)
+        } catch let error {
             NSLog("\(error)")
-            completionHandler(nil, response: nil, error: nil)
+            completionHandler(nil, nil, nil)
             return
         }
         
@@ -422,39 +444,39 @@ class QuizletSession {
             if (qsets == nil) {
                 NSLog("Invalid Quizlet Set in getAllSampleSetsForUser")
             }
-            completionHandler(qsets, response: nil, error: nil)
+            completionHandler(qsets, nil, nil)
         } else {
             NSLog("Unexpected response in getAllSampleSetsForUser: \(data)")
-            completionHandler(nil, response: nil, error: nil)
+            completionHandler(nil, nil, nil)
         }
     }
     
-    func invokeQuery(path: String, queryItems: [NSURLQueryItem]?, allowCellularAccess: Bool, jsonCallback: ((AnyObject?, response: NSURLResponse?, error: NSError?) -> Void)) {
+    func invokeQuery(_ path: String, queryItems: [URLQueryItem]?, allowCellularAccess: Bool, jsonCallback: @escaping ((Any?, _ response: URLResponse?, _ error: Error?) -> Void)) {
         let accessToken = currentUser?.accessToken
         if (accessToken == nil) {
             NSLog("Access token is not set")
-            jsonCallback(nil, response: nil, error: nil)
+            jsonCallback(nil, nil, nil)
             return
         }
         
-        let url = NSURLComponents()
+        var url = URLComponents()
         url.scheme = "https"
         url.host = "api.quizlet.com"
         url.path = path
         
-        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let config = URLSessionConfiguration.default
         config.allowsCellularAccess = allowCellularAccess
 
         var modifiedQueryItems = queryItems
         if (accessToken!.isEmpty) {
-            let queryClientId = NSURLQueryItem(name: "client_id", value: quizletClientId)
+            let queryClientId = URLQueryItem(name: "client_id", value: quizletClientId)
             if (modifiedQueryItems != nil) {
                 modifiedQueryItems!.append(queryClientId)
             } else {
                 modifiedQueryItems = [queryClientId]
             }
         } else {
-            config.HTTPAdditionalHeaders = [
+            config.httpAdditionalHeaders = [
                 "Accept": "application/json",
                 "Authorization": "Bearer \(accessToken!)"
             ]
@@ -471,15 +493,15 @@ class QuizletSession {
         
         url.queryItems = modifiedQueryItems
 
-        let session = NSURLSession(configuration: config)
-        let request = NSMutableURLRequest(URL: url.URL!)
-        request.HTTPMethod = "GET"
+        let session = URLSession(configuration: config)
+        var request = URLRequest(url: url.url!)
+        request.httpMethod = "GET"
         request.timeoutInterval = 15 // default is 60 seconds, timeout is the limit on a period of inactivity
         
         let queryTask = Task()
-        let task = session.dataTaskWithRequest(request,
-            completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
-                dispatch_async(dispatch_get_main_queue(), {
+        let task = session.dataTask(with: request,
+            completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
+                DispatchQueue.main.async(execute: {
                     self.currentQueryTasks.remove(queryTask)
                 })
                 
@@ -488,12 +510,12 @@ class QuizletSession {
                 print("Response data: \(NSString(data: data, encoding: NSUTF8StringEncoding))")
                 */
                 
-                let jsonData: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)
-                jsonCallback(jsonData, response: response, error: error)
+                let jsonData: Any? = QuizletSession.checkJSONResponseFromUrl(url.url!, data: data, response: response, error: error)
+                jsonCallback(jsonData, response, error)
         })
 
         queryTask.task = task
-        queryTask.description = String(url.URL!)
+        queryTask.description = String(describing: url.url!)
         currentQueryTasks.insert(queryTask)
         task.resume()
     }
@@ -506,11 +528,11 @@ class InvokeWebService {
             host: "api.quizlet.com",
             path: "/2.0/search/sets",
             queryItems: [
-                NSURLQueryItem(name: "creator", value: "dougzilla32"),
-                NSURLQueryItem(name: "client_id", value: "ZwGccNSqZJ"),
-                NSURLQueryItem(name: "whitespace", value: "1")
+                URLQueryItem(name: "creator", value: "dougzilla32"),
+                URLQueryItem(name: "client_id", value: "ZwGccNSqZJ"),
+                URLQueryItem(name: "whitespace", value: "1")
             ],
-            jsonCallback: { (results: AnyObject) -> Void in
+            jsonCallback: { (results: Any) -> Void in
                 print("dougzilla32's sets: \(results)")
         })
         
@@ -518,33 +540,33 @@ class InvokeWebService {
         InvokeWebService.get(scheme: "http",
             host: "api.openweathermap.org",
             path: "/data/2.5/weather",
-            queryItems: [ NSURLQueryItem(name: "q", value: "London,uk") ],
-            jsonCallback: { (results: AnyObject) -> Void in
+            queryItems: [ URLQueryItem(name: "q", value: "London,uk") ],
+            jsonCallback: { (results: Any) -> Void in
                 print("Weather in London: \(results)")
         })
     }
     
-    class func get(scheme scheme: String, host: String, path: String, queryItems: [NSURLQueryItem]?, jsonCallback: ((AnyObject) -> Void)) {
+    class func get(scheme: String, host: String, path: String, queryItems: [URLQueryItem]?, jsonCallback: @escaping ((Any) -> Void)) {
 
-        let url = NSURLComponents()
+        var url = URLComponents()
         url.scheme = scheme
         url.host = host
         url.path = path
         url.queryItems = queryItems
         
-        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let config = URLSessionConfiguration.default
         // config.allowsCellularAccess = false
-        config.HTTPAdditionalHeaders = [
+        config.httpAdditionalHeaders = [
             "Accept": "application/json",
             // "Authorization": "Bearer \(accessToken!)"
         ]
-        let session = NSURLSession(configuration: config)
-        let request = NSMutableURLRequest(URL: url.URL!)
-        request.HTTPMethod = "GET"
+        let session = URLSession(configuration: config)
+        var request = URLRequest(url: url.url!)
+        request.httpMethod = "GET"
         
-        session.dataTaskWithRequest(request,
-            completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
-                let jsonData: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)
+        session.dataTask(with: request,
+            completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
+                let jsonData: Any? = QuizletSession.checkJSONResponseFromUrl(url.url!, data: data, response: response, error: error)
                 if (jsonData == nil) {
                     return
                 }
@@ -556,33 +578,33 @@ class InvokeWebService {
 class GoogleTextToSpeech {
     static var player: AVAudioPlayer?
     
-    class func speechFromText(text: String) {
-        let url = NSURLComponents()
+    class func speechFromText(_ text: String) {
+        var url = URLComponents()
         url.scheme = "http"
         url.host = "translate.google.com"
         url.path = "/translate_tts"
         url.queryItems = [
-            NSURLQueryItem(name: "tl", value: "ko"),
-            NSURLQueryItem(name: "q", value: text)
+            URLQueryItem(name: "tl", value: "ko"),
+            URLQueryItem(name: "q", value: text)
         ]
         
-        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let config = URLSessionConfiguration.default
         config.allowsCellularAccess = false
-        let session = NSURLSession(configuration: config)
-        let request = NSMutableURLRequest(URL: url.URL!)
-        request.HTTPMethod = "POST"
+        let session = URLSession(configuration: config)
+        var request = URLRequest(url: url.url!)
+        request.httpMethod = "POST"
         request.setValue("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_10_3) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/43.0.2357.124 Safari/537.36", forHTTPHeaderField: "User-Agent")
         
-        session.dataTaskWithRequest(request,
-            completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
+        session.dataTask(with: request,
+            completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
                 if (error != nil) {
-                    NSLog("\(url.URL!)\n\(error!)")
+                    NSLog("\(url.url!)\n\(error!)")
                     return
                 }
                 
-                let httpResponse = response as! NSHTTPURLResponse
+                let httpResponse = response as! HTTPURLResponse
                 if (httpResponse.statusCode != 200) {
-                    NSLog("Unexpected response for translate_tts request: \(NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode))")
+                    NSLog("Unexpected response for translate_tts request: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                     return
                 }
                 
@@ -608,41 +630,41 @@ class MicrosoftTranslateSession {
     static let microsoftTranslatorClientSecret = "E3iu5Ludn2SAIdeiRMRkEnoQe3Dxro/QhKZmFz36gow="
     
     class func getMicrosoftToken() {
-        let url = NSURLComponents()
+        var url = URLComponents()
         url.scheme = "https"
         url.host = "datamarket.accesscontrol.windows.net"
         url.path = "/v2/OAuth2-13"
         
-        let query = NSURLComponents()
+        var query = URLComponents()
         query.queryItems = [
-            NSURLQueryItem(name: "client_id", value: microsoftTranslatorClientId),
-            NSURLQueryItem(name: "client_secret", value: microsoftTranslatorClientSecret),
-            NSURLQueryItem(name: "grant_type", value: "client_credentials"),
-            NSURLQueryItem(name: "scope", value: "http://api.microsofttranslator.com")
+            URLQueryItem(name: "client_id", value: microsoftTranslatorClientId),
+            URLQueryItem(name: "client_secret", value: microsoftTranslatorClientSecret),
+            URLQueryItem(name: "grant_type", value: "client_credentials"),
+            URLQueryItem(name: "scope", value: "http://api.microsofttranslator.com")
         ]
         
-        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let config = URLSessionConfiguration.default
         // config.allowsCellularAccess = false
-        let session = NSURLSession(configuration: config)
-        let request = NSMutableURLRequest(URL: url.URL!)
-        request.HTTPMethod = "POST"
-        request.HTTPBody = query.percentEncodedQuery?.dataUsingEncoding(NSUTF8StringEncoding)
+        let session = URLSession(configuration: config)
+        var request = URLRequest(url: url.url!)
+        request.httpMethod = "POST"
+        request.httpBody = query.percentEncodedQuery?.data(using: String.Encoding.utf8)
         
-        session.dataTaskWithRequest(request,
-            completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
+        session.dataTask(with: request,
+            completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
                 if (error != nil) {
-                    NSLog("\(url.URL!)\n\(error!)")
+                    NSLog("\(url.url!)\n\(error!)")
                     return
                 }
                 
-                let httpResponse = response as! NSHTTPURLResponse
+                let httpResponse = response as! HTTPURLResponse
                 if (httpResponse.statusCode != 200) {
-                    NSLog("Unexpected response for microsoft translate request: \(NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode))")
+                    NSLog("Unexpected response for microsoft translate request: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
                     QuizletSession.logData(data)
                     return
                 }
                 
-                let jsonData: AnyObject? = QuizletSession.checkJSONResponseFromUrl(url.URL!, data: data, response: response, error: error)
+                let jsonData: Any? = QuizletSession.checkJSONResponseFromUrl(url.url!, data: data, response: response, error: error)
                 if (jsonData == nil) {
                     return
                 }
@@ -654,44 +676,44 @@ class MicrosoftTranslateSession {
         }).resume()
     }
     
-    class func translateText(text: String, from: String, to: String, accessToken: String) {
-        let url = NSURLComponents()
+    class func translateText(_ text: String, from: String, to: String, accessToken: String) {
+        var url = URLComponents()
         url.scheme = "http"
         url.host = "api.microsofttranslator.com"
         url.path = "/v2/Http.svc/Translate"
         url.queryItems = [
-            NSURLQueryItem(name: "text", value: text),
-            NSURLQueryItem(name: "from", value: from),
-            NSURLQueryItem(name: "to", value: to),
-            NSURLQueryItem(name: "contentType", value: "text/plain")
+            URLQueryItem(name: "text", value: text),
+            URLQueryItem(name: "from", value: from),
+            URLQueryItem(name: "to", value: to),
+            URLQueryItem(name: "contentType", value: "text/plain")
         ]
         
-        let config = NSURLSessionConfiguration.defaultSessionConfiguration()
+        let config = URLSessionConfiguration.default
         // config.allowsCellularAccess = false
-        config.HTTPAdditionalHeaders = [
+        config.httpAdditionalHeaders = [
             "Authorization": "Bearer \(accessToken)"
         ]
-        let session = NSURLSession(configuration: config)
-        let request = NSMutableURLRequest(URL: url.URL!)
-        request.HTTPMethod = "GET"
+        let session = URLSession(configuration: config)
+        var request = URLRequest(url: url.url!)
+        request.httpMethod = "GET"
         
-        session.dataTaskWithRequest(request,
-            completionHandler: { (data: NSData?, response: NSURLResponse?, error: NSError?) in
+        session.dataTask(with: request,
+            completionHandler: { (data: Data?, response: URLResponse?, error: Error?) in
                 if (error != nil) {
-                    NSLog("\(url.URL!)\n\(error!)")
+                    NSLog("\(url.url!)\n\(error!)")
                     return
                 }
                 
-                let httpResponse = response as! NSHTTPURLResponse
+                let httpResponse = response as! HTTPURLResponse
                 if (httpResponse.statusCode != 200) {
-                    NSLog("Unexpected response for microsoft translate request: \(NSHTTPURLResponse.localizedStringForStatusCode(httpResponse.statusCode))")
-                    print(NSString(data: data!, encoding: NSUTF8StringEncoding))
+                    NSLog("Unexpected response for microsoft translate request: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
+                    print(NSString(data: data!, encoding: String.Encoding.utf8.rawValue))
                     return
                 }
                 
                 print("Success")
                 print(response)
-                print(NSString(data: data!, encoding: NSUTF8StringEncoding))
+                print(NSString(data: data!, encoding: String.Encoding.utf8.rawValue))
         }).resume()
     }
 }

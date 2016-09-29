@@ -17,13 +17,15 @@ class DataModel: NSObject {
     var currentQuery: Query?
     
     lazy var root: Root = {
+        [unowned self] in
+
         // Set up root model object
-        let request = NSFetchRequest(entityName: "Root")
+        let request = NSFetchRequest<Root>(entityName: "Root")
         request.relationshipKeyPathsForPrefetching = ["users"]
         
         var result: [Root]
         do {
-            result = try self.moc.executeFetchRequest(request) as! [Root]
+            result = try self.moc.fetch(request)
         } catch let error as NSError {
             NSLog("An error occurred while fetching the root: \(error), \(error.userInfo)")
             fatalError()
@@ -33,8 +35,8 @@ class DataModel: NSObject {
         if (result.count == 1) {
             root = result[0]
         } else if (result.count == 0) {
-            root = NSEntityDescription.insertNewObjectForEntityForName("Root",
-                inManagedObjectContext: self.moc) as! Root
+            root = NSEntityDescription.insertNewObject(forEntityName: "Root",
+                into: self.moc) as! Root
             root.users = NSOrderedSet()
         } else {
             NSLog("Unexpected state when loading data model: result.count = \(result.count)")
@@ -43,7 +45,7 @@ class DataModel: NSObject {
         
         /*
         // Batch fault the root's users
-        let userRequest = NSFetchRequest(entityName: "User")
+        let userRequest = NSFetchRequest<User>(entityName: "User")
         userRequest.predicate = NSPredicate(format: "self IN %@", root.users)
         
         var userError: NSError?
@@ -92,7 +94,7 @@ class DataModel: NSObject {
         super.init()
         
         // Set up current user
-        if let userId = NSUserDefaults.standardUserDefaults().stringForKey("currentUser") {
+        if let userId = UserDefaults.standard.string(forKey: "currentUser") {
             currentUser = fetchUserWithId(userId)
             if (currentUser != nil) {
                 currentQuery = currentUser!.queries.firstObject as? Query
@@ -102,11 +104,11 @@ class DataModel: NSObject {
     }
     
     func fetchUsers() -> [User]? {
-        let fetchRequest = NSFetchRequest(entityName: "User")
+        let fetchRequest = NSFetchRequest<User>(entityName: "User")
         
         var users: [User]?
         do {
-            users = try moc.executeFetchRequest(fetchRequest) as? [User]
+            users = try moc.fetch(fetchRequest)
         } catch let error as NSError {
             NSLog("An error occurred while fetching the list of users: \(error), \(error.userInfo)")
             users = nil
@@ -115,14 +117,14 @@ class DataModel: NSObject {
         return users
     }
     
-    func fetchUserWithId(userId: String) -> User? {
-        let request = NSFetchRequest(entityName: "User")
+    func fetchUserWithId(_ userId: String) -> User? {
+        let request = NSFetchRequest<User>(entityName: "User")
         request.predicate = NSPredicate(format: "id == %@", userId)
         request.relationshipKeyPathsForPrefetching = ["queries"]
         
         var users: [User]?
         do {
-            users = try moc.executeFetchRequest(request) as? [User]
+            users = try moc.fetch(request)
         } catch let error as NSError {
             NSLog("An error occurred while fetching the list of users: \(error), \(error.userInfo)")
             return nil
@@ -134,11 +136,12 @@ class DataModel: NSObject {
         return users![0]
     }
     
-    func addOrUpdateUser(userAccount: UserAccount) -> User {
+    @discardableResult
+    func addOrUpdateUser(_ userAccount: UserAccount) -> User {
         var user = fetchUserWithId(userAccount.userId)
         if (user == nil) {
-            let newUser = NSEntityDescription.insertNewObjectForEntityForName("User",
-                inManagedObjectContext: moc) as! User
+            let newUser = NSEntityDescription.insertNewObject(forEntityName: "User",
+                into: moc) as! User
             newUser.root = self.root
             newUser.copyFrom(userAccount)
             
@@ -148,7 +151,7 @@ class DataModel: NSObject {
             newUser.queries = NSOrderedSet(object: query)
 
             let mutableUsers = root.users.mutableCopy() as! NSMutableOrderedSet
-            mutableUsers.addObject(newUser)
+            mutableUsers.add(newUser)
             self.root.users = mutableUsers.copy() as! NSOrderedSet
 
             user = newUser
@@ -160,20 +163,20 @@ class DataModel: NSObject {
         if (currentUser != user) {
             currentUser = user
             self.quizletSession.currentUser = userAccount
-            NSUserDefaults.standardUserDefaults().setObject(user!.id, forKey: "currentUser")
+            UserDefaults.standard.set(user!.id, forKey: "currentUser")
         }
         
         currentQuery = currentUser?.queries.firstObject as? Query
         return user!
     }
     
-    func deleteUser(user: User) {
-        moc.deleteObject(user)
+    func deleteUser(_ user: User) {
+        moc.delete(user)
     }
     
-    func newQueryForUser(user: User) -> Query {
-        let query = NSEntityDescription.insertNewObjectForEntityForName("Query",
-            inManagedObjectContext: moc) as! Query
+    func newQueryForUser(_ user: User) -> Query {
+        let query = NSEntityDescription.insertNewObject(forEntityName: "Query",
+            into: moc) as! Query
         query.type = ""
         query.title = ""
         query.query = ""
@@ -187,12 +190,12 @@ class DataModel: NSObject {
         return query
     }
     
-    func deleteQuery(query: Query) {
-        moc.deleteObject(query)
+    func deleteQuery(_ query: Query) {
+        moc.delete(query)
     }
     
     // TODO: guard against "refresh" call while already refreshing.  This requires having the completionHandler called in all cases including cancel and error.
-    func refreshModelForCurrentQuery(allowCellularAccess allowCellularAccess: Bool, completionHandler: ([QSet]?, Int) -> Void) {
+    func refreshModelForCurrentQuery(allowCellularAccess: Bool, completionHandler: @escaping ([QSet]?, Int) -> Void) {
         guard let q = currentQuery else {
             return
         }
@@ -219,10 +222,10 @@ class DataModel: NSObject {
         }
     }
     
-    class func parseCreators(creatorsString: String) -> [Creator] {
+    class func parseCreators(_ creatorsString: String) -> [Creator] {
         var creators = [Creator]()
-        for c in creatorsString.componentsSeparatedByString(",") {
-            let parts = c.componentsSeparatedByString(":")
+        for c in creatorsString.components(separatedBy: ",") {
+            let parts = c.components(separatedBy: ":")
             switch (parts.count) {
             case 1:
                 creators.append(Creator(username: parts[0], folder: nil))
@@ -235,7 +238,7 @@ class DataModel: NSObject {
         return creators
     }
     
-    func updateTermsForQuery(query: Query, qsets: [QSet]?) {
+    func updateTermsForQuery(_ query: Query, qsets: [QSet]?) {
         if (qsets == nil) {
             return
         }
@@ -256,14 +259,14 @@ class DataModel: NSObject {
         var idsToFetch = [NSNumber]()
         var maxModifiedDate: Int64 = 0
         for qset in qsets! {
-            let existingSet = existingSetsMap.removeValueForKey(qset.id)
+            let existingSet = existingSetsMap.removeValue(forKey: qset.id)
             if (existingSet != nil) {
                 existingSet!.copyFrom(qset, moc: moc)
             } else {
                 setsToFetch.append(qset)
-                idsToFetch.append(NSNumber(longLong: qset.id))
+                idsToFetch.append(NSNumber(value: qset.id))
             }
-            maxModifiedDate = max(qset.modifiedDate, maxModifiedDate)
+            maxModifiedDate = Swift.max(qset.modifiedDate, maxModifiedDate)
         }
         if (query.maxModifiedDate != maxModifiedDate) {
             query.maxModifiedDate = maxModifiedDate
@@ -279,23 +282,23 @@ class DataModel: NSObject {
         // DELETE: Remove the query reference from the sets remaining in 'existingSetsMap' (that have either been deleted from quizlet.com or no longer match this query) and delete them from the cache if they are not referenced by any other query
         for set in existingSetsMap.values {
             let mutableSet = set.queries.mutableCopy() as! NSMutableSet
-            mutableSet.removeObject(query)
+            mutableSet.remove(query)
             set.queries = mutableSet.copy() as! NSSet
             if (set.queries.count == 0) {
-                moc.deleteObject(set)
+                moc.delete(set)
             }
 
-            mutableQuerySets.removeObject(set)
+            mutableQuerySets.remove(set)
         }
         
         // ADD: The 'setsToFetch' are to be fetched -- if a set already exists because it has been cached by a different query, then update its terms and add  'query' to its list of queries.  Otherwise create a new set.
         if (setsToFetch.count > 0) {
-            let updateSetsRequest = NSFetchRequest(entityName: "QuizletSet")
+            let updateSetsRequest = NSFetchRequest<QuizletSet>(entityName: "QuizletSet")
             updateSetsRequest.predicate = NSPredicate(format: "id IN %@", idsToFetch)
             
             var updateSetsResult: [QuizletSet]?
             do {
-                updateSetsResult = try self.moc.executeFetchRequest(updateSetsRequest) as? [QuizletSet]
+                updateSetsResult = try self.moc.fetch(updateSetsRequest)
             } catch let error as NSError {
                 NSLog("An error occurred while fetching sets: \(error), \(error.userInfo)")
                 fatalError()
@@ -311,16 +314,16 @@ class DataModel: NSObject {
                     quizletSet.copyFrom(qset, moc: moc)
                     
                     let mutableSet = quizletSet.queries.mutableCopy() as! NSMutableSet
-                    mutableSet.addObject(query)
+                    mutableSet.add(query)
                     quizletSet.queries = mutableSet.copy() as! NSSet
                     
-                    mutableQuerySets.addObject(quizletSet)
+                    mutableQuerySets.add(quizletSet)
                 } else {
-                    let quizletSet = NSEntityDescription.insertNewObjectForEntityForName("QuizletSet", inManagedObjectContext: moc) as! QuizletSet
+                    let quizletSet = NSEntityDescription.insertNewObject(forEntityName: "QuizletSet", into: moc) as! QuizletSet
                     quizletSet.initFrom(qset, moc: moc)
                     quizletSet.queries = NSSet(object: query)
                     
-                    mutableQuerySets.addObject(quizletSet)
+                    mutableQuerySets.add(quizletSet)
                 }
             }
         }
@@ -335,7 +338,7 @@ class DataModel: NSObject {
             return
         }
 
-        let fetchRequest = NSFetchRequest(entityName: "Query")
+        let fetchRequest = NSFetchRequest<Query>(entityName: "Query")
         fetchRequest.predicate = NSPredicate(format: "user == %@", currentUser!)
         
         var error: NSError?
@@ -365,7 +368,7 @@ class DataModel: NSObject {
         }
     }
     
-    func validationMessages(anError: NSError) -> String? {
+    func validationMessages(_ anError: NSError) -> String? {
         if (anError.domain != "NSCocoaErrorDomain") {
             return nil
         }

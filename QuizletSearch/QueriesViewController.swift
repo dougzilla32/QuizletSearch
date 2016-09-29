@@ -7,12 +7,32 @@
 //
 
 import UIKit
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l >= r
+  default:
+    return !(lhs < rhs)
+  }
+}
+
 
 class QueriesViewController: TableContainerController, UITextFieldDelegate {
 
     // Load dataModel lazily so the app gets a chance to show the model load error message in the case where the data model is out of sync.
     lazy var dataModel: DataModel = {
-        return (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
+        return (UIApplication.shared.delegate as! AppDelegate).dataModel
     }()
     
     let SearchBarEnabled = false
@@ -25,33 +45,33 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     var addAnimationsEnabled: Bool?
     var currentFirstResponder: UITextField?
     var recursiveReloadCounter = 0
-    var deferReloadRow: NSIndexPath?
+    var deferReloadRow: IndexPath?
     var updatingText = false
     var inEditMode = false
     var extraRows = 0
     var searchBarHeight: CGFloat!
     var currentContentOffsetY: CGFloat?
     
-    var animationBlock: ((CGPoint, completionHandler: () -> Void) -> Void)?
+    var animationBlock: ((CGPoint, _ completionHandler: @escaping () -> Void) -> Void)?
     var animationContext: WhooshAnimationContext?
-    var hideRefCount = [NSIndexPath: Int]()
+    var hideRefCount = [IndexPath: Int]()
     
     enum ExtraRowOptions {
-        case InsertOnly, InsertAndDelete
+        case insertOnly, insertAndDelete
     }
 
     @IBOutlet weak var editButton: UIButton!
 
     // MARK: - View Controller
     
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
 
         if (!SearchBarEnabled) {
             tableView.tableHeaderView = nil
         }
         
-        let enabled = UIView.areAnimationsEnabled()
+        let enabled = UIView.areAnimationsEnabled
         UIView.setAnimationsEnabled(false)
         defer {
             UIView.setAnimationsEnabled(enabled)
@@ -72,16 +92,16 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
 //         tableView.estimatedRowHeight = 44.0
         
         // Respond to dynamic type font changes
-        NSNotificationCenter.defaultCenter().addObserver(self,
+        NotificationCenter.default.addObserver(self,
             selector: #selector(QueriesViewController.preferredContentSizeChanged(_:)),
-            name: UIContentSizeCategoryDidChangeNotification,
+            name: NSNotification.Name.UIContentSizeCategoryDidChange,
             object: nil)
         resetFonts()
 
         if (SearchBarEnabled) {
             // Scroll the tableView such that the search bar is not visible
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
-                self.searchBarVisibilityWorkaround(.InsertAndDelete)
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(NSEC_PER_SEC/100)) / Double(NSEC_PER_SEC), execute: {
+                self.searchBarVisibilityWorkaround(.insertAndDelete)
                 
                 self.searchBarHeight = self.searchBar.bounds.height
                 self.tableView.setContentOffset(CGPoint(x: 0, y: self.searchBarHeight), animated: false)
@@ -91,50 +111,50 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
     deinit {
         // Remove all 'self' observers
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
     var preferredFont: UIFont?
     
-    func preferredContentSizeChanged(notification: NSNotification) {
+    func preferredContentSizeChanged(_ notification: Notification) {
         resetFonts()        
         self.view.setNeedsLayout()
         tableView.reloadData()
     }
     
     func resetFonts() {
-        preferredFont = UIFont.preferredFontForTextStyle(UIFontTextStyleBody)
+        preferredFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
     }
     
     // Workaround for search bar visibility -- there is a bug with UITableView where sometimes the search bar cannot be properly hidden when the user scrolls the table or when programmatically scrolling the table.  By quickly inserting and deleting an empty row in the table the incorrect behavior is alleviated.
-    func searchBarVisibilityWorkaround(options: ExtraRowOptions) {
+    func searchBarVisibilityWorkaround(_ options: ExtraRowOptions) {
         trace("searchBarVisibilityWorkaround", options)
         let row = self.tableView(tableView, numberOfRowsInSection: 0)
-        let indexPath = NSIndexPath(forRow: row, inSection: 0)
+        let indexPath = IndexPath(row: row, section: 0)
 
-        let enabled = UIView.areAnimationsEnabled()
+        let enabled = UIView.areAnimationsEnabled
         UIView.setAnimationsEnabled(false)
         defer {
             UIView.setAnimationsEnabled(enabled)
         }
 
         self.extraRows += 1
-        self.tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.None)
-        if (options == .InsertAndDelete) {
+        self.tableView.insertRows(at: [indexPath], with: UITableViewRowAnimation.none)
+        if (options == .insertAndDelete) {
             self.extraRows -= 1
-            self.tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.None)
+            self.tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.none)
         }
     }
     
     // Workaround for search bar positioning -- when programmatically manipulating the tableView, sometimes the contentOffset pops to zero such that the search bar becomes visible.  This workaround alleviates the improper behavior.
-    func searchBarPositionWorkaround(overrideContentOffsetY: CGFloat? = nil) {
+    func searchBarPositionWorkaround(_ overrideContentOffsetY: CGFloat? = nil) {
         let offsetY = (overrideContentOffsetY != nil) ? overrideContentOffsetY! : currentContentOffsetY
 
         let needsAdjustment = (offsetY >= searchBarHeight && tableView.contentOffset.y < searchBarHeight)
         trace("searchBarPositionWorkaround needsAdjustment:", needsAdjustment)
         
         if (needsAdjustment) {
-            let enabled = UIView.areAnimationsEnabled()
+            let enabled = UIView.areAnimationsEnabled
             UIView.setAnimationsEnabled(false)
             defer {
                 UIView.setAnimationsEnabled(enabled)
@@ -149,45 +169,45 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         // Dispose of any resources that can be recreated.
     }
     
-    override func shouldAutorotate() -> Bool {
+    override var shouldAutorotate : Bool {
         return true
     }
     
-    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return .All
+    override var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+        return .all
     }
     
-    override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        return UIStatusBarStyle.LightContent
+    override var preferredStatusBarStyle : UIStatusBarStyle {
+        return UIStatusBarStyle.lightContent
     }
     
     
     // MARK: - Navigation
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        trace("prepareForSegue", segue.destinationViewController, sender)
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        trace("prepareForSegue", segue.destination, sender)
         
         if (segue.identifier == "AddQuery") {
-            (segue.destinationViewController.childViewControllers[0] as! AddQueryViewController).configureForAdd()
+            (segue.destination.childViewControllers[0] as! AddQueryViewController).configureForAdd()
         }
         else if (segue.identifier == "Search") {
             // Animate the filter's characters into the SearchViewController's search bar
             let indexPath = tableView.indexPathForSelectedRow!
-            let cell = tableView.cellForRowAtIndexPath(indexPath)!
+            let cell = tableView.cellForRow(at: indexPath)!
             let label = cell.contentView.viewWithTag(100) as! UILabel
             
             let origin = label.frame.origin
-            let mainWindow = UIApplication.sharedApplication().keyWindow!
-            let sourcePoint = label.superview!.convertPoint(origin, toView: mainWindow)
+            let mainWindow = UIApplication.shared.keyWindow!
+            let sourcePoint = label.superview!.convert(origin, to: mainWindow)
 
             if (animationContext != nil) {
                 animationContext!.cancel()
                 animationContext = nil
             }
             
-            let searchViewController = segue.destinationViewController as! SearchViewController
-            searchViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: () -> Void) in
-                searchViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .FadeOut, completionHandler: {
+            let searchViewController = segue.destination as! SearchViewController
+            searchViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: @escaping () -> Void) in
+                searchViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .fadeOut, completionHandler: {
                     searchViewController.animationContext = nil
                     self.showLabelAtIndexPath(indexPath, label: label)
                     completionHandler()
@@ -201,15 +221,15 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         // Pass the selected object to the new view controller.
     }
     
-    func showLabelAtIndexPath(indexPath: NSIndexPath, label: UILabel) {
+    func showLabelAtIndexPath(_ indexPath: IndexPath, label: UILabel) {
         var count = self.hideRefCount[indexPath]
         if (count == nil) {
-            label.hidden = false
+            label.isHidden = false
         }
         else {
             count! -= 1
             if (count == 0) {
-                label.hidden = false
+                label.isHidden = false
                 self.hideRefCount[indexPath] = nil
             }
             else {
@@ -218,11 +238,11 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         }
     }
     
-    func hideLabelAtIndexPath(indexPath: NSIndexPath, label: UILabel) {
+    func hideLabelAtIndexPath(_ indexPath: IndexPath, label: UILabel) {
         var count = self.hideRefCount[indexPath]
         if (count == nil) {
             count = 1
-            label.hidden = true
+            label.isHidden = true
         }
         else {
             count! += 1
@@ -230,21 +250,21 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         self.hideRefCount[indexPath] = count
     }
 
-    @IBAction func unwindFromUsers(segue: UIStoryboardSegue) {
+    @IBAction func unwindFromUsers(_ segue: UIStoryboardSegue) {
         let y = currentContentOffsetY
         
         if (SearchBarEnabled) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(NSEC_PER_SEC/100)) / Double(NSEC_PER_SEC), execute: {
                 self.searchBarPositionWorkaround(y)
             })
         }
     }
     
-    @IBAction func unwindFromSearch(segue: UIStoryboardSegue) {
+    @IBAction func unwindFromSearch(_ segue: UIStoryboardSegue) {
         let y = currentContentOffsetY
 
         if (SearchBarEnabled) {
-            dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+            DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(NSEC_PER_SEC/100)) / Double(NSEC_PER_SEC), execute: {
                 self.searchBarPositionWorkaround(y)
             })
         }
@@ -252,33 +272,33 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         // TODO cannnnot count on this being set, need to track separately (nil unwrap error)
         let indexPath = tableView.indexPathForSelectedRow
         if (tableView.indexPathForSelectedRow != nil) {
-            tableView.deselectRowAtIndexPath(tableView.indexPathForSelectedRow!, animated: false)
+            tableView.deselectRow(at: tableView.indexPathForSelectedRow!, animated: false)
         }
 
         if (animationBlock != nil) {
-            let cell = tableView.cellForRowAtIndexPath(indexPath!)!
+            let cell = tableView.cellForRow(at: indexPath!)!
             let label = cell.contentView.viewWithTag(100) as! UILabel
             
             let origin = label.frame.origin
-            let mainWindow = UIApplication.sharedApplication().keyWindow!
-            let targetPoint = label.superview!.convertPoint(origin, toView: mainWindow)
+            let mainWindow = UIApplication.shared.keyWindow!
+            let targetPoint = label.superview!.convert(origin, to: mainWindow)
             
             hideLabelAtIndexPath(indexPath!, label: label)
-            self.animationBlock!(targetPoint, completionHandler: {
+            self.animationBlock!(targetPoint, {
                 self.showLabelAtIndexPath(indexPath!, label: label)
             })
             self.animationBlock = nil
         }
     }
     
-    @IBAction func unwindFromAddQuery(segue: UIStoryboardSegue) {
+    @IBAction func unwindFromAddQuery(_ segue: UIStoryboardSegue) {
         if (segue.identifier != "AddQueryAdd") {
             return
         }
 
         currentContentOffsetY = tableView.contentOffset.y
         if (currentFirstResponder != nil) {
-            addAnimationsEnabled = UIView.areAnimationsEnabled()
+            addAnimationsEnabled = UIView.areAnimationsEnabled
             UIView.setAnimationsEnabled(false)
             if (Common.isEmpty(currentFirstResponder!.text)) {
                 // Already have a blank textfield as first responder
@@ -289,7 +309,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         
         // Delete this comment when confirmed to work properly.  Workaround -- use dispatch_after to avoid race condition between the current textfield resigning the first responder and inserting the new row into the table
         let query = dataModel.newQueryForUser(dataModel.currentUser!)
-        let addQueryViewController = segue.sourceViewController as! AddQueryViewController
+        let addQueryViewController = segue.source as! AddQueryViewController
         addQueryViewController.saveToQuery(query)
 
         query.title = ""
@@ -300,65 +320,65 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             if (!query.title.isEmpty) {
                 query.title += " "
             }
-            query.title += query.creators.stringByReplacingOccurrencesOfString(",", withString: " ")
+            query.title += query.creators.replacingOccurrences(of: ",", with: " ")
         }
         if (!query.classes.isEmpty) {
             if (!query.title.isEmpty) {
                 query.title += " "
             }
-            query.title += query.classes.stringByReplacingOccurrencesOfString(",", withString: " ")
+            query.title += query.classes.replacingOccurrences(of: ",", with: " ")
         }
         
         currentUser.addQuery(query)
         dataModel.saveChanges()
         
-        let indexPath = NSIndexPath(forRow: currentUser.queries.count-1, inSection: 0)
-        editingRow = indexPath.row
-        tableView.insertRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
-        addingRow = indexPath.row
+        let indexPath = IndexPath(row: currentUser.queries.count-1, section: 0)
+        editingRow = (indexPath as NSIndexPath).row
+        tableView.insertRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
+        addingRow = (indexPath as NSIndexPath).row
     }
     
-    @IBAction func edit(sender: AnyObject) {
-        tableView.editing = !tableView.editing
-        inEditMode = tableView.editing
-        editButton.setTitle(tableView.editing ? "Done" : "Edit", forState: UIControlState.Normal)
+    @IBAction func edit(_ sender: AnyObject) {
+        tableView.isEditing = !tableView.isEditing
+        inEditMode = tableView.isEditing
+        editButton.setTitle(tableView.isEditing ? "Done" : "Edit", for: UIControlState())
 
         recursiveReloadCounter += 1
         extraRows = 0
         tableView.reloadData()
         if (SearchBarEnabled) {
-            self.searchBarVisibilityWorkaround(.InsertOnly)
+            self.searchBarVisibilityWorkaround(.insertOnly)
         }
         recursiveReloadCounter -= 1
         
         CommonAnimation.letterSpin()
     }
     
-    @IBAction func updateText(sender: AnyObject) {
+    @IBAction func updateText(_ sender: AnyObject) {
         currentContentOffsetY = tableView.contentOffset.y
-        let enabled = UIView.areAnimationsEnabled()
+        let enabled = UIView.areAnimationsEnabled
         UIView.setAnimationsEnabled(false)
         updatingText = true
         let textField = sender as! UITextField
         trace("updateText IN text:", textField.text)
         textField.resignFirstResponder()
-        trace("updateText OUT text:", textField.text, "defer:", deferReloadRow?.row)
+        trace("updateText OUT text:", textField.text, "defer:", (deferReloadRow as NSIndexPath?)?.row)
         updatingText = false
         UIView.setAnimationsEnabled(enabled)
         
         if (deferReloadRow != nil) {
-            tableView.reloadRowsAtIndexPaths([deferReloadRow!], withRowAnimation: UITableViewRowAnimation.Automatic)
+            tableView.reloadRows(at: [deferReloadRow!], with: UITableViewRowAnimation.automatic)
             deferReloadRow = nil
         }
     }
     
     // MARK: - Textfield delegate
     
-    func textFieldDidBeginEditing(textField: UITextField) {
+    func textFieldDidBeginEditing(_ textField: UITextField) {
         currentFirstResponder = textField
     }
     
-    func textFieldDidEndEditing(textField: UITextField) {
+    func textFieldDidEndEditing(_ textField: UITextField) {
         editingRow = nil
         
         var text = textField.text
@@ -370,15 +390,15 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         }
 
         let indexPath = indexPathForTextField(textField)
-        var deleteRow: NSIndexPath?
-        var reloadRow: NSIndexPath?
+        var deleteRow: IndexPath?
+        var reloadRow: IndexPath?
         
         if (text!.isEmpty) {
-            if (addingRow == indexPath.row) {
+            if (addingRow == (indexPath as NSIndexPath).row) {
                 // Delete
-                let query = (currentUser.queries[indexPath.row] as! Query)
-                currentUser.removeQueryAtIndex(indexPath.row)
-                dataModel.moc.deleteObject(query)
+                let query = (currentUser.queries[(indexPath as NSIndexPath).row] as! Query)
+                currentUser.removeQueryAtIndex((indexPath as NSIndexPath).row)
+                dataModel.moc.delete(query)
                 dataModel.saveChanges()
                 deleteRow = indexPath
             }
@@ -389,23 +409,23 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         }
         else {
             // Apply
-            (currentUser.queries[indexPath.row] as! Query).title = text!
+            (currentUser.queries[(indexPath as NSIndexPath).row] as! Query).title = text!
             dataModel.saveChanges()
             reloadRow = indexPath
         }
         
         if (recursiveReloadCounter == 0) {
             if (deleteRow != nil) {
-                trace("deleteRow row:", indexPath.row)
-                tableView.deleteRowsAtIndexPaths([deleteRow!], withRowAnimation: UITableViewRowAnimation.Automatic)
+                trace("deleteRow row:", (indexPath as NSIndexPath).row)
+                tableView.deleteRows(at: [deleteRow!], with: UITableViewRowAnimation.automatic)
             }
             if (reloadRow != nil) {
-                trace("reloadRow row:", indexPath.row, "updatingText:", updatingText)
+                trace("reloadRow row:", (indexPath as NSIndexPath).row, "updatingText:", updatingText)
                 if (updatingText) {
                     deferReloadRow = reloadRow
                 }
                 else {
-                    tableView.reloadRowsAtIndexPaths([reloadRow!], withRowAnimation: UITableViewRowAnimation.Automatic)
+                    tableView.reloadRows(at: [reloadRow!], with: UITableViewRowAnimation.automatic)
                 }
             }
         }
@@ -417,64 +437,64 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         }
     }
     
-    func indexPathForTextField(textField: UITextField) -> NSIndexPath {
+    func indexPathForTextField(_ textField: UITextField) -> IndexPath {
         let textInputCell = textField.superview!.superview as! UITableViewCell
         
         // Use indexPathForRowAtPoint rather than indexPathForCell because indexPathForCell returns nil if the cell is not yet visible (either scrolled off or not yet realized)
-        return tableView.indexPathForRowAtPoint(textInputCell.center)!
+        return tableView.indexPathForRow(at: textInputCell.center)!
     }
     
     // MARK: - Table view delegate
 
-    func tableView(tableView: UITableView, willSelectRowAtIndexPath indexPath: NSIndexPath) -> NSIndexPath? {
+    func tableView(_ tableView: UITableView, willSelectRowAtIndexPath indexPath: IndexPath) -> IndexPath? {
         currentContentOffsetY = tableView.contentOffset.y
         return indexPath
     }
 
-    func tableView(tableView: UITableView, didSelectRowAtIndexPath indexPath: NSIndexPath) {
-        trace("select", indexPath.row)
-        dataModel.currentQuery = dataModel.currentUser?.queries[indexPath.row] as? Query
+    func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
+        trace("select", (indexPath as NSIndexPath).row)
+        dataModel.currentQuery = dataModel.currentUser?.queries[(indexPath as NSIndexPath).row] as? Query
 //        self.performSegueWithIdentifier("MySegue", sender: self)
     }
     
     // MARK: - Table view data source
 
-    func tableView(tableView: UITableView, canEditRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return indexPath.row < currentUser.queries.count
+    func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool {
+        return (indexPath as NSIndexPath).row < currentUser.queries.count
     }
     
-    func tableView(tableView: UITableView, canMoveRowAtIndexPath indexPath: NSIndexPath) -> Bool {
-        return indexPath.row < currentUser.queries.count
+    func tableView(_ tableView: UITableView, canMoveRowAtIndexPath indexPath: IndexPath) -> Bool {
+        return (indexPath as NSIndexPath).row < currentUser.queries.count
     }
     
-    func tableView(tableView: UITableView, moveRowAtIndexPath sourceIndexPath: NSIndexPath, toIndexPath destinationIndexPath: NSIndexPath) {
-        currentUser.moveQueriesAtIndexes(NSIndexSet(index: sourceIndexPath.row), toIndex: destinationIndexPath.row)
+    func tableView(_ tableView: UITableView, moveRowAtIndexPath sourceIndexPath: IndexPath, toIndexPath destinationIndexPath: IndexPath) {
+        currentUser.moveQueriesAtIndexes(IndexSet(integer: (sourceIndexPath as NSIndexPath).row), toIndex: (destinationIndexPath as NSIndexPath).row)
         dataModel.saveChanges()
     }
     
-    func tableView(tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: NSIndexPath) {
-        if (editingStyle == UITableViewCellEditingStyle.Delete) {
+    func tableView(_ tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: IndexPath) {
+        if (editingStyle == UITableViewCellEditingStyle.delete) {
             if (currentFirstResponder != nil) {
                 currentContentOffsetY = tableView.contentOffset.y
                 
-                let enabled = UIView.areAnimationsEnabled()
+                let enabled = UIView.areAnimationsEnabled
                 UIView.setAnimationsEnabled(false)
                 currentFirstResponder!.resignFirstResponder()
                 UIView.setAnimationsEnabled(enabled)
             }
 
-            currentUser.removeQueryAtIndex(indexPath.row)
+            currentUser.removeQueryAtIndex((indexPath as NSIndexPath).row)
             dataModel.saveChanges()
-            tableView.deleteRowsAtIndexPaths([indexPath], withRowAnimation: UITableViewRowAnimation.Automatic)
+            tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
         }
     }
     
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    func numberOfSectionsInTableView(_ tableView: UITableView) -> Int {
         // Return the number of sections.
         return 1
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var numRows = currentUser.queries.count
         if (!inEditMode) {
             numRows += 1
@@ -483,15 +503,15 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         return numRows
     }
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cellId: String
-        if (indexPath.row == currentUser.queries.count && !inEditMode) {
+        if ((indexPath as NSIndexPath).row == currentUser.queries.count && !inEditMode) {
             cellId = "Add button"
         }
-        else if (indexPath.row >= currentUser.queries.count) {
+        else if ((indexPath as NSIndexPath).row >= currentUser.queries.count) {
             cellId = "Empty"
         }
-        else if (inEditMode || indexPath.row == editingRow) {
+        else if (inEditMode || (indexPath as NSIndexPath).row == editingRow) {
             cellId = "TextField"
         }
         else {
@@ -500,18 +520,18 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         
         // trace("cellForRow row:", indexPath.row, "cellId:", cellId)
         
-        let cell = tableView.dequeueReusableCellWithIdentifier(cellId, forIndexPath: indexPath)
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
         configureCell(cell, atIndexPath: indexPath)
         
-        if (indexPath.row == editingRow) {
+        if ((indexPath as NSIndexPath).row == editingRow) {
             let textField = cell.contentView.viewWithTag(100) as! UITextField
-            if (!textField.isFirstResponder()) {
+            if (!textField.isFirstResponder) {
                 textField.becomeFirstResponder()
             }
             
             if let enabled = addAnimationsEnabled {
                 addAnimationsEnabled = nil
-                dispatch_after(dispatch_time(DISPATCH_TIME_NOW, Int64(NSEC_PER_SEC/100)), dispatch_get_main_queue(), {
+                DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(Int64(NSEC_PER_SEC/100)) / Double(NSEC_PER_SEC), execute: {
                     UIView.setAnimationsEnabled(enabled)
                 })
             }
@@ -520,11 +540,11 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         return cell
     }
     
-    func configureCell(cell: UITableViewCell, atIndexPath indexPath: NSIndexPath) {
-        if (indexPath.row < currentUser.queries.count) {
-            let queryData = currentUser.queries[indexPath.row] as! Query
+    func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath) {
+        if ((indexPath as NSIndexPath).row < currentUser.queries.count) {
+            let queryData = currentUser.queries[(indexPath as NSIndexPath).row] as! Query
             let text = queryData.title
-            if (inEditMode || indexPath.row == editingRow) {
+            if (inEditMode || (indexPath as NSIndexPath).row == editingRow) {
                 let textField = cell.contentView.viewWithTag(100) as! UITextField
                 textField.text = text
                 textField.font = preferredFont
@@ -538,30 +558,32 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     }
     
     lazy var labelSizingCell: UITableViewCell = {
-        return self.tableView.dequeueReusableCellWithIdentifier("Label")!
+        [unowned self] in
+        return self.tableView.dequeueReusableCell(withIdentifier: "Label")!
     }()
     
     lazy var textFieldSizingCell: UITableViewCell = {
-        return self.tableView.dequeueReusableCellWithIdentifier("TextField")!
+        [unowned self] in
+        return self.tableView.dequeueReusableCell(withIdentifier: "TextField")!
     }()
     
-    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
-        let cell = (inEditMode || indexPath.row == editingRow) ? textFieldSizingCell : labelSizingCell
+    func tableView(_ tableView: UITableView, heightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
+        let cell = (inEditMode || (indexPath as NSIndexPath).row == editingRow) ? textFieldSizingCell : labelSizingCell
         configureCell(cell, atIndexPath:indexPath)
         return calculateHeight(cell)
     }
     
-    func calculateHeight(cell: UITableViewCell) -> CGFloat {
-        cell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame), CGRectGetHeight(cell.bounds));
+    func calculateHeight(_ cell: UITableViewCell) -> CGFloat {
+        cell.bounds = CGRect(x: 0.0, y: 0.0, width: self.tableView.frame.width, height: cell.bounds.height);
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         
-        let size = cell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize)
+        let size = cell.contentView.systemLayoutSizeFitting(UILayoutFittingCompressedSize)
         return size.height + 1.0 // Add 1.0 for the cell separator height
     }
     
-    func tableView(tableView: UITableView,
-        estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView,
+        estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
             return 44.0
     }
 
@@ -569,13 +591,13 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     // Header
     //
     
-    func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let cell = tableView.dequeueReusableCellWithIdentifier("Header")!
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Header")!
         configureHeaderCell(cell, section: section)
         return cell
     }
     
-    func configureHeaderCell(cell: UITableViewCell, section: Int) {
+    func configureHeaderCell(_ cell: UITableViewCell, section: Int) {
         let label = cell.contentView.viewWithTag(100) as! UILabel
         label.text = "Filtered by sets containing:"
         label.font = preferredFont
@@ -586,18 +608,19 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     //
     
     lazy var headerSizingCell: UITableViewCell = {
-        return self.tableView.dequeueReusableCellWithIdentifier("Header")!
+        [unowned self] in
+        return self.tableView.dequeueReusableCell(withIdentifier: "Header")!
     }()
     
-    func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         configureHeaderCell(headerSizingCell, section: section)
         return calculateHeaderHeight(headerSizingCell)
     }
     
-    func calculateHeaderHeight(cell: UITableViewCell) -> CGFloat {
+    func calculateHeaderHeight(_ cell: UITableViewCell) -> CGFloat {
         // Workaround: setting the bounds for multi-line UILabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
         let label = cell.contentView.viewWithTag(100) as! UILabel
-        label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        label.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
         return calculateHeight(cell)
     }
 }

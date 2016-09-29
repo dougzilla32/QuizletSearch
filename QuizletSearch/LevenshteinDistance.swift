@@ -7,18 +7,18 @@
 
 import Foundation
 
-func computeLevenshteinScore(source: String, target: String) -> Double {
+func computeLevenshteinScore(_ source: String, target: String) -> Double {
     let sourceCharacters = Array(source.characters)
     let targetCharacters = Array(target.characters)
     let levenshteinDistance = computeLevenshteinDistance(sourceCharacters, target: targetCharacters)
-    return 1.0 - (Double(levenshteinDistance)/Double(max(sourceCharacters.count, targetCharacters.count)))
+    return 1.0 - (Double(levenshteinDistance)/Double(Swift.max(sourceCharacters.count, targetCharacters.count)))
 }
 
-func computeLevenshteinDistance(source: String, target: String) -> Int {
+func computeLevenshteinDistance(_ source: String, target: String) -> Int {
     return computeLevenshteinDistance(Array(source.characters), target: Array(target.characters))
 }
 
-private func computeLevenshteinDistance(source: [Character], target: [Character]) -> Int {
+private func computeLevenshteinDistance(_ source: [Character], target: [Character]) -> Int {
     let sourceLength = source.count + 1
     let targetLength = target.count + 1
     
@@ -38,7 +38,7 @@ private func computeLevenshteinDistance(source: [Character], target: [Character]
             let costReplace = cost[i - 1] + match
             let costInsert = cost[i] + 1
             let costDelete = newCost[i - 1] + 1
-            newCost[i] = min(min(costInsert, costDelete), costReplace)
+            newCost[i] = Swift.min(Swift.min(costInsert, costDelete), costReplace)
         }
         
         let swap: [Int] = cost

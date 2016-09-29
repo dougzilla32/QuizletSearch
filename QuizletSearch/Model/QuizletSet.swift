@@ -23,7 +23,7 @@ class QuizletSet: NSManagedObject {
     @NSManaged var terms: NSOrderedSet // Term
     @NSManaged var queries: NSSet // Query
 
-    func initFrom(qset: QSet, moc: NSManagedObjectContext) {
+    func initFrom(_ qset: QSet, moc: NSManagedObjectContext) {
         self.id = qset.id
         self.title = qset.title
         self.setDescription = qset.description
@@ -36,8 +36,8 @@ class QuizletSet: NSManagedObject {
         
         var newTerms = [Term]()
         for qterm in qset.terms {
-            let term = NSEntityDescription.insertNewObjectForEntityForName("Term",
-                inManagedObjectContext: moc) as! Term
+            let term = NSEntityDescription.insertNewObject(forEntityName: "Term",
+                into: moc) as! Term
             term.initFrom(qterm)
             term.set = self
             newTerms.append(term)
@@ -46,7 +46,7 @@ class QuizletSet: NSManagedObject {
         self.queries = NSSet()
     }
     
-    func copyFrom(qset: QSet, moc: NSManagedObjectContext) {
+    func copyFrom(_ qset: QSet, moc: NSManagedObjectContext) {
         if (self.id != qset.id) {
             NSLog("Mismatching ids when caching quizlet set: \(qset.title)")
         }
@@ -76,7 +76,7 @@ class QuizletSet: NSManagedObject {
         }
         
         // Update the terms
-        let minCount = min(self.terms.count, qset.terms.count)
+        let minCount = Swift.min(self.terms.count, qset.terms.count)
         var updateFromHere = minCount
         
         // Compare terms until we find the first mismatch
@@ -99,18 +99,18 @@ class QuizletSet: NSManagedObject {
                 let mutableItems = self.terms.mutableCopy() as! NSMutableOrderedSet
 
                 // Delete extra terms (if any)
-                for i in (minCount ..< self.terms.count).reverse() {
-                    moc.deleteObject(mutableItems[i] as! Term)
-                    mutableItems.removeObjectAtIndex(i)
+                for i in (minCount ..< self.terms.count).reversed() {
+                    moc.delete(mutableItems[i] as! Term)
+                    mutableItems.removeObject(at: i)
                 }
                 
                 // Append new terms (if any)
                 for i in minCount ..< qset.terms.count {
-                    let term = NSEntityDescription.insertNewObjectForEntityForName("Term",
-                        inManagedObjectContext: moc) as! Term
+                    let term = NSEntityDescription.insertNewObject(forEntityName: "Term",
+                        into: moc) as! Term
                     term.initFrom(qset.terms[i])
                     term.set = self
-                    mutableItems.addObject(term)
+                    mutableItems.add(term)
                 }
                 
                 self.terms = mutableItems.copy() as! NSOrderedSet

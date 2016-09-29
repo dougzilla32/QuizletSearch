@@ -20,15 +20,16 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     let LoginViewController = "LoginViewController"
     static let ErrorViewController = "ErrorViewController"
     
-    let refreshInterval: NSTimeInterval = 60 * 5  // 5 minutes
+    let refreshInterval: TimeInterval = 60 * 5  // 5 minutes
     
     lazy var dataModel: DataModel = {
+        [unowned self] in
         return DataModel(managedObjectContext: self.managedObjectContext!, quizletSession: self.quizletSession)
     }()
     
-    var refreshTimer: NSTimer?
+    var refreshTimer: Timer?
     
-    func application(application: UIApplication, willFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
+    func application(_ application: UIApplication, willFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
 
         var id: String
         if (managedObjectContext != nil) {
@@ -42,46 +43,46 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return true
     }
     
-    func initRootViewControllerWithIdentifier(id: String) {
+    func initRootViewControllerWithIdentifier(_ id: String) {
         let storyboard = self.window!.rootViewController!.storyboard!
-        self.window!.rootViewController = storyboard.instantiateViewControllerWithIdentifier(id)
+        self.window!.rootViewController = storyboard.instantiateViewController(withIdentifier: id)
     }
     
     // Tells the delegate that the launch process is almost done and the app is almost ready to run.
-    func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         return true
     }
     
-    func refreshAndRestartTimer(allowCellularAccess allowCellularAccess: Bool, modified: Bool, completionHandler: (([QSet]?) -> Void)? = nil) {
+    func refreshAndRestartTimer(allowCellularAccess: Bool, modified: Bool, completionHandler: (([QSet]?) -> Void)? = nil) {
         if (managedObjectContext == nil || dataModel.currentUser == nil) {
             return
         }
         
         cancelRefreshTimer()
 
-        let currentTime = NSDate.timeIntervalSinceReferenceDate()
+        let currentTime = Date.timeIntervalSinceReferenceDate
         let query = dataModel.currentQuery!
-        let successTime = query.timeOfMostRecentSuccessfulRefresh != nil ? query.timeOfMostRecentSuccessfulRefresh! : 0
-        let timeRemaining = max(0, refreshInterval - (currentTime - successTime))
+        let successTime = query.timeOfMostRecentSuccessfulRefresh ?? 0
+        let timeRemaining = Swift.max(0, refreshInterval - (currentTime - successTime))
         
         trace("refreshAndRestartTimer modified:", modified, "timeRemaining:", timeRemaining)
         if (modified || timeRemaining == 0) {
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+            UIApplication.shared.isNetworkActivityIndicatorVisible = true
             
             self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: allowCellularAccess, completionHandler: { (qsets: [QSet]?, termCount: Int) in
                 if (qsets != nil) {
-                    query.timeOfMostRecentSuccessfulRefresh = NSDate.timeIntervalSinceReferenceDate()
+                    query.timeOfMostRecentSuccessfulRefresh = Date.timeIntervalSinceReferenceDate
                 }
                 if (completionHandler != nil) {
                     completionHandler!(qsets)
                 }
-                UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+                UIApplication.shared.isNetworkActivityIndicatorVisible = false
                 
-                self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
+                self.refreshTimer = Timer.scheduledTimer(timeInterval: self.refreshInterval, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
             })
         }
         else {
-            self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(timeRemaining, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
+            self.refreshTimer = Timer.scheduledTimer(timeInterval: timeRemaining, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
         }
     }
     
@@ -91,7 +92,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
             refreshTimer = nil
         }
         
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+        UIApplication.shared.isNetworkActivityIndicatorVisible = false
 
         quizletSession.cancelQueryTasks()
     }
@@ -99,20 +100,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
     func refresh() {
         let query = dataModel.currentQuery
 
-        UIApplication.sharedApplication().networkActivityIndicatorVisible = true
+        UIApplication.shared.isNetworkActivityIndicatorVisible = true
         
         self.dataModel.refreshModelForCurrentQuery(allowCellularAccess: false, completionHandler: { (qsets: [QSet]?, termCount: Int) in
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
             if (qsets != nil) {
-                query!.timeOfMostRecentSuccessfulRefresh = NSDate.timeIntervalSinceReferenceDate()
+                query!.timeOfMostRecentSuccessfulRefresh = Date.timeIntervalSinceReferenceDate
             }
-            UIApplication.sharedApplication().networkActivityIndicatorVisible = false
+            UIApplication.shared.isNetworkActivityIndicatorVisible = false
 
-            self.refreshTimer = NSTimer.scheduledTimerWithTimeInterval(self.refreshInterval, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
+            self.refreshTimer = Timer.scheduledTimer(timeInterval: self.refreshInterval, target: self, selector: #selector(AppDelegate.refresh), userInfo: nil, repeats: false)
         })
     }
     
-    func application(application: UIApplication, openURL url: NSURL, sourceApplication: String?, annotation: AnyObject) -> Bool {
+    func application(_ application: UIApplication, open url: URL, sourceApplication: String?, annotation: Any) -> Bool {
 
         if (url.scheme == "quizletsearch") {
             self.initRootViewControllerWithIdentifier(QueriesViewController)
@@ -145,7 +146,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return false
     }
     
-    func proceedAsGuest(name: String?) {
+    func proceedAsGuest(_ name: String?) {
         let username = (name != nil) ? name! : ""
         let userAccount = UserAccount(accessToken: "", expiresIn: 0, userName: username, userId: "")
         
@@ -156,55 +157,56 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         self.initRootViewControllerWithIdentifier(QueriesViewController)
     }
     
-    func applicationWillResignActive(application: UIApplication) {
+    func applicationWillResignActive(_ application: UIApplication) {
         // Sent when the application is about to move from active to inactive state. This can occur for certain types of temporary interruptions (such as an incoming phone call or SMS message) or when the user quits the application and it begins the transition to the background state.
         // Use this method to pause ongoing tasks, disable timers, and throttle down OpenGL ES frame rates. Games should use this method to pause the game.
     }
 
-    func applicationDidEnterBackground(application: UIApplication) {
+    func applicationDidEnterBackground(_ application: UIApplication) {
         // Use this method to release shared resources, save user data, invalidate timers, and store enough application state information to restore your application to its current state in case it is terminated later.
         // If your application supports background execution, this method is called instead of applicationWillTerminate: when the user quits.
     }
 
-    func applicationWillEnterForeground(application: UIApplication) {
+    func applicationWillEnterForeground(_ application: UIApplication) {
         // Called as part of the transition from the background to the inactive state; here you can undo many of the changes made on entering the background.
     }
 
-    func applicationDidBecomeActive(application: UIApplication) {
+    func applicationDidBecomeActive(_ application: UIApplication) {
         // Restart any tasks that were paused (or not yet started) while the application was inactive. If the application was previously in the background, optionally refresh the user interface.
     }
 
-    func applicationWillTerminate(application: UIApplication) {
+    func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
     // MARK: - Core Data stack
     
-    lazy var applicationDocumentsDirectory: NSURL = {
+    lazy var applicationDocumentsDirectory: URL = {
         // The directory the application uses to store the Core Data store file. This code uses a directory named "com.example.QuizletSearch" in the application's documents Application Support directory.
-        let urls = NSFileManager.defaultManager().URLsForDirectory(.DocumentDirectory, inDomains: .UserDomainMask)
+        let urls = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
         return urls[urls.count-1] 
         }()
     
     lazy var managedObjectModel: NSManagedObjectModel = {
         // The managed object model for the application. This property is not optional. It is a fatal error for the application not to be able to find and load its model.
-        let modelURL = NSBundle.mainBundle().URLForResource("QuizletSearch", withExtension: "momd")!
-        return NSManagedObjectModel(contentsOfURL: modelURL)!
+        let modelURL = Bundle.main.url(forResource: "QuizletSearch", withExtension: "momd")!
+        return NSManagedObjectModel(contentsOf: modelURL)!
         }()
     
     lazy var persistentStoreCoordinator: NSPersistentStoreCoordinator? = {
+        [unowned self] in
         // The persistent store coordinator for the application. This implementation creates and return a coordinator, having added the store for the application to it. This property is optional since there are legitimate error conditions that could cause the creation of the store to fail.
         // Create the coordinator and store
         var coordinator: NSPersistentStoreCoordinator? = NSPersistentStoreCoordinator(managedObjectModel: self.managedObjectModel)
-        let url = self.applicationDocumentsDirectory.URLByAppendingPathComponent("Temp.sqlite")
+        let url = self.applicationDocumentsDirectory.appendingPathComponent("Temp.sqlite")
         var error: NSError? = nil
         do {
-            try coordinator!.addPersistentStoreWithType(NSSQLiteStoreType, configuration: nil, URL: url, options: nil)
+            try coordinator!.addPersistentStore(ofType: NSSQLiteStoreType, configurationName: nil, at: url, options: nil)
         } catch var error as NSError {
             coordinator = nil
             NSLog("Initialization error \(error), \(error.userInfo)")
             
-            (UIApplication.sharedApplication().delegate as! AppDelegate).initRootViewControllerWithIdentifier(ErrorViewController)
+            (UIApplication.shared.delegate as! AppDelegate).initRootViewControllerWithIdentifier(ErrorViewController)
             
             var reason = String(format: NSLocalizedString("Model load error", comment: ""),
                 (error.userInfo["reason"] as! String))
@@ -222,11 +224,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         return coordinator
         }()
     
-    func alertView(alertView: UIAlertView, clickedButtonAtIndex buttonIndex: Int) {
+    func alertView(_ alertView: UIAlertView, clickedButtonAt buttonIndex: Int) {
         exit(0)
     }
     
     lazy var managedObjectContext: NSManagedObjectContext? = {
+        [unowned self] in
         // Returns the managed object context for the application (which is already bound to the persistent store coordinator for the application.) This property is optional since there are legitimate error conditions that could cause the creation of the context to fail.
         let coordinator = self.persistentStoreCoordinator
         if coordinator == nil {

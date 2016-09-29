@@ -40,7 +40,7 @@
 		9170E7C21BCC949500C70847 /* InsetTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9170E7C11BCC949500C70847 /* InsetTextField.swift */; };
 		9187F47B1B68AD1500FA528F /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9187F47A1B68AD1500FA528F /* Common.swift */; };
 		9187F4801B69FECC00FA528F /* SampleQuizletData.json in Resources */ = {isa = PBXBuildFile; fileRef = 9187F47F1B69FECC00FA528F /* SampleQuizletData.json */; };
-		918C96AE1C1D2FE100AA80DE /* EAAnimationDelayed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A71C1D2FE100AA80DE /* EAAnimationDelayed.swift */; };
+		918C96AE1C1D2FE100AA80DE /* EAAnimationFuture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A71C1D2FE100AA80DE /* EAAnimationFuture.swift */; };
 		918C96AF1C1D2FE100AA80DE /* EasyAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */; };
 		918C96B01C1D2FE100AA80DE /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 918C96AA1C1D2FE100AA80DE /* LICENSE */; };
 		918C96B11C1D2FE100AA80DE /* RBBBlockBasedArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */; };
@@ -106,7 +106,7 @@
 		9170E7C11BCC949500C70847 /* InsetTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsetTextField.swift; sourceTree = "<group>"; };
 		9187F47A1B68AD1500FA528F /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
 		9187F47F1B69FECC00FA528F /* SampleQuizletData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SampleQuizletData.json; sourceTree = "<group>"; };
-		918C96A71C1D2FE100AA80DE /* EAAnimationDelayed.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EAAnimationDelayed.swift; sourceTree = "<group>"; };
+		918C96A71C1D2FE100AA80DE /* EAAnimationFuture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EAAnimationFuture.swift; sourceTree = "<group>"; };
 		918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EasyAnimation.swift; sourceTree = "<group>"; };
 		918C96AA1C1D2FE100AA80DE /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
 		918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBBlockBasedArray.swift; sourceTree = "<group>"; };
@@ -269,7 +269,7 @@
 		918C96A61C1D2FE100AA80DE /* EasyAnimation */ = {
 			isa = PBXGroup;
 			children = (
-				918C96A71C1D2FE100AA80DE /* EAAnimationDelayed.swift */,
+				918C96A71C1D2FE100AA80DE /* EAAnimationFuture.swift */,
 				918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */,
 				918C96A91C1D2FE100AA80DE /* RBBSpringAnimation */,
 			);
@@ -350,9 +350,11 @@
 					9126FDB51B1D0E1000642E56 = {
 						CreatedOnToolsVersion = 6.3.1;
 						DevelopmentTeam = FYX55SR9QC;
+						LastSwiftMigration = 0800;
 					};
 					9126FDCA1B1D0E1100642E56 = {
 						CreatedOnToolsVersion = 6.3.1;
+						LastSwiftMigration = 0800;
 						TestTargetID = 9126FDB51B1D0E1000642E56;
 					};
 				};
@@ -440,7 +442,7 @@
 				918C96B21C1D2FE100AA80DE /* RBBLinearInterpolation.swift in Sources */,
 				91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */,
 				911C41091BA10A21007E0AEE /* SearchOperation.swift in Sources */,
-				918C96AE1C1D2FE100AA80DE /* EAAnimationDelayed.swift in Sources */,
+				918C96AE1C1D2FE100AA80DE /* EAAnimationFuture.swift in Sources */,
 				91EF24241BCC4C8300CABA3C /* TextInputTableViewCell.swift in Sources */,
 				911A0D4B1B3F2AE900B219D7 /* DataModel.swift in Sources */,
 				911C41051B9F7A7C007E0AEE /* SearchTableViewCell.swift in Sources */,
@@ -601,6 +603,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Debug;
 		};
@@ -617,6 +620,7 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.douglas.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE = "";
+				SWIFT_VERSION = 3.0;
 			};
 			name = Release;
 		};
@@ -636,6 +640,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuizletSearch.app/QuizletSearch";
 			};
 			name = Debug;
@@ -652,6 +657,7 @@
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_VERSION = 3.0;
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/QuizletSearch.app/QuizletSearch";
 			};
 			name = Release;

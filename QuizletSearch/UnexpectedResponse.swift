@@ -8,6 +8,6 @@
 
 import Foundation
 
-class UnexpectedResponse: ErrorType {
+class UnexpectedResponse: Error {
 
 }

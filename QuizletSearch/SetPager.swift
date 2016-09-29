@@ -10,11 +10,11 @@ import UIKit
 import Foundation
 
 enum PagerResponse {
-    case Partial, Complete
+    case partial, complete
 }
 
 class SetPager {
-    let quizletSession = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.quizletSession
+    let quizletSession = (UIApplication.shared.delegate as! AppDelegate).dataModel.quizletSession
     
     static let DefaultPaginationSize = 30
     static let DefaultPagerPause = Int64(NSEC_PER_SEC/4)
@@ -72,7 +72,7 @@ class SetPager {
         }
     }
     
-    func reset(query query: String?, creator: String?, classId: String?) {
+    func reset(query: String?, creator: String?, classId: String?) {
         resetAllPages()
         
         self.query = query
@@ -89,26 +89,26 @@ class SetPager {
         }
     }
     
-    func reset(query query: String?) {
+    func reset(query: String?) {
         reset(query: query, creator: nil, classId: nil)
     }
     
-    func reset(query query: String?, creator: String) {
+    func reset(query: String?, creator: String) {
         reset(query: query, creator: creator, classId: nil)
     }
     
-    func reset(query query: String?, classId: String?) {
+    func reset(query: String?, classId: String?) {
         reset(query: query, creator: nil, classId: classId)
     }
     
-    func updateQuery(query: String?) {
+    func updateQuery(_ query: String?) {
         if (self.query != query) {
             self.query = query
             resetAllPages()
         }
     }
     
-    func updateEnabled(enabled: Bool) {
+    func updateEnabled(_ enabled: Bool) {
         if (self.enabled != enabled) {
             self.enabled = enabled
             resetAllPages()
@@ -121,7 +121,7 @@ class SetPager {
             || (classId != nil && classId!.isEmpty)  // If classId is non-nil and empty then do not run the query
     }
     
-    func isEmpty(s: String?) -> Bool {
+    func isEmpty(_ s: String?) -> Bool {
         return s == nil || s!.isEmpty
     }
     
@@ -129,14 +129,14 @@ class SetPager {
         return loadingPages.count > 0
     }
     
-    func peekQSetForRow(row: Int) -> QSet? {
+    func peekQSetForRow(_ row: Int) -> QSet? {
         if (paginationSize == 0) { return nil }
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
         return qsets?[pageIndex]?[pageOffset]
     }
     
-    func getQSetForRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) -> QSet? {
+    func getQSetForRow(_ row: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) -> QSet? {
         if (paginationSize == 0) { return nil }
         let pageIndex = row / paginationSize
         let pageOffset = row % paginationSize
@@ -147,12 +147,12 @@ class SetPager {
         return qset
     }
     
-    func loadRow(row: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+    func loadRow(_ row: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         let page = row / paginationSize + 1
         loadPage(page, completionHandler: completionHandler)
     }
     
-    func loadPage(page: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+    func loadPage(_ page: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         guard (page > 0) else {
             NSLog("Page number is zero or less")
             return
@@ -164,7 +164,7 @@ class SetPager {
             self.qsets = nil
             self.qsetsToken = resetCounter
             if (enabled) {
-                completionHandler(affectedResults: 0..<0, totalResults: 0, response: PagerResponse.Complete)
+                completionHandler(0..<0, 0, PagerResponse.complete)
             }
             return
         }
@@ -190,7 +190,7 @@ class SetPager {
 
         trace("SEARCH IN", self.query, q, resetToken)
         // Insert a delay so that keyboard response on the iPhone is better
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, pagerPause), dispatch_get_main_queue(), {
+        DispatchQueue.main.asyncAfter(deadline: DispatchTime.now() + Double(pagerPause) / Double(NSEC_PER_SEC), execute: {
             
             if (resetToken < self.resetCounter) {
                 self.loadingPages.remove(page)
@@ -214,11 +214,11 @@ class SetPager {
         })
     }
     
-    func searchSetsWithQuery(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void, trySecondChanceUser: Bool) {
+    func searchSetsWithQuery(page: Int, resetToken: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void, trySecondChanceUser: Bool) {
         
         paginationSize = SetPager.DefaultPaginationSize
         
-        self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: false, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (queryResult: QueryResult?, response: NSURLResponse?, error: NSError?) in
+        self.quizletSession.searchSetsWithQuery(self.query, creator: self.creator, autocomplete: false, imagesOnly: nil, modifiedSince: nil, page: page, perPage: self.paginationSize, allowCellularAccess: true, completionHandler: { (queryResult: QueryResult?, response: URLResponse?, error: Error?) in
             
             trace("SEARCH OUT", self.query, resetToken)
             if (queryResult == nil || resetToken < self.resetCounter) {
@@ -235,7 +235,7 @@ class SetPager {
                 self.getAllSetsForUser(page: page, resetToken: resetToken, completionHandler: completionHandler)
             }
             else {
-                self.loadPageResult(queryResult!, response: .Partial, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                self.loadPageResult(queryResult!, response: .partial, page: page, resetToken: resetToken, completionHandler: completionHandler)
                 
                 if (queryResult!.totalResults > 0) {
                     var setIds = [Int64]()
@@ -243,21 +243,21 @@ class SetPager {
                         setIds.append(qset.id)
                     }
                     
-                    self.quizletSession.getSetsForIds(setIds, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?, response: NSURLResponse?, error: NSError?) in
+                    self.quizletSession.getSetsForIds(setIds, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsets: [QSet]?, response: URLResponse?, error: Error?) in
                         if (qsets == nil || resetToken < self.resetCounter) {
                             // Cancelled or error
                             self.loadingPages.remove(page)
                             return
                         }
                         
-                        self.loadPageResult(QueryResult(copyFrom: queryResult!, qsets: qsets!), response: .Complete, page: page, resetToken: resetToken, completionHandler: completionHandler)
+                        self.loadPageResult(QueryResult(copyFrom: queryResult!, qsets: qsets!), response: .complete, page: page, resetToken: resetToken, completionHandler: completionHandler)
                     })
                 }
             }
         })
     }
     
-    func getAllSetsForUser(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+    func getAllSetsForUser(page: Int, resetToken: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         
         if (userSetsCreator == self.creator) {
             trace("CACHED USER SETS")
@@ -266,10 +266,10 @@ class SetPager {
         }
         
         // Try using the '2.0/users/<username>' query.  For some unexplained reason, the search query will return no results for certain users, where the user query will return all the expected results.
-        self.quizletSession.getAllSetsForUser(self.creator!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsetsOpt: [QSet]?, response: NSURLResponse?, error: NSError?) in
+        self.quizletSession.getAllSetsForUser(self.creator!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsetsOpt: [QSet]?, response: URLResponse?, error: Error?) in
             
             // Check for NOT FOUND status code
-            let code = (response as? NSHTTPURLResponse)?.statusCode
+            let code = (response as? HTTPURLResponse)?.statusCode
             let foundUser = (code != 404 && code != 410)
             if ((qsetsOpt == nil && foundUser) || resetToken < self.resetCounter) {
                 // Cancelled or unexpected error
@@ -290,7 +290,7 @@ class SetPager {
         })
     }
     
-    func getSetsInClass(page page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+    func getSetsInClass(page: Int, resetToken: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
 
         if (classSetsId == self.classId) {
             trace("CACHED CLASS SETS")
@@ -298,12 +298,12 @@ class SetPager {
             return
         }
         
-        self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsetsOpt: [QSet]?, response: NSURLResponse?, error: NSError?) in
+        self.quizletSession.getSetsInClass(self.classId!, modifiedSince: nil, allowCellularAccess: true, completionHandler: { (qsetsOpt: [QSet]?, response: URLResponse?, error: Error?) in
             
             trace("CLASS SEARCH OUT", self.classId, resetToken)
 
             // Check for NOT FOUND status code
-            let code = (response as? NSHTTPURLResponse)?.statusCode
+            let code = (response as? HTTPURLResponse)?.statusCode
             let foundClass = (code != 404 && code != 410)
             if ((qsetsOpt == nil && foundClass) || resetToken < self.resetCounter) {
                 self.loadingPages.remove(page)
@@ -320,25 +320,25 @@ class SetPager {
         })
     }
     
-    func filterQSets(qsets: [QSet]) -> [QSet] {
+    func filterQSets(_ qsets: [QSet]) -> [QSet] {
         if (query == nil || query!.isEmpty) {
             return qsets
         }
 
-        let q = query!.lowercaseString.decomposeAndNormalize()
+        let q = query!.lowercased().decomposeAndNormalize()
         var newQSets: [QSet] = []
         for qset in qsets {
             if (qset.normalizedTitle == nil) {
-                qset.normalizedTitle = qset.title.lowercaseString.decomposeAndNormalize()
+                qset.normalizedTitle = qset.title.lowercased().decomposeAndNormalize()
             }
             if (qset.normalizedDescription == nil) {
-                qset.normalizedDescription = qset.description.lowercaseString.decomposeAndNormalize()
+                qset.normalizedDescription = qset.description.lowercased().decomposeAndNormalize()
             }
             if (qset.normalizedCreatedBy == nil) {
-                qset.normalizedCreatedBy = qset.createdBy.lowercaseString.decomposeAndNormalize()
+                qset.normalizedCreatedBy = qset.createdBy.lowercased().decomposeAndNormalize()
             }
             
-            let options: NSStringCompareOptions = [.CaseInsensitiveSearch, .WhitespaceInsensitiveSearch]
+            let options: NSString.CompareOptions = [.caseInsensitive, .WhitespaceInsensitiveSearch]
             if (String.characterRangesOfUnichars(qset.normalizedTitle!, targetString: q, options: options).count > 0 ||
                 String.characterRangesOfUnichars(qset.normalizedDescription!, targetString: q, options: options).count > 0 ||
                 String.characterRangesOfUnichars(qset.normalizedCreatedBy!, targetString: q, options: options).count > 0) {
@@ -354,7 +354,7 @@ class SetPager {
         return newQSets
     }
     
-    func qsetsResult(qsetsOpt: [QSet]?, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
+    func qsetsResult(_ qsetsOpt: [QSet]?, page: Int, resetToken: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         let qsets = self.filterQSets(qsetsOpt!)
         
         self.paginationSize = qsets.count
@@ -368,13 +368,13 @@ class SetPager {
         
         let queryResult = QueryResult(page: page, totalPages: (qsets.count > 0) ? 1 : 0, totalResults: qsets.count, imageSetCount: 0, qsets: qsets)
         
-        self.loadPageResult(queryResult, response: .Complete, page: page, resetToken: resetToken, completionHandler: completionHandler)
+        self.loadPageResult(queryResult, response: .complete, page: page, resetToken: resetToken, completionHandler: completionHandler)
     }
     
-    func loadPageResult(result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: (affectedResults: Range<Int>?, totalResults: Int?, response: PagerResponse) -> Void) {
-        dispatch_async(dispatch_get_main_queue(), {
+    func loadPageResult(_ result: QueryResult, response: PagerResponse, page: Int, resetToken: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
+        DispatchQueue.main.async(execute: {
             trace("SEARCH RESULT", self.query, result.qsets.count)
-            if (response == .Complete) {
+            if (response == .complete) {
                 self.loadingPages.remove(page)
             }
             
@@ -412,7 +412,7 @@ class SetPager {
             // If there are no pages then call completionHandler with 'nil'
             if (result.totalPages == 0) {
                 self.qsets = nil
-                completionHandler(affectedResults: 0..<0, totalResults: result.totalResults, response: response)
+                completionHandler(0..<0, result.totalResults, response)
                 return
             }
             
@@ -423,7 +423,7 @@ class SetPager {
                     NSLog("Expected number of pages \(expectedPages) does not match actual number of pages \(result.totalPages)")
                 }
                 
-                self.qsets = [[QSet]?](count: result.totalPages, repeatedValue: nil)
+                self.qsets = [[QSet]?](repeating: nil, count: result.totalPages)
             }
             
             guard page <= self.qsets!.count else {
@@ -434,7 +434,7 @@ class SetPager {
             // Handle case where the number of qsets in the result is less than what we expected (test case: search for "hello" and scroll down to page 8 and page 9 or search for "dogs" and scroll to page 7 or so
             // Note: Quizlet page numbering starts from 1 rather than 0
             let remaining = result.totalResults - (result.page - 1) * self.paginationSize
-            let expectedNumberOfQSets = min(remaining, self.paginationSize)
+            let expectedNumberOfQSets = Swift.min(remaining, self.paginationSize)
             if (result.qsets.count < expectedNumberOfQSets) {
                 // NSLog("Expected \(expectedNumberOfQSets) in page \(result.page) but got \(result.qsets.count)")
                 self.qsets![page-1] = result.qsets
@@ -448,11 +448,11 @@ class SetPager {
             }
             
             let start = (page-1) * self.paginationSize
-            let end = start + min(self.paginationSize, self.totalResults! - start)
+            let end = start + Swift.min(self.paginationSize, self.totalResults! - start)
             completionHandler(
-                affectedResults: start..<end,
-                totalResults: self.totalResults!,
-                response: response)
+                start..<end,
+                self.totalResults!,
+                response)
         })
     }
 }

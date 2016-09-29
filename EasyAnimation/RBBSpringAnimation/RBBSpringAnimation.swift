@@ -10,7 +10,7 @@
 //  RBBSpringAnimation.swift
 //
 //  Swift intepretation of the Objective-C original by Marin Todorov
-//  Copyright (c) 2015 Underplot ltd. All rights reserved.
+//  Copyright (c) 2015-2016 Underplot ltd. All rights reserved.
 //
 
 import UIKit
@@ -25,15 +25,15 @@ class RBBSpringAnimation: CAKeyframeAnimation {
     
     var allowsOverdamping: Bool = true
     
-    typealias RBBAnimationBlock = (CGFloat, CGFloat) -> AnyObject //(t, duration)
+    typealias RBBAnimationBlock = (CGFloat, CGFloat) -> Any //(t, duration)
     
     var mass: Double = 1.0
     var stiffness: Double = 0.0
     
-    private func durationForEpsilon(epsilon: Double) -> CFTimeInterval {
+    private func durationForEpsilon(_ epsilon: Double) -> CFTimeInterval {
         let beta = damping / (2 * mass)
         var duration: CFTimeInterval = 0
-    
+        
         while (exp(-beta * duration) >= epsilon) {
             duration += 0.1
         }
@@ -50,9 +50,9 @@ class RBBSpringAnimation: CAKeyframeAnimation {
         return result
     }()
     
-    override var values: [AnyObject]! {
+    override var values: [Any]! {
         get {
-            return blockArrayValues as [AnyObject]
+            return blockArrayValues.asAnys()
         }
         set {
             //no storage for this property
@@ -68,7 +68,7 @@ class RBBSpringAnimation: CAKeyframeAnimation {
         
         calculationMode = kCAAnimationDiscrete
     }
-
+    
     required init(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
@@ -91,7 +91,7 @@ class RBBSpringAnimation: CAKeyframeAnimation {
         let omega2: CGFloat = sqrt((beta * beta) - (omega0 * omega0))
         
         let x0: CGFloat = -1
-
+        
         if allowsOverdamping && beta > omega0 {
             beta = omega0
         }
@@ -122,17 +122,18 @@ class RBBSpringAnimation: CAKeyframeAnimation {
                 return -x0 + envelope * (part2 + part3);
             };
         }
-
+        
         let lerp = RBBInterpolator.interpolate(self.from!, to: self.to!)
         let result: RBBAnimationBlock = {t, _ in
-            return lerp(fraction: oscillation(t))
+            return lerp(oscillation(t))
         }
         return result
     }
     
-    override func copyWithZone(zone: NSZone) -> AnyObject {
-        let anim = super.copyWithZone(zone) as! RBBSpringAnimation
-
+    
+    override func copy(with zone: NSZone?) -> Any {
+        let anim = super.copy(with: zone) as! RBBSpringAnimation
+        
         anim.damping = self.damping
         anim.velocity = self.velocity
         anim.duration = self.duration

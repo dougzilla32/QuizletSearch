@@ -1,5 +1,5 @@
 //
-//  SpringAnimation.swift
+//  CommonAnimation.swift
 //  QuizletSearch
 //
 //  Created by Doug Stein on 9/29/15.
@@ -35,7 +35,7 @@
 import UIKit
 
 enum WhooshStyle {
-    case FadeIn, FadeOut
+    case fadeIn, fadeOut
 }
 
 class WhooshAnimationContext {
@@ -61,13 +61,13 @@ class CommonAnimation {
         let label = UILabel()
         label.text = letter
         
-        let mainWindow = UIApplication.sharedApplication().keyWindow!
+        let mainWindow = UIApplication.shared.keyWindow!
         mainWindow.addSubview(label)
         
         let startPosition = CGPoint(x: 60, y: 60)
         let endPosition = CGPoint(x: 150, y: 150)
 //        label.frame = CGRect(origin: startPosition, size: label.intrinsicContentSize())
-        let intrinsicSize = label.intrinsicContentSize()
+        let intrinsicSize = label.intrinsicContentSize
         label.frame = CGRect(origin: startPosition, size: CGSize(width: intrinsicSize.width*2, height: intrinsicSize.height*4))
         
         /*
@@ -97,7 +97,7 @@ class CommonAnimation {
         let spinAnimation = CABasicAnimation(keyPath: "transform.rotation")
         spinAnimation.toValue = 3 * 2 * M_PI
         spinAnimation.duration = 3.0
-        label.layer.addAnimation(spinAnimation, forKey: "spinAnimation")
+        label.layer.add(spinAnimation, forKey: "spinAnimation")
 /*
         let positionAnimation = CABasicAnimation(keyPath: "position")
         positionAnimation.fromValue = NSValue(CGPoint: startPosition)
@@ -110,18 +110,18 @@ class CommonAnimation {
         }
         
         if (true) {
-        UIView.animateWithDuration(1.5, animations: {
+        UIView.animate(withDuration: 1.5, animations: {
             label.layer.transform = CATransform3DMakeRotation(CGFloat(M_PI), -1, 0, 1)
             }, completion: { _ in label.removeFromSuperview() })
         }
         
         if (false) {
-        UIView.animateAndChainWithDuration(1.0, delay: 0.0, /* usingSpringWithDamping: 0.33, initialSpringVelocity: 0.0, */ options: [ .CurveLinear ], animations: {
+        UIView.animateAndChain(withDuration: 1.0, delay: 0.0, /* usingSpringWithDamping: 0.33, initialSpringVelocity: 0.0, */ options: [ .curveLinear ], animations: {
 
-            let translate = CGAffineTransformMakeTranslation(endPosition.x - startPosition.x, endPosition.y - startPosition.y)
+            let translate = CGAffineTransform(translationX: endPosition.x - startPosition.x, y: endPosition.y - startPosition.y)
             // let scale = CGAffineTransformMakeScale(0.6, 0.6)
             // let transform =  CGAffineTransformConcat(translate, scale)
-             let transform = CGAffineTransformRotate(translate, CGFloat(M_PI + 0.01))
+             let transform = translate.rotated(by: CGFloat(M_PI + 0.01))
 
             label.transform = transform
             
@@ -129,8 +129,8 @@ class CommonAnimation {
             //label.layer.borderWidth = 2.0
             //label.layer.borderColor = UIColor.redColor().CGColor
             }, completion: nil)
-            .animateWithDuration(1.0, delay: 0.0, options: [ .CurveLinear /* .CurveEaseOut, .Repeat */ ], animations: {
-                label.transform = CGAffineTransformIdentity
+            .animate(withDuration: 1.0, delay: 0.0, options: [ .curveLinear /* .CurveEaseOut, .Repeat */ ], animations: {
+                label.transform = CGAffineTransform.identity
                 // label.layer.cornerRadius = 0.0
                 //label.layer.borderWidth = 0.0
                 //label.layer.borderColor = UIColor.blackColor().CGColor
@@ -145,38 +145,38 @@ class CommonAnimation {
             label.removeFromSuperview()
         })
 
-        label.layer.addAnimation(
+        label.layer.add(
             CommonAnimation.createBasicAnimationWithDuration(1.33,
                 delay: 0,
                 options: nil,
                 keyPath: "position",
-                fromValue: NSValue(CGPoint: startPosition),
-                toValue: NSValue(CGPoint: endPosition)),
+                fromValue: NSValue(cgPoint: startPosition),
+                toValue: NSValue(cgPoint: endPosition)),
             forKey: "position")
         
         label.layer.position = endPosition
         
-        let translateByValueY = CGRectGetMidY(mainWindow.bounds) - CGRectGetMidY(label.bounds)
+        let translateByValueY = mainWindow.bounds.midY - label.bounds.midY
         
         let animRotateZ = CABasicAnimation(keyPath: "transform.rotation.z")
         animRotateZ.duration = 1.5
         animRotateZ.toValue = -0.2 // NSNumber(double: -0.2)
-        animRotateZ.byValue = NSNumber(double: 2.0 * M_PI)
-        animRotateZ.delegate = self
+        animRotateZ.byValue = NSNumber(value: 2.0 * M_PI as Double)
+        // animRotateZ.delegate = self
         animRotateZ.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
         // animRotateZ.setValue(self.diaplayLayer, forKey: "animationLayer")
         // self.animationSequence.append(animRotateZ)
-        label.layer.addAnimation(animRotateZ, forKey: "transform.translation.z")
+        label.layer.add(animRotateZ, forKey: "transform.translation.z")
 
         if (false) {
         let animTranslateY = CABasicAnimation(keyPath: "transform.translation.y")
         animTranslateY.duration = 1.5
-        animTranslateY.toValue = NSNumber(double: Double(CGRectGetMidY(mainWindow.bounds)))
-        animTranslateY.byValue = NSNumber(double: Double(translateByValueY))
+        animTranslateY.toValue = NSNumber(value: Double(mainWindow.bounds.midY) as Double)
+        animTranslateY.byValue = NSNumber(value: Double(translateByValueY) as Double)
         animTranslateY.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
         // animTranslateY.setValue(self.diaplayLayer, forKey: "animationLayer")
         // self.animationSequence.append(animTranslateY)
-        label.layer.addAnimation(animTranslateY, forKey: "transform.translation.y")
+        label.layer.add(animTranslateY, forKey: "transform.translation.y")
         }
 
         /*
@@ -208,16 +208,16 @@ class CommonAnimation {
      * 'label' is cloned for each animation label, therefore the animation labels inherit all style attributes
      * 'sourcePoint' is a location relative to 'keyWindow' where the animation starts
      * 'targetPoint' is a location relative to 'keyWindow' where the animation ends */
-    class func letterWhooshAnimationForLabel(labelParam: UILabel, sourcePoint: CGPoint, targetPoint: CGPoint, style: WhooshStyle, completionHandler: () -> Void) -> WhooshAnimationContext  {
+    class func letterWhooshAnimationForLabel(_ labelParam: UILabel, sourcePoint: CGPoint, targetPoint: CGPoint, style: WhooshStyle, completionHandler: @escaping () -> Void) -> WhooshAnimationContext  {
         
         let labelCopy = Common.cloneView(labelParam) as! UILabel
-        labelCopy.hidden = false
-        labelCopy.frame = CGRect(origin: sourcePoint, size: labelCopy.intrinsicContentSize())
+        labelCopy.isHidden = false
+        labelCopy.frame = CGRect(origin: sourcePoint, size: labelCopy.intrinsicContentSize)
         
-        let mainWindow = UIApplication.sharedApplication().keyWindow!
-        let text = (labelCopy.text != nil ? labelCopy.text! : "") as NSString
+        let mainWindow = UIApplication.shared.keyWindow!
+        let text = (labelCopy.text ?? "") as NSString
         var velocityFactor: CGFloat = 0
-        let clearColor = UIColor.clearColor()
+        let clearColor = UIColor.clear
         var index = 0
         var animationLabels = [UILabel]()
         
@@ -252,8 +252,8 @@ class CommonAnimation {
             
             let fadedOpacity: Float = 0.5
             let unfadedOpacity: Float = 1.0
-            let fromOpacity = (style == .FadeIn) ? fadedOpacity : unfadedOpacity
-            let toOpacity = (style == .FadeIn) ? unfadedOpacity : fadedOpacity
+            let fromOpacity = (style == .fadeIn) ? fadedOpacity : unfadedOpacity
+            let toOpacity = (style == .fadeIn) ? unfadedOpacity : fadedOpacity
             
             // Starting value for opacity
             animationLabel.layer.opacity = fromOpacity
@@ -281,20 +281,20 @@ class CommonAnimation {
                 y: targetPoint.y + animationLabel.frame.size.height / 2.0)
             // trace("Animating from", animationLabel.layer.position, "to", position, "where width is", animationLabel.frame.width, "and height is", animationLabel.frame.height)
             
-            animationLabel.layer.addAnimation(
+            animationLabel.layer.add(
                 CommonAnimation.createSpringAnimationWithDuration(duration,
                     delay: 0,
                     options: nil,
                     springDamping: 1.0,
                     springVelocity: velocityFactor,
                     keyPath: "position",
-                    fromValue: NSValue(CGPoint: animationLabel.layer.position),
-                    toValue: NSValue(CGPoint: position)),
+                    fromValue: NSValue(cgPoint: animationLabel.layer.position),
+                    toValue: NSValue(cgPoint: position)),
                 forKey: "position")
             
             animationLabel.layer.position = position
             
-            animationLabel.layer.addAnimation(
+            animationLabel.layer.add(
                 CommonAnimation.createBasicAnimationWithDuration(duration,
                     delay: 0,
                     options: nil,
@@ -311,15 +311,15 @@ class CommonAnimation {
         return WhooshAnimationContext(animationLabels: animationLabels)
     }
     
-    class func createBasicAnimationWithDuration(duration: NSTimeInterval, delay: NSTimeInterval, options: UIViewAnimationOptions?,
-        keyPath: String, fromValue: AnyObject, toValue: AnyObject) -> CAAnimation {
+    class func createBasicAnimationWithDuration(_ duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions?,
+        keyPath: String, fromValue: Any, toValue: Any) -> CAAnimation {
             return createSpringAnimationWithDuration(duration, delay: delay, options: options, springDamping: 0, springVelocity: 0, keyPath: keyPath, fromValue: fromValue, toValue: toValue)
     }
     
-    class func createSpringAnimationWithDuration(duration: NSTimeInterval, delay: NSTimeInterval, options: UIViewAnimationOptions?,
+    class func createSpringAnimationWithDuration(_ duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions?,
         //spring additions
         springDamping: CGFloat, springVelocity: CGFloat,
-        keyPath: String, fromValue: AnyObject, toValue: AnyObject) -> CAAnimation {
+        keyPath: String, fromValue: Any, toValue: Any) -> CAAnimation {
         
         let anim: CAAnimation
         
@@ -377,33 +377,33 @@ class CommonAnimation {
         //options
         if let options = options?.rawValue {
             
-            if options & UIViewAnimationOptions.BeginFromCurrentState.rawValue == 0 { //only repeat if not in a chain
-                anim.autoreverses = (options & UIViewAnimationOptions.Autoreverse.rawValue == UIViewAnimationOptions.Autoreverse.rawValue)
-                anim.repeatCount = (options & UIViewAnimationOptions.Repeat.rawValue == UIViewAnimationOptions.Repeat.rawValue) ? Float.infinity : 0
+            if options & UIViewAnimationOptions.beginFromCurrentState.rawValue == 0 { //only repeat if not in a chain
+                anim.autoreverses = (options & UIViewAnimationOptions.autoreverse.rawValue == UIViewAnimationOptions.autoreverse.rawValue)
+                anim.repeatCount = (options & UIViewAnimationOptions.repeat.rawValue == UIViewAnimationOptions.repeat.rawValue) ? Float.infinity : 0
             }
             
             //easing
             var timingFunctionName = kCAMediaTimingFunctionEaseInEaseOut
             
-            if options & UIViewAnimationOptions.CurveLinear.rawValue == UIViewAnimationOptions.CurveLinear.rawValue {
+            if options & UIViewAnimationOptions.curveLinear.rawValue == UIViewAnimationOptions.curveLinear.rawValue {
                 //first check for linear (it's this way to take up only 2 bits)
                 timingFunctionName = kCAMediaTimingFunctionLinear
-            } else if options & UIViewAnimationOptions.CurveEaseIn.rawValue == UIViewAnimationOptions.CurveEaseIn.rawValue {
+            } else if options & UIViewAnimationOptions.curveEaseIn.rawValue == UIViewAnimationOptions.curveEaseIn.rawValue {
                 timingFunctionName = kCAMediaTimingFunctionEaseIn
-            } else if options & UIViewAnimationOptions.CurveEaseOut.rawValue == UIViewAnimationOptions.CurveEaseOut.rawValue {
+            } else if options & UIViewAnimationOptions.curveEaseOut.rawValue == UIViewAnimationOptions.curveEaseOut.rawValue {
                 timingFunctionName = kCAMediaTimingFunctionEaseOut
             }
             
             anim.timingFunction = CAMediaTimingFunction(name: timingFunctionName)
             
             //fill mode
-            if options & UIViewAnimationOptions.FillModeBoth.rawValue == UIViewAnimationOptions.FillModeBoth.rawValue {
+            if options & UIViewAnimationOptions.fillModeBoth.rawValue == UIViewAnimationOptions.fillModeBoth.rawValue {
                 //both
                 anim.fillMode = kCAFillModeBoth
-            } else if options & UIViewAnimationOptions.FillModeForwards.rawValue == UIViewAnimationOptions.FillModeForwards.rawValue {
+            } else if options & UIViewAnimationOptions.fillModeForwards.rawValue == UIViewAnimationOptions.fillModeForwards.rawValue {
                 //forward
                 anim.fillMode = (anim.fillMode == kCAFillModeBackwards) ? kCAFillModeBoth : kCAFillModeForwards
-            } else if options & UIViewAnimationOptions.FillModeBackwards.rawValue == UIViewAnimationOptions.FillModeBackwards.rawValue {
+            } else if options & UIViewAnimationOptions.fillModeBackwards.rawValue == UIViewAnimationOptions.fillModeBackwards.rawValue {
                 //backwards
                 anim.fillMode = kCAFillModeBackwards
             }

@@ -8,10 +8,10 @@
 
 import UIKit
 
-public class TextInputTableViewCell: UITableViewCell {
+open class TextInputTableViewCell: UITableViewCell {
     @IBOutlet weak var textField: UITextField!
     
-    public func configure(text: String?, placeholder: String) {
+    open func configure(_ text: String?, placeholder: String) {
         textField.text = text
         textField.placeholder = placeholder
     }

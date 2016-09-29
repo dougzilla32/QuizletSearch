@@ -19,8 +19,8 @@ class SortTerm {
         self.termForDisplay = StringWithBoundaries(string: term.term)
         self.definitionForDisplay = StringWithBoundaries(string: term.definition)
         
-        self.termForCompare = term.term.lowercaseString.decomposeAndNormalize()
-        self.definitionForCompare = term.definition.lowercaseString.decomposeAndNormalize()
+        self.termForCompare = term.term.lowercased().decomposeAndNormalize()
+        self.definitionForCompare = term.definition.lowercased().decomposeAndNormalize()
     }
 }
 
@@ -38,7 +38,7 @@ class SearchTerm {
     }
 }
 
-class SortSet<T> {
+class SortedQuizletSet<T> {
     let title: String
     let terms: [T]
     let createdDate: Int64
@@ -52,9 +52,9 @@ class SortSet<T> {
 
 class SortedTerms<T> {
     // var AtoZ: [T]
-    var AtoZ: [SortSet<T>]
-    var bySet: [SortSet<T>]
-    var bySetAtoZ: [SortSet<T>]
+    var AtoZ: [SortedQuizletSet<T>]
+    var bySet: [SortedQuizletSet<T>]
+    var bySetAtoZ: [SortedQuizletSet<T>]
     
     var levenshteinMatch: [T] = []
     var stringScoreMatch: [T] = []
@@ -65,17 +65,17 @@ class SortedTerms<T> {
         bySetAtoZ = []
     }
     
-    init(AtoZ: [SortSet<T>], bySet: [SortSet<T>], bySetAtoZ: [SortSet<T>]) {
+    init(AtoZ: [SortedQuizletSet<T>], bySet: [SortedQuizletSet<T>], bySetAtoZ: [SortedQuizletSet<T>]) {
         self.AtoZ = AtoZ
         self.bySet = bySet
         self.bySetAtoZ = bySetAtoZ
     }
     
-    func termForPath(indexPath: NSIndexPath, sortSelection: SortSelection) -> T {
+    func termForPath(_ indexPath: IndexPath, sortSelection: SortSelection) -> T {
         var term: T
         switch (sortSelection) {
-        case .AtoZ:
-            term = AtoZ[indexPath.section].terms[indexPath.row]
+        case .atoZ:
+            term = AtoZ[(indexPath as NSIndexPath).section].terms[(indexPath as NSIndexPath).row]
             /*
             switch (indexPath.section) {
             case 0:
@@ -88,16 +88,16 @@ class SortedTerms<T> {
                 abort()
             }
             */
-        case .BySet:
-            term = bySet[indexPath.section].terms[indexPath.row]
-        case .BySetAtoZ:
-            term = bySetAtoZ[indexPath.section].terms[indexPath.row]
+        case .bySet:
+            term = bySet[(indexPath as NSIndexPath).section].terms[(indexPath as NSIndexPath).row]
+        case .bySetAtoZ:
+            term = bySetAtoZ[(indexPath as NSIndexPath).section].terms[(indexPath as NSIndexPath).row]
         }
         return term
     }
 }
 
-class SearchOperation: NSOperation {
+class SearchOperation: Operation {
     let query: String
     let sortSelection: SortSelection
     let sortedTerms: SortedTerms<SortTerm>
@@ -114,26 +114,27 @@ class SearchOperation: NSOperation {
         updateSearchTermsForQuery(query)
     }
     
-    func updateSearchTermsForQuery(queryString: String) {
-        let query = queryString.lowercaseString.decomposeAndNormalize()
+    func updateSearchTermsForQuery(_ queryString: String) {
+        let query = queryString.lowercased().decomposeAndNormalize()
         
-        if (self.cancelled) {
+        if (self.isCancelled) {
             return
         }
         
         switch (sortSelection) {
-        case .AtoZ:
+        case .atoZ:
             searchTerms.AtoZ = searchTermsBySetForQuery(query, termsBySet: sortedTerms.AtoZ)
             // searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
-        case .BySet:
+        case .bySet:
             searchTerms.bySet = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySet)
-        case .BySetAtoZ:
+        case .bySetAtoZ:
             searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySetAtoZ)
         }
     }
     
+    /*
     func searchTermsForQuery(query: StringWithBoundaries, terms: [SortTerm]) -> [SearchTerm] {
         var searchTerms: [SearchTerm] = []
         if (query.string.isWhitespace()) {
@@ -161,27 +162,28 @@ class SearchOperation: NSOperation {
         }
         return searchTerms
     }
+    */
     
-    func searchTermsBySetForQuery(query: StringWithBoundaries, termsBySet: [SortSet<SortTerm>]) -> [SortSet<SearchTerm>] {
-        var searchTermsBySet: [SortSet<SearchTerm>] = []
+    func searchTermsBySetForQuery(_ query: StringWithBoundaries, termsBySet: [SortedQuizletSet<SortTerm>]) -> [SortedQuizletSet<SearchTerm>] {
+        var searchTermsBySet: [SortedQuizletSet<SearchTerm>] = []
         if (query.string.isWhitespace()) {
             for quizletSet in termsBySet {
                 var termsForSet = [SearchTerm]()
                 for term in quizletSet.terms {
                     termsForSet.append(SearchTerm(sortTerm: term))
                 }
-                searchTermsBySet.append(SortSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+                searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
             }
         } else {
             for quizletSet in termsBySet {
                 var termsForSet = [SearchTerm]()
                 
                 for term in quizletSet.terms {
-                    if (self.cancelled) {
+                    if (self.isCancelled) {
                         return []
                     }
                     
-                    let options = NSStringCompareOptions.WhitespaceInsensitiveSearch
+                    let options = NSString.CompareOptions.WhitespaceInsensitiveSearch
                     let termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
                     let definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
                     
@@ -194,14 +196,14 @@ class SearchOperation: NSOperation {
                 }
                 
                 if (termsForSet.count > 0) {
-                    searchTermsBySet.append(SortSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+                    searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
                 }
             }
         }
         return searchTermsBySet
     }
     
-    class func levenshteinMatchForQuery(query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
+    class func levenshteinMatchForQuery(_ query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
         var levenshteinMatch: [SearchTerm] = []
         if (!query.isWhitespace()) {
             for sortTerm in sortTerms {
@@ -209,23 +211,23 @@ class SearchOperation: NSOperation {
                 let definitionScore = computeLevenshteinScore(query, target: sortTerm.definitionForDisplay.string)
                 
                 if (termScore > 0.70 || definitionScore > 0.70) {
-                    levenshteinMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
+                    levenshteinMatch.append(SearchTerm(sortTerm: sortTerm, score: Swift.max(termScore, definitionScore)))
                 }
             }
         }
         return levenshteinMatch
     }
     
-    class func stringScoreMatchForQuery(query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
+    class func stringScoreMatchForQuery(_ query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
         var stringScoreMatch: [SearchTerm] = []
         if (!query.isWhitespace()) {
             for sortTerm in sortTerms {
-                let lowercaseQuery = query.lowercaseString
+                let lowercaseQuery = query.lowercased() as NSString
                 let termScore = sortTerm.termForDisplay.string.scoreAgainst(lowercaseQuery)
                 let definitionScore = sortTerm.definitionForDisplay.string.scoreAgainst(lowercaseQuery)
                 
                 if (termScore > 0.70 || definitionScore > 0.70) {
-                    stringScoreMatch.append(SearchTerm(sortTerm: sortTerm, score: max(termScore, definitionScore)))
+                    stringScoreMatch.append(SearchTerm(sortTerm: sortTerm, score: Swift.max(termScore, definitionScore)))
                 }
             }
         }

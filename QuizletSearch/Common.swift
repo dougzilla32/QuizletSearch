@@ -10,7 +10,7 @@ import UIKit
 
 let IsTraceEnabled = false
 
-func trace(items: Any?..., separator: String = " ", terminator: String = "\n") {
+func trace(_ items: Any?..., separator: String = " ", terminator: String = "\n") {
     if (!IsTraceEnabled) {
         return
     }
@@ -21,7 +21,7 @@ func trace(items: Any?..., separator: String = " ", terminator: String = "\n") {
             s = s + separator
         }
         if (i != nil) {
-            s += String(i!)
+            s += String(describing: i!)
         }
         else {
             s += "nil"
@@ -30,7 +30,8 @@ func trace(items: Any?..., separator: String = " ", terminator: String = "\n") {
     print(s, terminator: terminator)
 }
 
-func max<T : Comparable>(items: T?...) -> T? {
+/*
+func max<T : Comparable>(_ items: T?...) -> T? {
     var m: T? = nil
     for item in items {
         if (item != nil) {
@@ -44,62 +45,63 @@ func max<T : Comparable>(items: T?...) -> T? {
     }
     return m
 }
+*/
 
-func dispatch_sync_main(block: dispatch_block_t) -> Void {
-    if (NSThread.isMainThread()) {
+func dispatch_sync_main(_ block: ()->()) -> Void {
+    if (Thread.isMainThread) {
         block()
     }
     else {
-        dispatch_sync(dispatch_get_main_queue(), block)
+        DispatchQueue.main.sync(execute: block)
     }
 }
 
 class Common {
     static let isSampleMode = false
     
-    class func isEmpty(s: String?) -> Bool {
+    class func isEmpty(_ s: String?) -> Bool {
         return s == nil || s!.trimWhitespace().isEmpty
     }
     
-    class func preferredFontForTextStyle(textStyle: String) -> UIFont? {
+    class func preferredFontForTextStyle(_ textStyle: UIFontTextStyle) -> UIFont? {
         // choose the font size
         let fontSize: CGFloat = preferredFontSize()
 
         // choose the font weight
-        if (textStyle == UIFontTextStyleHeadline || textStyle == UIFontTextStyleSubheadline) {
-            return UIFont.boldSystemFontOfSize(fontSize)
+        if (textStyle == UIFontTextStyle.headline || textStyle == UIFontTextStyle.subheadline) {
+            return UIFont.boldSystemFont(ofSize: fontSize)
         } else {
-            return UIFont.systemFontOfSize(fontSize)
+            return UIFont.systemFont(ofSize: fontSize)
         }
     }
     
     class func preferredFontSize() -> CGFloat {
         let fontSize: CGFloat
         
-        switch (UIApplication.sharedApplication().preferredContentSizeCategory) {
-        case UIContentSizeCategoryExtraSmall:
+        switch (UIApplication.shared.preferredContentSizeCategory) {
+        case UIContentSizeCategory.extraSmall:
             fontSize = 12.0
-        case UIContentSizeCategorySmall:
+        case UIContentSizeCategory.small:
             fontSize = 12.0
-        case UIContentSizeCategoryMedium:
+        case UIContentSizeCategory.medium:
             fontSize = 13.0
-        case UIContentSizeCategoryLarge:
+        case UIContentSizeCategory.large:
             fontSize = 14.0
-        case UIContentSizeCategoryExtraLarge:
+        case UIContentSizeCategory.extraLarge:
             fontSize = 16.0
-        case UIContentSizeCategoryExtraExtraLarge:
+        case UIContentSizeCategory.extraExtraLarge:
             fontSize = 18.0
-        case UIContentSizeCategoryExtraExtraExtraLarge:
+        case UIContentSizeCategory.extraExtraExtraLarge:
             fontSize = 20.0
-        case UIContentSizeCategoryAccessibilityMedium:
+        case UIContentSizeCategory.accessibilityMedium:
             fontSize = 24.0
-        case UIContentSizeCategoryAccessibilityLarge:
+        case UIContentSizeCategory.accessibilityLarge:
             fontSize = 28.0
-        case UIContentSizeCategoryAccessibilityExtraLarge:
+        case UIContentSizeCategory.accessibilityExtraLarge:
             fontSize = 32.0
-        case UIContentSizeCategoryAccessibilityExtraExtraLarge:
+        case UIContentSizeCategory.accessibilityExtraExtraLarge:
             fontSize = 36.0
-        case UIContentSizeCategoryAccessibilityExtraExtraExtraLarge:
+        case UIContentSizeCategory.accessibilityExtraExtraExtraLarge:
             fontSize = 40.0
         default:
             fontSize = 12.0
@@ -111,40 +113,40 @@ class Common {
     static let Arial = "ArialMT"
     static let ArialBold = "Arial-BoldMT"
 
-    class func preferredFontForFamily(fontFamily: String) -> UIFont? {
+    class func preferredFontForFamily(_ fontFamily: String) -> UIFont? {
         // NSLog("%@", UIFont.fontNamesForFamilyName("Arial"))
         
         let fontSize: CGFloat = preferredFontSizeForFamily(fontFamily)
         return UIFont(name: fontFamily, size: fontSize)
     }
     
-    class func preferredFontSizeForFamily(fontFamily: String) -> CGFloat {
+    class func preferredFontSizeForFamily(_ fontFamily: String) -> CGFloat {
         let fontSize: CGFloat
         
-        switch (UIApplication.sharedApplication().preferredContentSizeCategory) {
-        case UIContentSizeCategoryExtraSmall:
+        switch (UIApplication.shared.preferredContentSizeCategory) {
+        case UIContentSizeCategory.extraSmall:
             fontSize = 12.0
-        case UIContentSizeCategorySmall:
+        case UIContentSizeCategory.small:
             fontSize = 14.0
-        case UIContentSizeCategoryMedium:
+        case UIContentSizeCategory.medium:
             fontSize = 16.0
-        case UIContentSizeCategoryLarge:
+        case UIContentSizeCategory.large:
             fontSize = 18.0
-        case UIContentSizeCategoryExtraLarge:
+        case UIContentSizeCategory.extraLarge:
             fontSize = 20.0
-        case UIContentSizeCategoryExtraExtraLarge:
+        case UIContentSizeCategory.extraExtraLarge:
             fontSize = 22.0
-        case UIContentSizeCategoryExtraExtraExtraLarge:
+        case UIContentSizeCategory.extraExtraExtraLarge:
             fontSize = 24.0
-        case UIContentSizeCategoryAccessibilityMedium:
+        case UIContentSizeCategory.accessibilityMedium:
             fontSize = 28.0
-        case UIContentSizeCategoryAccessibilityLarge:
+        case UIContentSizeCategory.accessibilityLarge:
             fontSize = 32.0
-        case UIContentSizeCategoryAccessibilityExtraLarge:
+        case UIContentSizeCategory.accessibilityExtraLarge:
             fontSize = 36.0
-        case UIContentSizeCategoryAccessibilityExtraExtraLarge:
+        case UIContentSizeCategory.accessibilityExtraExtraLarge:
             fontSize = 40.0
-        case UIContentSizeCategoryAccessibilityExtraExtraExtraLarge:
+        case UIContentSizeCategory.accessibilityExtraExtraExtraLarge:
             fontSize = 44.0
         default:
             fontSize = 16.0
@@ -153,7 +155,7 @@ class Common {
         return fontSize
     }
     
-    class func findTextField(view: UIView) -> UITextField? {
+    class func findTextField(_ view: UIView) -> UITextField? {
 //        return view.valueForKey("_searchField") as? UITextField
         for i in 0..<view.subviews.count {
             let subview = view.subviews[i]
@@ -168,10 +170,10 @@ class Common {
         return nil
     }
     
-    class func findTableViewIndex(view: UIView) -> UIView? {
+    class func findTableViewIndex(_ view: UIView) -> UIView? {
         for i in 0..<view.subviews.count {
             let subview = view.subviews[i]
-            if (subview.dynamicType.description() == "UITableViewIndex") {
+            if (type(of: subview).description() == "UITableViewIndex") {
                 return subview
             }
             let tableViewIndex = Common.findTableViewIndex(subview)
@@ -182,11 +184,11 @@ class Common {
         return nil
     }
     
-    class func getIndexWidthForTableView(tableView: UITableView, inout observedTableIndexViewWidth: CGFloat?, checkTableIndex: Bool) -> CGFloat {
+    class func getIndexWidthForTableView(_ tableView: UITableView, observedTableIndexViewWidth: inout CGFloat?, checkTableIndex: Bool) -> CGFloat {
         if (checkTableIndex && observedTableIndexViewWidth == nil) {
             let tableViewIndex = Common.findTableViewIndex(tableView)
             if (tableViewIndex != nil) {
-                observedTableIndexViewWidth = CGRectGetWidth(tableViewIndex!.bounds)
+                observedTableIndexViewWidth = tableViewIndex!.bounds.width
             }
             else {
                 observedTableIndexViewWidth = 0
@@ -202,11 +204,11 @@ class Common {
     // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus : 15
     // iPad Air, Air 2, Retina : 30
     static var hardcodedTableIndexViewWidth: CGFloat = {
-        let screenWidth = CGRectGetWidth(UIScreen.mainScreen().bounds)
-        let screenHeight = CGRectGetHeight(UIScreen.mainScreen().bounds)
+        let screenWidth = UIScreen.main.bounds.width
+        let screenHeight = UIScreen.main.bounds.height
         
-        let minDimension = min(screenWidth, screenHeight)
-        let maxDimension = max(screenWidth, screenHeight)
+        let minDimension = Swift.min(screenWidth, screenHeight)
+        let maxDimension = Swift.max(screenWidth, screenHeight)
         
         if (maxDimension < 850) {
             // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus
@@ -230,16 +232,16 @@ class Common {
         }
         }()
     
-    class func toUppercase(c: Character) -> Character {
-        let up = String(c).uppercaseString
+    class func toUppercase(_ c: Character) -> Character {
+        let up = String(c).uppercased()
         return up[up.startIndex]
     }
     
-    class func isAlphaNumeric(c: Character) -> Bool {
+    class func isAlphaNumeric(_ c: Character) -> Bool {
         let s = String(c)
         let view = s.utf16
         let uc: unichar = view[view.startIndex]
-        return NSCharacterSet.alphanumericCharacterSet().characterIsMember(uc)
+        return CharacterSet.alphanumerics.contains(UnicodeScalar(uc)!)
         
         // Over 4x slower:
         // return String(c).rangeOfCharacterFromSet(NSCharacterSet.alphanumericCharacterSet()) != nil
@@ -257,11 +259,11 @@ class Common {
         // return true
     }
 
-    class func isWhitespace(c: Character) -> Bool {
+    class func isWhitespace(_ c: Character) -> Bool {
         let s = String(c)
         let view = s.utf16
         let uc: unichar = view[view.startIndex]
-        return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(uc)
+        return CharacterSet.whitespacesAndNewlines.contains(UnicodeScalar(uc)!)
         
         // Over 4x slower:
         // return String(c).rangeOfCharacterFromSet(NSCharacterSet.whitespaceAndNewlineCharacterSet()) != nil
@@ -276,8 +278,8 @@ class Common {
         // return true
     }
     
-    class func firstNonWhitespaceCharacter(text: String) -> Character? {
-        let trimmedText = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+    class func firstNonWhitespaceCharacter(_ text: String) -> Character? {
+        let trimmedText = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
         return !trimmedText.isEmpty ? trimmedText[trimmedText.startIndex] : nil
 
         // Can be over 20x slower, depending on the amount of leading whitespace:
@@ -292,9 +294,9 @@ class Common {
         // return firstCharacter
     }
 
-    class func cloneView(view: UIView) -> UIView {
-        let archivedData = NSKeyedArchiver.archivedDataWithRootObject(view)
-        return NSKeyedUnarchiver.unarchiveObjectWithData(archivedData) as! UIView
+    class func cloneView(_ view: UIView) -> UIView {
+        let archivedData = NSKeyedArchiver.archivedData(withRootObject: view)
+        return NSKeyedUnarchiver.unarchiveObject(with: archivedData) as! UIView
     }
 }
 
@@ -306,7 +308,7 @@ class StringWithBoundaries {
     init(string: String) {
         self.string = string
         self.nsString = string as NSString
-        characterBoundaries = StringWithBoundaries.calculateCharacterBoundaries(string)
+        characterBoundaries = StringWithBoundaries.calculateCharacterBoundaries(string as NSString)
     }
 
     init(string: String, characterBoundaries: [Int]) {
@@ -315,7 +317,7 @@ class StringWithBoundaries {
         self.characterBoundaries = characterBoundaries
     }
     
-    func characterRangesToUnicharRanges(characterRanges: [NSRange]) -> [NSRange] {
+    func characterRangesToUnicharRanges(_ characterRanges: [NSRange]) -> [NSRange] {
         var unicharRanges = [NSRange]()
         for cr in characterRanges {
             let start = characterBoundaries[cr.location]
@@ -325,50 +327,50 @@ class StringWithBoundaries {
         return unicharRanges
     }
 
-    class func calculateCharacterBoundaries(text: NSString) -> [Int] {
+    class func calculateCharacterBoundaries(_ text: NSString) -> [Int] {
         var index = 0
         var characterBoundaries: [Int] = []
         while (index < text.length) {
             characterBoundaries.append(index)
-            index += text.rangeOfComposedCharacterSequenceAtIndex(index).length
+            index += text.rangeOfComposedCharacterSequence(at: index).length
         }
         characterBoundaries.append(index)
         return characterBoundaries
     }
 }
 
-extension NSStringCompareOptions {
-    static var WhitespaceInsensitiveSearch: NSStringCompareOptions = NSStringCompareOptions(rawValue: 0x8000)
+extension NSString.CompareOptions {
+    static var WhitespaceInsensitiveSearch: NSString.CompareOptions = NSString.CompareOptions(rawValue: 0x8000)
 }
 
 extension String {
-    func beginsWith(str: String) -> Bool {
-        if let range = self.rangeOfString(str) {
-            return range.startIndex == self.startIndex
+    func beginsWith(_ str: String) -> Bool {
+        if let range = self.range(of: str) {
+            return range.lowerBound == self.startIndex
         }
         return false
     }
     
-    func endsWith(str: String) -> Bool {
-        if let range = self.rangeOfString(str, options: .BackwardsSearch) {
-            return range.endIndex == self.endIndex
+    func endsWith(_ str: String) -> Bool {
+        if let range = self.range(of: str, options: .backwards) {
+            return range.upperBound == self.endIndex
         }
         return false
     }
     
-    func contains(str: String, options: NSStringCompareOptions? = nil) -> Bool {
+    func contains(_ str: String, options: NSString.CompareOptions? = nil) -> Bool {
         if let opt = options {
-            return self.rangeOfString(str, options: opt) != nil
+            return self.range(of: str, options: opt) != nil
         }
         else {
-            return self.rangeOfString(str) != nil
+            return self.range(of: str) != nil
         }
     }
 
     func isWhitespace() -> Bool {
         let string = self as NSString
         for i in 0..<string.length {
-            if (!StringAndIndex.isWhitespace(string.characterAtIndex(i))) {
+            if (!StringAndIndex.isWhitespace(string.character(at: i))) {
                 return false
             }
         }
@@ -376,46 +378,46 @@ extension String {
     }
     
     func trimInlineWhitespace() -> String {
-        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceCharacterSet())
+        return self.trimmingCharacters(in: CharacterSet.whitespaces)
     }
     
     func trimWhitespace() -> String {
-        return self.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+        return self.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
     }
     
     func guessLanguage() -> String? {
-        return CFStringTokenizerCopyBestStringLanguage(self, CFRangeMake(0, 0)) as String
+        return CFStringTokenizerCopyBestStringLanguage(self as CFString!, CFRangeMake(0, 0)) as String
     }
     
-    func spellCheckForLanguage(lang: String) -> [String]? {
+    func spellCheckForLanguage(_ lang: String) -> [String]? {
         let textChecker = UITextChecker()
         let range = NSMakeRange(0, (self as NSString).length)
         
-        let misspelled = textChecker.rangeOfMisspelledWordInString(self, range: range, startingAt: range.location, wrap: false, language: lang)
+        let misspelled = textChecker.rangeOfMisspelledWord(in: self, range: range, startingAt: range.location, wrap: false, language: lang)
         if (misspelled.location == NSNotFound) {
             return nil
         }
         
-        let guesses = textChecker.guessesForWordRange(misspelled, inString: self, language: lang)
+        let guesses = textChecker.guesses(forWordRange: misspelled, in: self, language: lang)
         if (guesses == nil) {
             return nil
         }
         
         var guessStrings = [String]()
         for g in guesses! {
-            guessStrings.append(g as! String)
+            guessStrings.append(g )
         }
         return guessStrings
     }
 
-    private class StringAndIndex {
+    fileprivate class StringAndIndex {
         let string: StringWithBoundaries
         var unicharIndex: Int
         var characterIndex: Int
         var characterSubIndex: Int
         let skipWhitespaceOption: Bool
         
-        init(string: StringWithBoundaries, options: NSStringCompareOptions) {
+        init(string: StringWithBoundaries, options: NSString.CompareOptions) {
             self.string = string
             self.unicharIndex = 0
             self.characterIndex = 0
@@ -441,7 +443,7 @@ extension String {
         }
         
         func currentUnichar() -> unichar {
-            return string.nsString.characterAtIndex(unicharIndex)
+            return string.nsString.character(at: unicharIndex)
         }
         
         func advance() {
@@ -472,19 +474,19 @@ extension String {
         
         func skipWhitespace() {
             if (skipWhitespaceOption) {
-                while (unicharIndex < string.nsString.length && StringAndIndex.isWhitespace(string.nsString.characterAtIndex(unicharIndex))) {
+                while (unicharIndex < string.nsString.length && StringAndIndex.isWhitespace(string.nsString.character(at: unicharIndex))) {
                     advance()
                 }
             }
         }
         
-        class func isWhitespace(character: unichar) -> Bool {
-            return NSCharacterSet.whitespaceAndNewlineCharacterSet().characterIsMember(character)
+        class func isWhitespace(_ character: unichar) -> Bool {
+            return CharacterSet.whitespacesAndNewlines.contains(UnicodeScalar(character)!)
         }
     }
     
     // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
-    static func characterRangesOfUnichars(sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSStringCompareOptions = NSStringCompareOptions(rawValue: 0)) -> [NSRange] {
+    static func characterRangesOfUnichars(_ sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSString.CompareOptions = NSString.CompareOptions(rawValue: 0)) -> [NSRange] {
         
         var source = StringAndIndex(string: sourceString, options: options)
         let target = StringAndIndex(string: targetString, options: options)
@@ -539,9 +541,9 @@ extension String {
         var boundaryIndex = 0
         while (index < from.length) {
             boundaries.append(boundaryIndex)
-            let sequenceLength = from.rangeOfComposedCharacterSequenceAtIndex(index).length
+            let sequenceLength = from.rangeOfComposedCharacterSequence(at: index).length
             for sequenceIndex in index..<(index+sequenceLength) {
-                let fromUnichar = from.characterAtIndex(sequenceIndex)
+                let fromUnichar = from.character(at: sequenceIndex)
                 let normalizedUnichars = String.normalizeTable[fromUnichar]
                 if (normalizedUnichars != nil) {
                     for u in normalizedUnichars! {
@@ -560,7 +562,7 @@ extension String {
         return StringWithBoundaries(string: NSString(characters: to, length: to.count) as String, characterBoundaries: boundaries)
     }
 
-    private static let normalizeTable: [unichar: [unichar]] = [
+    fileprivate static let normalizeTable: [unichar: [unichar]] = [
         0x1100: [ 0x3131 ],         // G ᄀ
         0x1101: [ 0x3132 ],         // GG ᄁ
         0x1102: [ 0x3134 ],         // N ᄂ

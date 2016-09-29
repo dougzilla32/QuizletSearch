@@ -7,15 +7,35 @@
 //
 
 import UIKit
+fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l < r
+  case (nil, _?):
+    return true
+  default:
+    return false
+  }
+}
+
+fileprivate func <= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
+  switch (lhs, rhs) {
+  case let (l?, r?):
+    return l <= r
+  default:
+    return !(rhs < lhs)
+  }
+}
+
 
 enum QueryRowType: Int {
     case
-    QueryHeader, QueryCell,
-    UserHeader, UserCell,
-    ClassHeader, ClassCell,
-    IncludeHeader, IncludeCell,
-    ExcludeHeader, ExcludeCell,
-    ResultHeader, ResultCell
+    queryHeader, queryCell,
+    userHeader, userCell,
+    classHeader, classCell,
+    includeHeader, includeCell,
+    excludeHeader, excludeCell,
+    resultHeader, resultCell
     
     static let Identifier = [
         "Query Header", "Query Cell",
@@ -31,7 +51,7 @@ enum QueryRowType: Int {
     
     func canEdit() -> Bool {
         switch (self) {
-        case .UserCell, .ClassCell, .IncludeCell, .ExcludeCell, .ResultCell:
+        case .userCell, .classCell, .includeCell, .excludeCell, .resultCell:
             return true
         default:
             return false
@@ -72,7 +92,7 @@ class AddQueryModel {
     
     // MARK: - Search
     
-    func indexPathToPagerIndex(indexPath: NSIndexPath!) -> PagerIndex? {
+    func indexPathToPagerIndex(_ indexPath: IndexPath!) -> PagerIndex? {
         if (indexPath == nil) {
             return nil
         }
@@ -82,15 +102,15 @@ class AddQueryModel {
         }
         else {
             switch (rowTypes[indexPath.section][indexPath.row]) {
-            case .QueryCell:
-                return PagerIndex(type: .Query, index: 0)
-            case .UserCell:
-                return PagerIndex(type: .Username, index: indexPath.row - UsernameOffset)
-            case .ClassCell:
-                return PagerIndex(type: .Class, index: indexPath.row - ClassOffset())
-            case .IncludeCell:
-                return PagerIndex(type: .IncludedSets, index: 0)
-            case .ExcludeCell:
+            case .queryCell:
+                return PagerIndex(type: .query, index: 0)
+            case .userCell:
+                return PagerIndex(type: .username, index: indexPath.row - UsernameOffset)
+            case .classCell:
+                return PagerIndex(type: .class, index: indexPath.row - ClassOffset())
+            case .includeCell:
+                return PagerIndex(type: .includedSets, index: 0)
+            case .excludeCell:
                 abort()
             default:
                 abort()
@@ -100,7 +120,7 @@ class AddQueryModel {
     
     // MARK: - Table datasource
     
-    func cellIdentifierForPath(indexPath: NSIndexPath) -> String {
+    func cellIdentifierForPath(_ indexPath: IndexPath) -> String {
         var cellIdentifier: String
         if let _ = resultRowForIndexPath(indexPath) {
 //            if (isPaddingRow(resultRow)) {
@@ -122,31 +142,31 @@ class AddQueryModel {
             cellIdentifier = "Result Cell"
         }
         else {
-            cellIdentifier = rowTypes[indexPath.section][indexPath.row].id()
+            cellIdentifier = rowTypes[(indexPath as NSIndexPath).section][(indexPath as NSIndexPath).row].id()
         }
         return cellIdentifier
     }
     
-    func rowTypeForPath(indexPath: NSIndexPath) -> QueryRowType {
+    func rowTypeForPath(_ indexPath: IndexPath) -> QueryRowType {
         return rowTypes[indexPath.section][indexPath.row]
     }
     
-    func rowItemForPath(indexPath: NSIndexPath) -> String {
+    func rowItemForPath(_ indexPath: IndexPath) -> String {
         return rowItems[indexPath.section][indexPath.row]
     }
     
-    func topmostPathForType(type: QueryRowType) -> NSIndexPath? {
-        var indexPath: NSIndexPath? = nil
+    func topmostPathForType(_ type: QueryRowType) -> IndexPath? {
+        var indexPath: IndexPath? = nil
 
         switch (type) {
-        case .ResultHeader:
-            indexPath = NSIndexPath(forRow: rowTypes[1].count - 1, inSection: ResultsSection)
+        case .resultHeader:
+            indexPath = IndexPath(row: rowTypes[1].count - 1, section: ResultsSection)
         default:
             outerLoop:
             for s in 0..<rowTypes.count {
                 for r in 0..<rowTypes[s].count {
                     if (rowTypes[s][r] == type) {
-                        indexPath = NSIndexPath(forRow: r, inSection: s)
+                        indexPath = IndexPath(row: r, section: s)
                         break outerLoop
                     }
                 }
@@ -156,11 +176,11 @@ class AddQueryModel {
         return indexPath
     }
     
-    func pathForResultHeader() -> NSIndexPath {
-        return topmostPathForType(QueryRowType.ResultHeader)!
+    func pathForResultHeader() -> IndexPath {
+        return topmostPathForType(QueryRowType.resultHeader)!
     }
     
-    func numberOfRowsInSection(section: Int) -> Int {
+    func numberOfRowsInSection(_ section: Int) -> Int {
         var numRows = rowTypes[section].count
         if (section == ResultsSection) {
             if let t = pagers.totalResultsHighWaterMark {
@@ -182,7 +202,7 @@ class AddQueryModel {
         return numRows
     }
     
-    func canEditRowAtIndexPath(indexPath: NSIndexPath) -> Bool {
+    func canEditRowAtIndexPath(_ indexPath: IndexPath) -> Bool {
         if (resultRowForIndexPath(indexPath) != nil) {
             return true
         }
@@ -191,37 +211,37 @@ class AddQueryModel {
         }
     }
     
-    func isHeaderAtPath(indexPath: NSIndexPath) -> Bool {
+    func isHeaderAtPath(_ indexPath: IndexPath) -> Bool {
         return (cellIdentifierForPath(indexPath) as NSString).hasSuffix(" Header")
     }
     
-    func resultRowForIndexPath(indexPath: NSIndexPath) -> Int? {
+    func resultRowForIndexPath(_ indexPath: IndexPath) -> Int? {
         return (indexPath.section == ResultsSection && indexPath.row >= rowTypes[indexPath.section].count)
             ? indexPath.row - rowTypes[indexPath.section].count
             : nil
     }
 
-    func isActivityIndicatorRow(row: Int) -> Bool {
+    func isActivityIndicatorRow(_ row: Int) -> Bool {
 //        return totalResults == nil || row >= totalResults!
         return false
     }
     
-    func isPaddingRow(row: Int) -> Bool {
+    func isPaddingRow(_ row: Int) -> Bool {
         let t = pagers.totalResults
-        return row > rowTypes[1].count + (t != nil ? t! : 0)
+        return row > rowTypes[1].count + (t ?? 0)
     }
 
     // MARK: - Usernames (Creators)
     
-    func insertNewUser(name: String) -> NSIndexPath {
+    func insertNewUser(_ name: String) -> IndexPath {
         let insertIndex = 0
-        let path = NSIndexPath(forRow: insertIndex + UsernameOffset, inSection: ResultsSection)
-        insertAtIndexPath(path, type: .UserCell, item: name)
-        pagers.usernamePagers.insert(SetPager(query: pagers.queryPager?.query, creator: name), atIndex: insertIndex)
+        let path = IndexPath(row: insertIndex + UsernameOffset, section: ResultsSection)
+        insertAtIndexPath(path, type: .userCell, item: name)
+        pagers.usernamePagers.insert(SetPager(query: pagers.queryPager?.query, creator: name), at: insertIndex)
         return path
     }
     
-    func updateUser(name: String?, atIndexPath indexPath: NSIndexPath) {
+    func updateUser(_ name: String?, atIndexPath indexPath: IndexPath) {
         assert(indexPath.section == ResultsSection)
         let username = (name != nil) ? name! : ""
         
@@ -230,27 +250,27 @@ class AddQueryModel {
         rowItems[indexPath.section][indexPath.row] = username
     }
     
-    func updateAndSortUser(name: String?, atIndexPath indexPath: NSIndexPath) -> NSIndexPath {
-        assert(indexPath.section == ResultsSection)
+    func updateAndSortUser(_ name: String?, atIndexPath indexPath: IndexPath) -> IndexPath {
+        assert((indexPath as NSIndexPath).section == ResultsSection)
         let username = (name != nil) ? name! : ""
         
         let query = pagers.queryPager?.query
         let oldIndex = indexPath.row - UsernameOffset
         var newIndex = insertionSortIndexForUser(username, atIndex: oldIndex, list: pagers.usernamePagers)
-        var newIndexPath: NSIndexPath
+        var newIndexPath: IndexPath
 
         if (oldIndex != newIndex) {
-            let pager = pagers.usernamePagers.removeAtIndex(oldIndex)
-            rowItems[indexPath.section].removeAtIndex(oldIndex + UsernameOffset)
+            let pager = pagers.usernamePagers.remove(at: oldIndex)
+            rowItems[indexPath.section].remove(at: oldIndex + UsernameOffset)
 
             if (newIndex > oldIndex) {
                 newIndex -= 1
             }
 
-            pagers.usernamePagers.insert(pager, atIndex: newIndex)
-            rowItems[indexPath.section].insert(username, atIndex: newIndex + UsernameOffset)
+            pagers.usernamePagers.insert(pager, at: newIndex)
+            rowItems[indexPath.section].insert(username, at: newIndex + UsernameOffset)
 
-            newIndexPath = NSIndexPath(forRow: newIndex + UsernameOffset, inSection: indexPath.section)
+            newIndexPath = IndexPath(row: newIndex + UsernameOffset, section: indexPath.section)
         }
         else {
             pagers.usernamePagers[oldIndex].reset(query: query, creator: username)
@@ -261,14 +281,14 @@ class AddQueryModel {
         return newIndexPath
     }
     
-    func deleteUsernamePagerAtIndexPath(indexPath: NSIndexPath) {
+    func deleteUsernamePagerAtIndexPath(_ indexPath: IndexPath) {
         assert(indexPath.section == ResultsSection)
-        pagers.usernamePagers.removeAtIndex(indexPath.row - UsernameOffset)
+        pagers.usernamePagers.remove(at: indexPath.row - UsernameOffset)
     }
     
     let UsernameOffset = 1 // Subtract 1 for User Header
     
-    func insertionSortIndexForUser(item: String, atIndex: Int, list: [SetPager]) -> Int {
+    func insertionSortIndexForUser(_ item: String, atIndex: Int, list: [SetPager]) -> Int {
         for i in 0..<list.count {
             if (i != atIndex && item <= list[i].creator) {
                 return (item == list[i].creator) ? atIndex : i
@@ -279,15 +299,15 @@ class AddQueryModel {
     
     // MARK: - Classes
     
-    func insertNewClass(id: String) -> NSIndexPath {
+    func insertNewClass(_ id: String) -> IndexPath {
         let insertIndex = 0
-        let path = NSIndexPath(forRow: insertIndex + ClassOffset(), inSection: ResultsSection)
-        insertAtIndexPath(path, type: .ClassCell, item: id)
-        pagers.classPagers.insert(SetPager(query: pagers.queryPager?.query, classId: id), atIndex: insertIndex)
+        let path = IndexPath(row: insertIndex + ClassOffset(), section: ResultsSection)
+        insertAtIndexPath(path, type: .classCell, item: id)
+        pagers.classPagers.insert(SetPager(query: pagers.queryPager?.query, classId: id), at: insertIndex)
         return path
     }
     
-    func updateClass(name: String?, atIndexPath indexPath: NSIndexPath) {
+    func updateClass(_ name: String?, atIndexPath indexPath: IndexPath) {
         assert(indexPath.section == ResultsSection)
         let username = (name != nil) ? name! : ""
         
@@ -296,7 +316,7 @@ class AddQueryModel {
         rowItems[indexPath.section][indexPath.row] = username
     }
     
-    func updateAndSortClass(name: String?, atIndexPath indexPath: NSIndexPath) -> NSIndexPath {
+    func updateAndSortClass(_ name: String?, atIndexPath indexPath: IndexPath) -> IndexPath {
         assert(indexPath.section == ResultsSection)
         let username = (name != nil) ? name! : ""
         
@@ -304,20 +324,20 @@ class AddQueryModel {
         
         let oldIndex = indexPath.row - ClassOffset()
         var newIndex = insertionSortIndexForClass(username, atIndex: oldIndex, list: pagers.classPagers)
-        let newIndexPath: NSIndexPath
+        let newIndexPath: IndexPath
         
         if (oldIndex != newIndex) {
-            let pager = pagers.classPagers.removeAtIndex(oldIndex)
-            rowItems[indexPath.section].removeAtIndex(oldIndex + ClassOffset())
+            let pager = pagers.classPagers.remove(at: oldIndex)
+            rowItems[indexPath.section].remove(at: oldIndex + ClassOffset())
             
             if (newIndex > oldIndex) {
                 newIndex -= 1
             }
             
-            pagers.classPagers.insert(pager, atIndex: newIndex)
-            rowItems[indexPath.section].insert(username, atIndex: newIndex + ClassOffset())
+            pagers.classPagers.insert(pager, at: newIndex)
+            rowItems[indexPath.section].insert(username, at: newIndex + ClassOffset())
             
-            newIndexPath = NSIndexPath(forRow: newIndex + ClassOffset(), inSection: indexPath.section)
+            newIndexPath = IndexPath(row: newIndex + ClassOffset(), section: indexPath.section)
         }
         else {
             pagers.classPagers[oldIndex].reset(query: query, classId: name)
@@ -328,16 +348,16 @@ class AddQueryModel {
         return newIndexPath
     }
     
-    func deleteClassPagerAtIndexPath(indexPath: NSIndexPath) {
+    func deleteClassPagerAtIndexPath(_ indexPath: IndexPath) {
         assert(indexPath.section == ResultsSection)
-        pagers.classPagers.removeAtIndex(indexPath.row - ClassOffset())
+        pagers.classPagers.remove(at: indexPath.row - ClassOffset())
     }
     
     func ClassOffset() -> Int {
         return pagers.usernamePagers.count + 2
     }
     
-    func insertionSortIndexForClass(item: String, atIndex: Int, list: [SetPager]) -> Int {
+    func insertionSortIndexForClass(_ item: String, atIndex: Int, list: [SetPager]) -> Int {
         for i in 0..<list.count {
             if (i != atIndex && item <= list[i].classId) {
                 return (item == list[i].classId) ? atIndex : i
@@ -348,14 +368,14 @@ class AddQueryModel {
     
     // MARK: - Row types and items
     
-    func insertAtIndexPath(path: NSIndexPath, type: QueryRowType, item: String) {
-        rowTypes[path.section].insert(type, atIndex: path.row)
-        rowItems[path.section].insert(item, atIndex: path.row)
+    func insertAtIndexPath(_ path: IndexPath, type: QueryRowType, item: String) {
+        rowTypes[path.section].insert(type, at: path.row)
+        rowItems[path.section].insert(item, at: path.row)
     }
     
-    func deleteAtIndexPath(path: NSIndexPath) {
-        rowTypes[path.section].removeAtIndex(path.row)
-        rowItems[path.section].removeAtIndex(path.row)
+    func deleteAtIndexPath(_ path: IndexPath) {
+        rowTypes[path.section].remove(at: path.row)
+        rowItems[path.section].remove(at: path.row)
     }
     
     func reloadData() {
@@ -365,44 +385,44 @@ class AddQueryModel {
         rowTypes = [[],[]]
         rowItems = [[],[]]
         
-        add(Q, .QueryHeader)
+        add(Q, .queryHeader)
         // add(Q, .QueryCell)
 
-        add(R, .UserHeader)
+        add(R, .userHeader)
         for pager in pagers.usernamePagers {
-            add(R, .UserCell, pager.creator!)
+            add(R, .userCell, pager.creator!)
         }
         
-        add(R, .ClassHeader)
+        add(R, .classHeader)
         for pager in pagers.classPagers {
-            add(R, .ClassCell, pager.classId!)
+            add(R, .classCell, pager.classId!)
         }
         
         if (includedSets.count > 0) {
-            add(R, .IncludeHeader)
+            add(R, .includeHeader)
             for set in includedSets {
-                add(R, .IncludeCell, set)
+                add(R, .includeCell, set)
             }
         }
 
         if (excludedSets.count > 0) {
-            add(R, .ExcludeHeader)
+            add(R, .excludeHeader)
             for set in excludedSets {
-                add(R, .ExcludeCell, set)
+                add(R, .excludeCell, set)
             }
         }
         
-        add(R, .ResultHeader)
+        add(R, .resultHeader)
     }
     
-    func add(section: Int, _ type: QueryRowType, _ rowItem: String = "") {
+    func add(_ section: Int, _ type: QueryRowType, _ rowItem: String = "") {
         rowTypes[section].append(type)
         rowItems[section].append(rowItem)
     }
     
     // MARK: - Load and Save
     
-    func loadFromQuery(q: Query!) {
+    func loadFromQuery(_ q: Query!) {
         if (q == nil) {
             // Initial UI values are ok for a new query, so no need to load an empty query
             return
@@ -414,7 +434,7 @@ class AddQueryModel {
         pagers.loadFromQuery(q)
     }
     
-    func saveToQuery(q: Query) -> Bool {
+    func saveToQuery(_ q: Query) -> Bool {
         var modified = false
         if (q.type != type) {
             modified = true
@@ -429,13 +449,13 @@ class AddQueryModel {
             modified = true
         }
 
-        let includedIds = includedSets.joinWithSeparator(sep)
+        let includedIds = includedSets.joined(separator: sep)
         if (q.includedSets != includedIds) {
             modified = true
             q.includedSets = includedIds
         }
         
-        let excludedIds = excludedSets.joinWithSeparator(sep)
+        let excludedIds = excludedSets.joined(separator: sep)
         if (q.excludedSets != excludedIds) {
             modified = true
             q.excludedSets = excludedIds

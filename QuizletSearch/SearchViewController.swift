@@ -11,7 +11,7 @@ import CoreData
 import Foundation
 
 enum SortSelection: Int {
-    case BySet = 0, BySetAtoZ, AtoZ
+    case bySet = 0, bySetAtoZ, atoZ
 }
 
 class SearchViewController: TableContainerController, UISearchBarDelegate {
@@ -24,7 +24,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     var showActivityIndicator = true
     
-    var animationBlock: ((CGPoint, completionHandler: () -> Void) -> Void)?
+    var animationBlock: ((CGPoint, _ completionHandler: @escaping () -> Void) -> Void)?
     var animationContext: WhooshAnimationContext?
     
     let SearchBarPlaceholderPrefix = "Search \""
@@ -35,7 +35,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     var sortedTerms = SortedTerms<SortTerm>()
     var searchTerms = SortedTerms<SearchTerm>()
     
-    @IBAction func sortStyleChanged(sender: AnyObject) {
+    @IBAction func sortStyleChanged(_ sender: AnyObject) {
         trace("SearchViewController.sortStyleChanged executeSearchForQuery", searchBar.text)
         executeSearchForQuery(searchBar.text)
     }
@@ -47,13 +47,13 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // MARK: - Search Bar
     
     // called when text changes (including clear)
-    func searchBar(searchBar: UISearchBar, textDidChange searchText: String) {
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
         trace("SearchViewController.searchBar:textDidChange executeSearchForQuery", searchBar.text)
         executeSearchForQuery(searchBar.text)
     }
     
     // Have the keyboard close when 'Return' is pressed
-    func searchBar(searchBar: UISearchBar, shouldChangeTextInRange range: NSRange, replacementText text: String) -> Bool // called before text changes
+    func searchBar(_ searchBar: UISearchBar, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool // called before text changes
     {
         if (text == "\n") {
             searchBar.resignFirstResponder()
@@ -61,18 +61,18 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return true
     }
     
-    func hideKeyboard(recognizer: UITapGestureRecognizer) {
+    func hideKeyboard(_ recognizer: UITapGestureRecognizer) {
         searchBar.resignFirstResponder()
     }
 
     // MARK: - View Controller
         
-    override func shouldAutorotate() -> Bool {
+    override var shouldAutorotate : Bool {
         return true
     }
     
-    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return .All
+    override var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+        return .all
     }
     
 //    override func loadView() {
@@ -80,8 +80,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
 //        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
 //    }
     
-    override func viewWillAppear(animated: Bool) {
-        navigationController?.navigationBarHidden = true
+    override func viewWillAppear(_ animated: Bool) {
+        navigationController?.isNavigationBarHidden = true
     }
 
     override func viewDidLoad() {
@@ -100,30 +100,30 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         // tableView.keyboardDismissMode = .OnDrag
         
         // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
-        tableView.keyboardDismissMode = .Interactive
+        tableView.keyboardDismissMode = .interactive
         
         // Respond to dynamic type font changes
-        NSNotificationCenter.defaultCenter().addObserver(self,
+        NotificationCenter.default.addObserver(self,
             selector: #selector(SearchViewController.preferredContentSizeChanged(_:)),
-            name: UIContentSizeCategoryDidChangeNotification,
+            name: NSNotification.Name.UIContentSizeCategoryDidChange,
             object: nil)
         resetFonts()
         
         // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
         // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
-        let moc = (UIApplication.sharedApplication().delegate as! AppDelegate).managedObjectContext
-        NSNotificationCenter.defaultCenter().addObserver(self,
+        let moc = (UIApplication.shared.delegate as! AppDelegate).managedObjectContext
+        NotificationCenter.default.addObserver(self,
             selector: #selector(SearchViewController.contextDidSaveNotification(_:)),
-            name: NSManagedObjectContextDidSaveNotification,
+            name: NSNotification.Name.NSManagedObjectContextDidSave,
             object: moc)
 
         // Workaround to make the search bar background non-translucent, eliminates some drawing artifacts
-        searchBar.translucent = true
-        searchBar.translucent = false
+        searchBar.isTranslucent = true
+        searchBar.isTranslucent = false
         if let searchBarColor = searchBar.barTintColor {
             searchBar.layer.borderWidth = 1.0
-            searchBar.layer.borderColor = searchBarColor.CGColor
+            searchBar.layer.borderColor = searchBarColor.cgColor
             searchBar.backgroundColor = searchBarColor
         }
         
@@ -144,7 +144,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         if (!isFirstViewDidLayoutSubviews) { return }
         isFirstViewDidLayoutSubviews = false
         
-        dispatch_async(dispatch_get_main_queue(), {
+        DispatchQueue.main.async(execute: {
             trace("SearchViewController.executeSearchForQuery from viewDidLayoutSubviews")
             self.sortedTerms = SearchViewController.initSortedTerms()
             self.showActivityIndicator = false
@@ -156,7 +156,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         
         if (animationBlock != nil) {
             let targetPoint = hideTitleText()
-            self.animationBlock!(targetPoint, completionHandler: {
+            self.animationBlock!(targetPoint, {
                 self.showTitleText()
             })
             self.animationBlock = nil
@@ -169,14 +169,14 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
 
         // Set the title text to clearColor
         let attributedPlaceholder = NSMutableAttributedString(attributedString: searchTextField.attributedPlaceholder!)
-        attributedPlaceholder.addAttribute(NSForegroundColorAttributeName, value: UIColor.clearColor(), range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
+        attributedPlaceholder.addAttribute(NSForegroundColorAttributeName, value: UIColor.clear, range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
         searchTextField.attributedPlaceholder = attributedPlaceholder
 
         // Calculate the frame for the title text
-        let absoluteOrigin = searchTextField.superview!.convertPoint(searchTextField.frame.origin, toView: UIApplication.sharedApplication().keyWindow!)
-        let placeholderBounds = searchTextField.placeholderRectForBounds(searchTextField.bounds)
+        let absoluteOrigin = searchTextField.superview!.convert(searchTextField.frame.origin, to: UIApplication.shared.keyWindow!)
+        let placeholderBounds = searchTextField.placeholderRect(forBounds: searchTextField.bounds)
         let fontAttributes = [NSFontAttributeName: searchTextField.font!]
-        let prefixSize = SearchBarPlaceholderPrefix.sizeWithAttributes(fontAttributes)
+        let prefixSize = SearchBarPlaceholderPrefix.size(attributes: fontAttributes)
         
         return CGPoint(x: absoluteOrigin.x + placeholderBounds.origin.x + prefixSize.width + 1, y: absoluteOrigin.y + placeholderBounds.origin.y)
     }
@@ -189,57 +189,57 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     deinit {
         // Remove all 'self' observers
-        NSNotificationCenter.defaultCenter().removeObserver(self)
+        NotificationCenter.default.removeObserver(self)
     }
     
-    override func preferredStatusBarStyle() -> UIStatusBarStyle {
-        return UIStatusBarStyle.LightContent
+    override var preferredStatusBarStyle : UIStatusBarStyle {
+        return UIStatusBarStyle.lightContent
     }
     
     var preferredSearchFont: UIFont?
     var preferredBoldSearchFont: UIFont?
     
-    func preferredContentSizeChanged(notification: NSNotification) {
+    func preferredContentSizeChanged(_ notification: Notification) {
         resetFonts()
         self.view.setNeedsLayout()
     }
     
     func resetFonts() {
-        preferredSearchFont = UIFont.preferredFontForTextStyle(UIFontTextStyleBody)
-        preferredBoldSearchFont = UIFont.preferredFontForTextStyle(UIFontTextStyleHeadline)
+        preferredSearchFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+        preferredBoldSearchFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
         
         sizingCell.termLabel.font = preferredSearchFont
         sizingCell.definitionLabel.font = preferredSearchFont
         estimatedHeaderHeight = nil
         estimatedHeight = nil
        
-        sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], forState: UIControlState.Normal)
+        sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], for: UIControlState())
         
         // Update the appearance of the search bar's textfield
         let searchTextField = Common.findTextField(self.searchBar)!
         searchTextField.font = preferredSearchFont
-        searchTextField.autocapitalizationType = UITextAutocapitalizationType.None
+        searchTextField.autocapitalizationType = UITextAutocapitalizationType.none
         searchTextField.enablesReturnKeyAutomatically = false
     }
     
     // Called after the view was dismissed, covered or otherwise hidden.
-    override func viewDidDisappear(animated: Bool) {
+    override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         self.refreshControl.endRefreshing()
     }
     
     // MARK: - Search View Controller
     
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         cancelRefresh()
         
         if (segue.identifier == "EditQuery") {
-            let addQueryViewController = segue.destinationViewController.childViewControllers[0] as! AddQueryViewController
+            let addQueryViewController = segue.destination.childViewControllers[0] as! AddQueryViewController
             addQueryViewController.configureForSave(dataModel().currentQuery!)
         }
         else if (segue.identifier == "SearchUnwind" /* && Common.isEmpty(searchBar.text) */) {
             searchBar.text = nil
-            let queriesViewController = segue.destinationViewController as! QueriesViewController
+            let queriesViewController = segue.destination as! QueriesViewController
 
             let sourcePoint = hideTitleText()
 
@@ -255,8 +255,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 animationContext = nil
             }
             
-            queriesViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: () -> Void) in
-                queriesViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .FadeIn, completionHandler: {
+            queriesViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: @escaping () -> Void) in
+                queriesViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .fadeIn, completionHandler: {
                         queriesViewController.animationContext = nil
                         self.showTitleText()
                         completionHandler()
@@ -265,9 +265,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
     }
     
-    @IBAction func unwindFromEditQuery(segue: UIStoryboardSegue) {
+    @IBAction func unwindFromEditQuery(_ segue: UIStoryboardSegue) {
         if (segue.identifier == "EditQuerySave") {
-            let addQueryViewController = segue.sourceViewController as! AddQueryViewController
+            let addQueryViewController = segue.source as! AddQueryViewController
             let modified = addQueryViewController.saveToQuery(dataModel().currentQuery!)
             refreshTable(modified: modified)
         }
@@ -277,12 +277,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     func dataModel() -> DataModel {
-        return (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel
+        return (UIApplication.shared.delegate as! AppDelegate).dataModel
     }
     
-    func refreshTable(modified modified: Bool) {
+    func refreshTable(modified: Bool) {
         trace("refreshTable in SearchViewController modified:", modified)
-        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, modified: modified, completionHandler: { (qsets: [QSet]?) in
+        (UIApplication.shared.delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true, modified: modified, completionHandler: { (qsets: [QSet]?) in
             self.refreshControl.endRefreshing()
         })
     }
@@ -292,14 +292,14 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     func cancelRefresh() {
-        (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()
+        (UIApplication.shared.delegate as! AppDelegate).cancelRefreshTimer()
         
         currentSearchOperation?.cancel()
     }
     
     // call back function by saveContext, support multi-thread
-    func contextDidSaveNotification(notification: NSNotification) {
-        let info = notification.userInfo! as [NSObject: AnyObject]
+    func contextDidSaveNotification(_ notification: Notification) {
+        let info = (notification as NSNotification).userInfo! as [AnyHashable: Any]
 
         let termsChanged = SearchViewController.containsTerms(info[NSInsertedObjectsKey] as? NSSet)
             || SearchViewController.containsTerms(info[NSDeletedObjectsKey] as? NSSet)
@@ -343,7 +343,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
     }
     
-    class func containsTerms(managedObjectSet: NSSet?) -> Bool {
+    class func containsTerms(_ managedObjectSet: NSSet?) -> Bool {
         if (managedObjectSet == nil) {
             return false
         }
@@ -358,11 +358,11 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     class func initSortedTerms() -> SortedTerms<SortTerm> {
         var AtoZterms: [SortTerm] = []
-        var AtoZ: [SortSet<SortTerm>] = []
-        var bySet: [SortSet<SortTerm>] = []
-        var bySetAtoZ: [SortSet<SortTerm>] = []
+        var AtoZ: [SortedQuizletSet<SortTerm>] = []
+        var bySet: [SortedQuizletSet<SortTerm>] = []
+        var bySetAtoZ: [SortedQuizletSet<SortTerm>] = []
         
-        if let query = (UIApplication.sharedApplication().delegate as! AppDelegate).dataModel.currentQuery {
+        if let query = (UIApplication.shared.delegate as! AppDelegate).dataModel.currentQuery {
             for set in query.sets {
                 let quizletSet = set as! QuizletSet
                 var termsForSet = [SortTerm]()
@@ -378,40 +378,40 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 }
                 
                 // Use native term order for 'bySet'
-                bySet.append(SortSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+                bySet.append(SortedQuizletSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
 
                 // Use alphabetically sorted terms for 'bySetAtoZ'
-                termsForSet.sortInPlace(termComparator)
-                bySetAtoZ.append(SortSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+                termsForSet.sort(by: termComparator)
+                bySetAtoZ.append(SortedQuizletSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
             }
             
             AtoZ = collateAtoZ(AtoZterms)
             // sort(&AtoZterms, termComparator)
             
-            bySet.sortInPlace({ (s1: SortSet<SortTerm>, s2: SortSet<SortTerm>) -> Bool in
+            bySet.sort(by: { (s1: SortedQuizletSet<SortTerm>, s2: SortedQuizletSet<SortTerm>) -> Bool in
                 return s1.createdDate > s2.createdDate
             })
             
-            bySetAtoZ.sortInPlace({ (s1: SortSet<SortTerm>, s2: SortSet<SortTerm>) -> Bool in
-                return s1.title.compare(s2.title, options: [.CaseInsensitiveSearch, .NumericSearch]) != .OrderedDescending
+            bySetAtoZ.sort(by: { (s1: SortedQuizletSet<SortTerm>, s2: SortedQuizletSet<SortTerm>) -> Bool in
+                return s1.title.compare(s2.title, options: [.caseInsensitive, .numeric]) != .orderedDescending
             })
         }
         
         return SortedTerms(AtoZ: AtoZ, bySet: bySet, bySetAtoZ: bySetAtoZ)
     }
     
-    class func collateAtoZ(unsortedAtoZterms: [SortTerm]) -> [SortSet<SortTerm>] {
+    class func collateAtoZ(_ unsortedAtoZterms: [SortTerm]) -> [SortedQuizletSet<SortTerm>] {
         var sortedAtoZterms = unsortedAtoZterms
-        sortedAtoZterms.sortInPlace(termComparator)
+        sortedAtoZterms.sort(by: termComparator)
 
         var currentCharacter: Character? = nil
         var currentTerms: [SortTerm]? = nil
-        var AtoZbySet: [SortSet<SortTerm>] = []
+        var AtoZbySet: [SortedQuizletSet<SortTerm>] = []
 
         for term in sortedAtoZterms {
             var text = term.termForDisplay.string
             //var text = term.definitionForDisplay.string
-            text = text.stringByTrimmingCharactersInSet(NSCharacterSet.whitespaceAndNewlineCharacterSet())
+            text = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
             var firstCharacter: Character
             if (text.isEmpty) {
@@ -422,7 +422,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 
                 // Use '9' as the index view title for all numbers greater than 9
                 if "0"..."9" ~= firstCharacter {
-                    let next = text.startIndex.successor()
+                    let next = text.characters.index(after: text.startIndex)
                     if (next != text.endIndex) {
                         let secondCharacter = text[next]
                         if ("0"..."9" ~= secondCharacter) {
@@ -436,7 +436,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             
             if (currentCharacter != firstCharacter) {
                 if (currentTerms != nil) {
-                    AtoZbySet.append(SortSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
+                    AtoZbySet.append(SortedQuizletSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
                 }
                 currentTerms = []
                 currentCharacter = firstCharacter
@@ -445,52 +445,52 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
         
         if (currentTerms != nil) {
-            AtoZbySet.append(SortSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
+            AtoZbySet.append(SortedQuizletSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
         }
         
         return AtoZbySet
     }
     
-    class func termComparator(t1: SortTerm, t2: SortTerm) -> Bool {
-        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: [.CaseInsensitiveSearch, .NumericSearch])) {
-        case .OrderedAscending:
+    class func termComparator(_ t1: SortTerm, t2: SortTerm) -> Bool {
+        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: [.caseInsensitive, .numeric])) {
+        case .orderedAscending:
             return true
-        case .OrderedDescending:
+        case .orderedDescending:
             return false
-        case .OrderedSame:
-            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: [.CaseInsensitiveSearch, .NumericSearch]) != .OrderedDescending
+        case .orderedSame:
+            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: [.caseInsensitive, .numeric]) != .orderedDescending
         }
     }
     
-    lazy var searchQueue: NSOperationQueue = {
-        var queue = NSOperationQueue()
+    lazy var searchQueue: OperationQueue = {
+        var queue = OperationQueue()
         queue.name = "Search queue"
         return queue
         }()
     
     var currentSearchOperation: SearchOperation?
     
-    func executeSearchForQuery(query: String?) {
+    func executeSearchForQuery(_ query: String?) {
         trace("SearchViewController.executeSearchForQuery", query)
         currentSearchOperation?.cancel()
         
-        let searchOp = SearchOperation(query: query == nil ? "" : query!, sortSelection: currentSortSelection(), sortedTerms: sortedTerms)
-        searchOp.qualityOfService = NSQualityOfService.UserInitiated
+        let searchOp = SearchOperation(query: query ?? "", sortSelection: currentSortSelection(), sortedTerms: sortedTerms)
+        searchOp.qualityOfService = QualityOfService.userInitiated
 
         searchOp.completionBlock = {
-            dispatch_async(dispatch_get_main_queue(), {
-                if (searchOp.cancelled) {
+            DispatchQueue.main.async(execute: {
+                if (searchOp.isCancelled) {
                     return
                 }
                 
                 switch (searchOp.sortSelection) {
-                case .AtoZ:
+                case .atoZ:
                     self.searchTerms.AtoZ = searchOp.searchTerms.AtoZ
                     // searchTerms.levenshteinMatch = searchOp.searchTerms.levenshteinMatch
                     // searchTerms.stringScoreMatch = searchOp.searchTerms.stringScoreMatch
-                case .BySet:
+                case .bySet:
                     self.searchTerms.bySet = searchOp.searchTerms.bySet
-                case .BySetAtoZ:
+                case .bySetAtoZ:
                     self.searchTerms.bySetAtoZ = searchOp.searchTerms.bySetAtoZ
                 }
                 self.tableView.reloadData()
@@ -508,7 +508,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     // MARK: - Table view data source
 
-    func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    func numberOfSectionsInTableView(_ tableView: UITableView) -> Int {
         if (showActivityIndicator) {
             return 1
         }
@@ -516,7 +516,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         // Return the number of sections.
         var numberOfSections: Int
         switch (currentSortSelection()) {
-        case .AtoZ:
+        case .atoZ:
             numberOfSections = searchTerms.AtoZ.count
             /*
             numberOfSections = 1
@@ -527,15 +527,15 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 numberOfSections++
             }
             */
-        case .BySet:
+        case .bySet:
             numberOfSections = searchTerms.bySet.count
-        case .BySetAtoZ:
+        case .bySetAtoZ:
             numberOfSections = searchTerms.bySetAtoZ.count
         }
         return numberOfSections
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if (showActivityIndicator) {
             return 1
         }
@@ -543,7 +543,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         // Return the number of rows in the section.
         var numberOfRows: Int
         switch (currentSortSelection()) {
-        case .AtoZ:
+        case .atoZ:
             numberOfRows = searchTerms.AtoZ[section].terms.count
             /*
             switch (section) {
@@ -557,9 +557,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 numberOfRows = 0
             }
             */
-        case .BySet:
+        case .bySet:
             numberOfRows = searchTerms.bySet[section].terms.count
-        case .BySetAtoZ:
+        case .bySetAtoZ:
             numberOfRows = searchTerms.bySetAtoZ[section].terms.count
         }
         return numberOfRows
@@ -569,15 +569,15 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // Row
     //
     
-    override func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
+    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if (showActivityIndicator) {
-            let cell = tableView.dequeueReusableCellWithIdentifier("ActivityCell", forIndexPath: indexPath)
+            let cell = tableView.dequeueReusableCell(withIdentifier: "ActivityCell", for: indexPath)
             let activityIndicator = cell.contentView.viewWithTag(100) as! UIActivityIndicatorView
             activityIndicator.startAnimating()
             return cell
         }
         
-        let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell", forIndexPath: indexPath) as! SearchTableViewCell
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SearchTableViewCell", for: indexPath) as! SearchTableViewCell
         configureCell(cell, atIndexPath: indexPath)
         return cell
     }
@@ -585,7 +585,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     lazy var highlightForegroundColor = UIColor(red: 25.0 / 255.0, green: 86.0 / 255.0, blue: 204.0 / 255.0, alpha: 1.0)
     lazy var highlightBackgroundColor = UIColor(red: 163.0 / 255.0, green: 205.0 / 255.0, blue: 254.0 / 255.0, alpha: 1.0)
     
-    func configureCell(cell: SearchTableViewCell, atIndexPath indexPath: NSIndexPath) {
+    func configureCell(_ cell: SearchTableViewCell, atIndexPath indexPath: IndexPath) {
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
         
         let termForDisplay = searchTerm.sortTerm.termForDisplay.string
@@ -617,14 +617,15 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     //
     
     lazy var sizingCell: SearchTableViewCell = {
-        return self.tableView.dequeueReusableCellWithIdentifier("SearchTableViewCell") as! SearchTableViewCell
+        [unowned self] in
+        return self.tableView.dequeueReusableCell(withIdentifier: "SearchTableViewCell") as! SearchTableViewCell
     }()
     
     /**
      * This method should make dynamically sizing table view cells work with iOS 7.  I have not been able
      * to test this because Xcode 7 does not support the iOS 7 simulator.
      */
-    func tableView(tableView: UITableView, heightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
         if (showActivityIndicator) {
             return UITableViewAutomaticDimension
         }
@@ -633,28 +634,28 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return calculateRowHeight(sizingCell)
     }
     
-    func calculateRowHeight(cell: SearchTableViewCell) -> CGFloat {
+    func calculateRowHeight(_ cell: SearchTableViewCell) -> CGFloat {
         // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
-        sizingCell.termLabel.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        sizingCell.definitionLabel.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        sizingCell.termLabel.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        sizingCell.definitionLabel.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
 
         return calculateHeight(sizingCell)
     }
     
-    func calculateHeight(cell: UITableViewCell) -> CGFloat {
+    func calculateHeight(_ cell: UITableViewCell) -> CGFloat {
         let indexWidth = Common.getIndexWidthForTableView(tableView, observedTableIndexViewWidth: &observedTableIndexViewWidth, checkTableIndex: true)
-        cell.bounds = CGRectMake(0.0, 0.0, CGRectGetWidth(self.tableView.frame) - indexWidth, CGRectGetHeight(cell.bounds));
+        cell.bounds = CGRect(x: 0.0, y: 0.0, width: self.tableView.frame.width - indexWidth, height: cell.bounds.height);
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         
-        let height = cell.contentView.systemLayoutSizeFittingSize(UILayoutFittingCompressedSize).height
+        let height = cell.contentView.systemLayoutSizeFitting(UILayoutFittingCompressedSize).height
         return height + 1.0 // Add 1.0 for the cell separator height
     }
     
     var estimatedHeight: CGFloat?
     
-    func tableView(tableView: UITableView,
-        estimatedHeightForRowAtIndexPath indexPath: NSIndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView,
+        estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
             if (showActivityIndicator) {
                 return self.tableView(tableView, heightForRowAtIndexPath: indexPath)
             }
@@ -683,16 +684,16 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // Header
     //
     
-    func tableView(tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
-        let cell = tableView.dequeueReusableCellWithIdentifier("SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
+    func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
         configureHeaderCell(cell, section: section)
         return cell
     }
     
-    func configureHeaderCell(cell: SearchTableViewHeaderCell, section: Int) {
+    func configureHeaderCell(_ cell: SearchTableViewHeaderCell, section: Int) {
         var title: String?
         switch (currentSortSelection()) {
-        case .AtoZ:
+        case .atoZ:
             title = searchTerms.AtoZ[section].title
             /*
             switch (section) {
@@ -706,9 +707,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             title = nil
             }
             */
-        case .BySet:
+        case .bySet:
             title = searchTerms.bySet[section].title
-        case .BySetAtoZ:
+        case .bySetAtoZ:
             title = searchTerms.bySetAtoZ[section].title
         }
         
@@ -722,10 +723,11 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     //
     
     lazy var headerSizingCell: SearchTableViewHeaderCell = {
-        return self.tableView.dequeueReusableCellWithIdentifier("SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
+        [unowned self] in
+        return self.tableView.dequeueReusableCell(withIdentifier: "SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
         }()
     
-    func tableView(tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
         if (showActivityIndicator) {
             return 0
         }
@@ -734,21 +736,21 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return calculateHeaderHeight(headerSizingCell)
     }
     
-    func calculateHeaderHeight(cell: SearchTableViewHeaderCell) -> CGFloat {
+    func calculateHeaderHeight(_ cell: SearchTableViewHeaderCell) -> CGFloat {
         // Use zero height for empty cells
         if (headerSizingCell.headerLabel.text == nil) {
             return 0
         }
         
         // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
-        cell.headerLabel.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        cell.headerLabel.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
         
         return calculateHeight(cell)
     }
 
     var estimatedHeaderHeight: CGFloat?
     
-    func tableView(tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
+    func tableView(_ tableView: UITableView, estimatedHeightForHeaderInSection section: Int) -> CGFloat {
         if (estimatedHeaderHeight == nil) {
             headerSizingCell.headerLabel.font = preferredSearchFont
             headerSizingCell.headerLabel.text = "Header"
@@ -763,18 +765,18 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     //
     
     // returns the indexed titles that appear in the index list on the right side of the table view. For example, you can return an array of strings containing “A” to “Z”.
-    func sectionIndexTitlesForTableView(tableView: UITableView) -> [String]? {
+    func sectionIndexTitlesForTableView(_ tableView: UITableView) -> [String]? {
         var titles: [String]?
         
         switch (currentSortSelection()) {
-        case .AtoZ:
+        case .atoZ:
             titles = []
             for section in searchTerms.AtoZ {
                 titles!.append(section.title)
             }
-        case .BySet:
+        case .bySet:
             titles = nil
-        case .BySetAtoZ:
+        case .bySetAtoZ:
             titles = []
             for section in searchTerms.bySetAtoZ {
                 var firstCharacter = Common.firstNonWhitespaceCharacter(section.title)
@@ -789,7 +791,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     // returns the section index that the table view should jump to when user taps a particular index.
-    func tableView(tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
         return index
     }
     

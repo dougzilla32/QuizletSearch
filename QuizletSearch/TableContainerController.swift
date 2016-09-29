@@ -16,12 +16,12 @@ class TableContainerController: UIViewController, UITableViewDelegate, UIScrollV
 
     var refreshControl: UIRefreshControl!
     
-    func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         return 0
     }
     
-    func tableView(tableView: UITableView, cellForRowAtIndexPath indexPath: NSIndexPath) -> UITableViewCell {
-        return UITableViewCell(style: UITableViewCellStyle.Default, reuseIdentifier: nil)
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+        return UITableViewCell(style: UITableViewCellStyle.default, reuseIdentifier: nil)
     }
 
     // MARK: - Table view controller
@@ -30,26 +30,26 @@ class TableContainerController: UIViewController, UITableViewDelegate, UIScrollV
         super.viewDidLoad()
         
         // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TableContainerController.keyboardWillShow(_:)), name: UIKeyboardWillShowNotification, object: nil)
-        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(TableContainerController.keyboardWillHide(_:)), name: UIKeyboardWillHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(TableContainerController.keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(TableContainerController.keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
         
         if (refreshing) {
             // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
             refreshControl = UIRefreshControl()
-            refreshControl.addTarget(self, action: #selector(TableContainerController.refreshTable), forControlEvents: UIControlEvents.ValueChanged)
+            refreshControl.addTarget(self, action: #selector(TableContainerController.refreshTable), for: UIControlEvents.valueChanged)
             tableView.addSubview(refreshControl)
-            tableView.sendSubviewToBack(refreshControl)
+            tableView.sendSubview(toBack: refreshControl)
         }
     }
     
     // Implemented by subclasses
     func refreshTable() { }
     
-    func keyboardWillShow(notification: NSNotification) {
-        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.CGRectValue() {
+    func keyboardWillShow(_ notification: Notification) {
+        if let keyboardSize = ((notification as NSNotification).userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             
             var contentInsets: UIEdgeInsets
-            if (UIInterfaceOrientationIsPortrait(UIApplication.sharedApplication().statusBarOrientation)) {
+            if (UIInterfaceOrientationIsPortrait(UIApplication.shared.statusBarOrientation)) {
                 contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.height, 0.0);
             } else {
                 contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.width, 0.0);
@@ -60,22 +60,22 @@ class TableContainerController: UIViewController, UITableViewDelegate, UIScrollV
         }
     }
     
-    func keyboardWillHide(notification: NSNotification) {
-        self.tableView.contentInset = UIEdgeInsetsZero
-        self.tableView.scrollIndicatorInsets = UIEdgeInsetsZero
+    func keyboardWillHide(_ notification: Notification) {
+        self.tableView.contentInset = UIEdgeInsets.zero
+        self.tableView.scrollIndicatorInsets = UIEdgeInsets.zero
     }
     
     // The UITableViewController deselects the currently selected row when the table becomes visible.  We are not subclassing UITableViewController because we want to customize the view with additional elements, and the UITableViewController does not allow for this.
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         
         if let path = tableView.indexPathForSelectedRow {
-            tableView.deselectRowAtIndexPath(path, animated: true)
+            tableView.deselectRow(at: path, animated: true)
         }
     }
     
     // The UITableViewController flashes the scrollbar when the table becomes visible.
-    override func viewDidAppear(animated: Bool) {
+    override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         tableView.flashScrollIndicators()
     }

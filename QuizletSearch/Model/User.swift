@@ -19,38 +19,38 @@ class User: NSManagedObject {
     @NSManaged var root: Root
     @NSManaged var queries: NSOrderedSet // Query
 
-    func copyFrom(userAccount: UserAccount) {
+    func copyFrom(_ userAccount: UserAccount) {
         self.accessToken = userAccount.accessToken
-        self.accessTokenExpiration = Int64(userAccount.expiresIn) + Int64(NSDate().timeIntervalSince1970)
+        self.accessTokenExpiration = Int64(userAccount.expiresIn) + Int64(Date().timeIntervalSince1970)
         self.name = userAccount.userName
         self.id = userAccount.userId
     }
     
     func expiresIn() -> Int {
-        return Int(self.accessTokenExpiration - Int64(NSDate().timeIntervalSince1970))
+        return Int(self.accessTokenExpiration - Int64(Date().timeIntervalSince1970))
     }
     
-    func addQuery(query: Query) {
+    func addQuery(_ query: Query) {
         let mutableItems = queries.mutableCopy() as! NSMutableOrderedSet
-        mutableItems.addObject(query)
+        mutableItems.add(query)
         queries = mutableItems.copy() as! NSOrderedSet
     }
 
-    func insertQuery(query: Query, atIndex: Int) {
+    func insertQuery(_ query: Query, atIndex: Int) {
         let mutableItems = queries.mutableCopy() as! NSMutableOrderedSet
-        mutableItems.insertObject(query, atIndex: atIndex)
+        mutableItems.insert(query, at: atIndex)
         queries = mutableItems.copy() as! NSOrderedSet
     }
 
-    func moveQueriesAtIndexes(indexes: NSIndexSet, toIndex: Int) {
+    func moveQueriesAtIndexes(_ indexes: IndexSet, toIndex: Int) {
         let mutableItems = queries.mutableCopy() as! NSMutableOrderedSet
-        mutableItems.moveObjectsAtIndexes(indexes, toIndex: toIndex)
+        mutableItems.moveObjects(at: indexes, to: toIndex)
         queries = mutableItems.copy() as! NSOrderedSet
     }
 
-    func removeQueryAtIndex(index: Int) {
+    func removeQueryAtIndex(_ index: Int) {
         let mutableItems = queries.mutableCopy() as! NSMutableOrderedSet
-        mutableItems.removeObjectAtIndex(index)
+        mutableItems.removeObject(at: index)
         queries = mutableItems.copy() as! NSOrderedSet
     }
 }

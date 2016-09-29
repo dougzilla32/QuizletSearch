@@ -11,20 +11,20 @@ import Foundation
 
 class UsersTableViewController: UITableViewController {
 
-    override func shouldAutorotate() -> Bool {
+    override var shouldAutorotate : Bool {
         return true
     }
     
-    override func supportedInterfaceOrientations() -> UIInterfaceOrientationMask {
-        return .All
+    override var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+        return .all
     }
 
     override func loadView() {
         super.loadView()
-        (UIApplication.sharedApplication().delegate as! AppDelegate).cancelRefreshTimer()
+        (UIApplication.shared.delegate as! AppDelegate).cancelRefreshTimer()
     }
 
-    override func viewWillAppear(animated: Bool) {
+    override func viewWillAppear(_ animated: Bool) {
         UIView.setAnimationsEnabled(false)
         navigationController?.setNavigationBarHidden(false, animated: false)
         UIView.setAnimationsEnabled(true)
@@ -47,13 +47,13 @@ class UsersTableViewController: UITableViewController {
     
     // MARK: - Table view data source
     
-    override func numberOfSectionsInTableView(tableView: UITableView) -> Int {
+    override func numberOfSections(in tableView: UITableView) -> Int {
         // #warning Potentially incomplete method implementation.
         // Return the number of sections.
         return 0
     }
     
-    override func tableView(tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         // #warning Incomplete method implementation.
         // Return the number of rows in the section.
         return 0

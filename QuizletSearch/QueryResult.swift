@@ -31,14 +31,14 @@ class QueryResult {
         self.qsets = qsets
     }
     
-    init(jsonAny: AnyObject) throws {
+    init(jsonAny: Any) throws {
         if let json = jsonAny as? NSDictionary,
-            page = json["page"] as? Int,
-            totalPages = json["total_pages"] as? Int,
-            totalResults = json["total_results"] as? Int,
-            imageSetCount = json["image_set_count"] as? Int,
-            jsonSets = json["sets"] as? Array<NSDictionary>,
-            qsets = QSet.setsFromJSON(jsonSets) {
+            let page = json["page"] as? Int,
+            let totalPages = json["total_pages"] as? Int,
+            let totalResults = json["total_results"] as? Int,
+            let imageSetCount = json["image_set_count"] as? Int,
+            let jsonSets = json["sets"] as? Array<NSDictionary>,
+            let qsets = QSet.setsFromJSON(jsonSets) {
                 self.page = page
                 self.totalPages = totalPages
                 self.totalResults = totalResults

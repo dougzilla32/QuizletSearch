@@ -20,21 +20,21 @@ class SetTableViewCell: UITableViewCell {
     @IBOutlet weak var definition2: UILabel!
 
     func resetBounds() {
-        label.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        termsActivityIndicator.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        term0.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        term1.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        term2.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        definition0.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        definition1.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
-        definition2.bounds = CGRectMake(0.0, 0.0, 0.0, 0.0)
+        label.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        termsActivityIndicator.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        term0.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        term1.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        term2.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        definition0.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        definition1.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        definition2.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
     }
     override func awakeFromNib() {
         super.awakeFromNib()
         // Initialization code
     }
     
-    override func setSelected(selected: Bool, animated: Bool) {
+    override func setSelected(_ selected: Bool, animated: Bool) {
         super.setSelected(selected, animated: animated)
         
         // Configure the view for the selected state

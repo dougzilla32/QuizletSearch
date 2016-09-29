@@ -16,13 +16,13 @@ class Term: NSManagedObject {
     @NSManaged var definition: String
     @NSManaged var set: QuizletSet
 
-    func initFrom(qterm: QTerm) {
+    func initFrom(_ qterm: QTerm) {
         self.id = qterm.id
         self.term = qterm.term
         self.definition = qterm.definition
     }
     
-    func copyFrom(qterm: QTerm) {
+    func copyFrom(_ qterm: QTerm) {
         if (self.id != qterm.id) {
             self.id = qterm.id
         }
