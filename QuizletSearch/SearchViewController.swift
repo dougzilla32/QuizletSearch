@@ -299,7 +299,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     // call back function by saveContext, support multi-thread
     func contextDidSaveNotification(_ notification: Notification) {
-        let info = (notification as NSNotification).userInfo! as [AnyHashable: Any]
+        let info = notification.userInfo! as [AnyHashable: Any]
 
         let termsChanged = SearchViewController.containsTerms(info[NSInsertedObjectsKey] as? NSSet)
             || SearchViewController.containsTerms(info[NSDeletedObjectsKey] as? NSSet)

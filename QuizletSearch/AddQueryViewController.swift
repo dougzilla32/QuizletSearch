@@ -372,11 +372,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         case .userCell:
             if (text == nil || text!.isEmpty) {
                 deleteUserAtIndexPath(indexPath)
-                trace("Delete user: '", text, "' ", (indexPath as NSIndexPath).row, separator: "")
+                trace("Delete user: '", text, "' ", indexPath.row, separator: "")
             }
             else {
                 let newIndexPath = model.updateAndSortUser(text, atIndexPath: indexPath)
-                trace("Update user: '", text, "' ", (indexPath as NSIndexPath).row, " ", (newIndexPath as NSIndexPath).row, separator: "")
+                trace("Update user: '", text, "' ", indexPath.row, " ", newIndexPath.row, separator: "")
                 if (newIndexPath != indexPath) {
                     self.tableView.moveRow(at: indexPath, to: newIndexPath)
                     indexPath = newIndexPath
@@ -386,11 +386,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         case .classCell:
             if (text == nil || text!.isEmpty) {
                 deleteClassAtIndexPath(indexPath)
-                trace("Delete class: '", text, "' ", (indexPath as NSIndexPath).row, separator: "")
+                trace("Delete class: '", text, "' ", indexPath.row, separator: "")
             }
             else {
                 let newIndexPath = model.updateAndSortClass(text, atIndexPath: indexPath)
-                trace("Update class: '", text, "' ", (indexPath as NSIndexPath).row, " ", (newIndexPath as NSIndexPath).row, separator: "")
+                trace("Update class: '", text, "' ", indexPath.row, " ", newIndexPath.row, separator: "")
                 if (newIndexPath != indexPath) {
                     self.tableView.moveRow(at: indexPath, to: newIndexPath)
                     indexPath = newIndexPath
@@ -692,10 +692,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             // handle delete (by removing the data from your array and updating the tableview)
             switch (model.rowTypeForPath(indexPath)) {
             case .userCell:
-                trace("Delete user", (indexPath as NSIndexPath).row)
+                trace("Delete user", indexPath.row)
                 deleteUserAtIndexPath(indexPath)
             case .classCell, .includeCell, .excludeCell, .resultCell:
-                trace("Delete class", (indexPath as NSIndexPath).row)
+                trace("Delete class", indexPath.row)
                 deleteClassAtIndexPath(indexPath)
             default:
                 abort()
@@ -722,12 +722,12 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
 
     override func tableView(_ tableView: UITableView, targetIndexPathForMoveFromRowAt sourceIndexPath: IndexPath, toProposedIndexPath proposedDestinationIndexPath: IndexPath) -> IndexPath {
-        if (sourceIndexPath as NSIndexPath).section != (proposedDestinationIndexPath as NSIndexPath).section {
+        if sourceIndexPath.section != proposedDestinationIndexPath.section {
             var row = 0
-            if (sourceIndexPath as NSIndexPath).section < (proposedDestinationIndexPath as NSIndexPath).section {
-                row = self.tableView(tableView, numberOfRowsInSection: (sourceIndexPath as NSIndexPath).section) - 1
+            if sourceIndexPath.section < proposedDestinationIndexPath.section {
+                row = self.tableView(tableView, numberOfRowsInSection: sourceIndexPath.section) - 1
             }
-            return IndexPath(row: row, section: (sourceIndexPath as NSIndexPath).section)
+            return IndexPath(row: row, section: sourceIndexPath.section)
         }
         return proposedDestinationIndexPath
     }

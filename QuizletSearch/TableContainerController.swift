@@ -46,7 +46,7 @@ class TableContainerController: UIViewController, UITableViewDelegate, UIScrollV
     func refreshTable() { }
     
     func keyboardWillShow(_ notification: Notification) {
-        if let keyboardSize = ((notification as NSNotification).userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             
             var contentInsets: UIEdgeInsets
             if (UIInterfaceOrientationIsPortrait(UIApplication.shared.statusBarOrientation)) {

@@ -75,7 +75,7 @@ class SortedTerms<T> {
         var term: T
         switch (sortSelection) {
         case .atoZ:
-            term = AtoZ[(indexPath as NSIndexPath).section].terms[(indexPath as NSIndexPath).row]
+            term = AtoZ[indexPath.section].terms[indexPath.row]
             /*
             switch (indexPath.section) {
             case 0:
@@ -89,9 +89,9 @@ class SortedTerms<T> {
             }
             */
         case .bySet:
-            term = bySet[(indexPath as NSIndexPath).section].terms[(indexPath as NSIndexPath).row]
+            term = bySet[indexPath.section].terms[indexPath.row]
         case .bySetAtoZ:
-            term = bySetAtoZ[(indexPath as NSIndexPath).section].terms[(indexPath as NSIndexPath).row]
+            term = bySetAtoZ[indexPath.section].terms[indexPath.row]
         }
         return term
     }

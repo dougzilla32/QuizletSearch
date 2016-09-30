@@ -142,7 +142,7 @@ class AddQueryModel {
             cellIdentifier = "Result Cell"
         }
         else {
-            cellIdentifier = rowTypes[(indexPath as NSIndexPath).section][(indexPath as NSIndexPath).row].id()
+            cellIdentifier = rowTypes[indexPath.section][indexPath.row].id()
         }
         return cellIdentifier
     }
@@ -251,7 +251,7 @@ class AddQueryModel {
     }
     
     func updateAndSortUser(_ name: String?, atIndexPath indexPath: IndexPath) -> IndexPath {
-        assert((indexPath as NSIndexPath).section == ResultsSection)
+        assert(indexPath.section == ResultsSection)
         let username = (name != nil) ? name! : ""
         
         let query = pagers.queryPager?.query

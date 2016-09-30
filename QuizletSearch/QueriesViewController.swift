@@ -333,9 +333,9 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         dataModel.saveChanges()
         
         let indexPath = IndexPath(row: currentUser.queries.count-1, section: 0)
-        editingRow = (indexPath as NSIndexPath).row
+        editingRow = indexPath.row
         tableView.insertRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
-        addingRow = (indexPath as NSIndexPath).row
+        addingRow = indexPath.row
     }
     
     @IBAction func edit(_ sender: AnyObject) {
@@ -394,10 +394,10 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         var reloadRow: IndexPath?
         
         if (text!.isEmpty) {
-            if (addingRow == (indexPath as NSIndexPath).row) {
+            if (addingRow == indexPath.row) {
                 // Delete
-                let query = (currentUser.queries[(indexPath as NSIndexPath).row] as! Query)
-                currentUser.removeQueryAtIndex((indexPath as NSIndexPath).row)
+                let query = (currentUser.queries[indexPath.row] as! Query)
+                currentUser.removeQueryAtIndex(indexPath.row)
                 dataModel.moc.delete(query)
                 dataModel.saveChanges()
                 deleteRow = indexPath
@@ -409,18 +409,18 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         }
         else {
             // Apply
-            (currentUser.queries[(indexPath as NSIndexPath).row] as! Query).title = text!
+            (currentUser.queries[indexPath.row] as! Query).title = text!
             dataModel.saveChanges()
             reloadRow = indexPath
         }
         
         if (recursiveReloadCounter == 0) {
             if (deleteRow != nil) {
-                trace("deleteRow row:", (indexPath as NSIndexPath).row)
+                trace("deleteRow row:", indexPath.row)
                 tableView.deleteRows(at: [deleteRow!], with: UITableViewRowAnimation.automatic)
             }
             if (reloadRow != nil) {
-                trace("reloadRow row:", (indexPath as NSIndexPath).row, "updatingText:", updatingText)
+                trace("reloadRow row:", indexPath.row, "updatingText:", updatingText)
                 if (updatingText) {
                     deferReloadRow = reloadRow
                 }
@@ -452,23 +452,23 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     }
 
     func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
-        trace("select", (indexPath as NSIndexPath).row)
-        dataModel.currentQuery = dataModel.currentUser?.queries[(indexPath as NSIndexPath).row] as? Query
+        trace("select", indexPath.row)
+        dataModel.currentQuery = dataModel.currentUser?.queries[indexPath.row] as? Query
 //        self.performSegueWithIdentifier("MySegue", sender: self)
     }
     
     // MARK: - Table view data source
 
     func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool {
-        return (indexPath as NSIndexPath).row < currentUser.queries.count
+        return indexPath.row < currentUser.queries.count
     }
     
     func tableView(_ tableView: UITableView, canMoveRowAtIndexPath indexPath: IndexPath) -> Bool {
-        return (indexPath as NSIndexPath).row < currentUser.queries.count
+        return indexPath.row < currentUser.queries.count
     }
     
     func tableView(_ tableView: UITableView, moveRowAtIndexPath sourceIndexPath: IndexPath, toIndexPath destinationIndexPath: IndexPath) {
-        currentUser.moveQueriesAtIndexes(IndexSet(integer: (sourceIndexPath as NSIndexPath).row), toIndex: (destinationIndexPath as NSIndexPath).row)
+        currentUser.moveQueriesAtIndexes(IndexSet(integer: sourceIndexPath.row), toIndex: destinationIndexPath.row)
         dataModel.saveChanges()
     }
     
@@ -483,7 +483,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
                 UIView.setAnimationsEnabled(enabled)
             }
 
-            currentUser.removeQueryAtIndex((indexPath as NSIndexPath).row)
+            currentUser.removeQueryAtIndex(indexPath.row)
             dataModel.saveChanges()
             tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
         }
@@ -505,13 +505,13 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cellId: String
-        if ((indexPath as NSIndexPath).row == currentUser.queries.count && !inEditMode) {
+        if (indexPath.row == currentUser.queries.count && !inEditMode) {
             cellId = "Add button"
         }
-        else if ((indexPath as NSIndexPath).row >= currentUser.queries.count) {
+        else if (indexPath.row >= currentUser.queries.count) {
             cellId = "Empty"
         }
-        else if (inEditMode || (indexPath as NSIndexPath).row == editingRow) {
+        else if (inEditMode || indexPath.row == editingRow) {
             cellId = "TextField"
         }
         else {
@@ -523,7 +523,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         let cell = tableView.dequeueReusableCell(withIdentifier: cellId, for: indexPath)
         configureCell(cell, atIndexPath: indexPath)
         
-        if ((indexPath as NSIndexPath).row == editingRow) {
+        if (indexPath.row == editingRow) {
             let textField = cell.contentView.viewWithTag(100) as! UITextField
             if (!textField.isFirstResponder) {
                 textField.becomeFirstResponder()
@@ -541,10 +541,10 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     }
     
     func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath) {
-        if ((indexPath as NSIndexPath).row < currentUser.queries.count) {
-            let queryData = currentUser.queries[(indexPath as NSIndexPath).row] as! Query
+        if (indexPath.row < currentUser.queries.count) {
+            let queryData = currentUser.queries[indexPath.row] as! Query
             let text = queryData.title
-            if (inEditMode || (indexPath as NSIndexPath).row == editingRow) {
+            if (inEditMode || indexPath.row == editingRow) {
                 let textField = cell.contentView.viewWithTag(100) as! UITextField
                 textField.text = text
                 textField.font = preferredFont
@@ -568,7 +568,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     }()
     
     func tableView(_ tableView: UITableView, heightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
-        let cell = (inEditMode || (indexPath as NSIndexPath).row == editingRow) ? textFieldSizingCell : labelSizingCell
+        let cell = (inEditMode || indexPath.row == editingRow) ? textFieldSizingCell : labelSizingCell
         configureCell(cell, atIndexPath:indexPath)
         return calculateHeight(cell)
     }
