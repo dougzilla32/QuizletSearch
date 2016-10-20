@@ -44,6 +44,57 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return SortSelection(rawValue: sortStyle.selectedSegmentIndex)!
     }
     
+    // MARK: - Export action
+    
+    @IBAction func exportSetData(_ sender: AnyObject) {
+        var data = ""
+        switch (currentSortSelection()) {
+        case .atoZ:
+            for set in sortedTerms.AtoZ {
+                for term in set.terms {
+                    data.append(term.termForDisplay.string)
+                    data.append("\t")
+                    data.append(term.definitionForDisplay.string)
+                    data.append("\n")
+                }
+            }
+        case .bySet:
+            for set in sortedTerms.bySet {
+                if (!data.isEmpty) {
+                    data.append("\n")
+                }
+                data.append(set.title)
+                data.append("\n")
+                for term in set.terms {
+                    data.append(term.termForDisplay.string)
+                    data.append("\t")
+                    data.append(term.definitionForDisplay.string)
+                    data.append("\n")
+                }
+            }
+        case .bySetAtoZ:
+            for set in sortedTerms.bySetAtoZ {
+                if (!data.isEmpty) {
+                    data.append("\n")
+                }
+                data.append(set.title)
+                data.append("\n")
+                for term in set.terms {
+                    data.append(term.termForDisplay.string)
+                    data.append("\t")
+                    data.append(term.definitionForDisplay.string)
+                    data.append("\n")
+                }
+            }
+        }
+        
+        let activityViewController = UIActivityViewController(activityItems: [data], applicationActivities: nil)
+        if let popoverPresentationController = activityViewController.popoverPresentationController {
+            popoverPresentationController.barButtonItem = (sender as! UIBarButtonItem)
+        }
+        present(activityViewController, animated: true, completion: nil)
+    }
+
     // MARK: - Search Bar
     
     // called when text changes (including clear)
