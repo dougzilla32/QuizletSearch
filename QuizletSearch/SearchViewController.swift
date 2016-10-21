@@ -197,7 +197,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         
         DispatchQueue.main.async(execute: {
             trace("SearchViewController.executeSearchForQuery from viewDidLayoutSubviews")
-            self.sortedTerms = SearchViewController.initSortedTerms()
+            self.sortedTerms = SearchOperation.initSortedTerms()
             self.showActivityIndicator = false
             self.executeSearchForQuery(self.searchBar.text)
         })
@@ -383,7 +383,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             }
             */
             
-            let sortedTerms = SearchViewController.initSortedTerms()
+            let sortedTerms = SearchOperation.initSortedTerms()
             
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
             dispatch_sync_main({
@@ -405,112 +405,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             }
         }
         return false
-    }
-    
-    class func initSortedTerms() -> SortedTerms<SortTerm> {
-        var AtoZterms: [SortTerm] = []
-        var AtoZ: [SortedQuizletSet<SortTerm>] = []
-        var bySet: [SortedQuizletSet<SortTerm>] = []
-        var bySetAtoZ: [SortedQuizletSet<SortTerm>] = []
-        
-        if let query = (UIApplication.shared.delegate as! AppDelegate).dataModel.currentQuery {
-            for set in query.sets {
-                let quizletSet = set as! QuizletSet
-                var termsForSet = [SortTerm]()
-                
-                for termAny in quizletSet.terms {
-                    let term = termAny as! Term
-                    if (term.term.isWhitespace() && term.definition.isWhitespace()) {
-                        continue
-                    }
-                    let sortTerm = SortTerm(term: term)
-                    AtoZterms.append(sortTerm)
-                    termsForSet.append(sortTerm)
-                }
-                
-                // Use native term order for 'bySet'
-                bySet.append(SortedQuizletSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
-
-                // Use alphabetically sorted terms for 'bySetAtoZ'
-                termsForSet.sort(by: termComparator)
-                bySetAtoZ.append(SortedQuizletSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
-            }
-            
-            AtoZ = collateAtoZ(AtoZterms)
-            // sort(&AtoZterms, termComparator)
-            
-            bySet.sort(by: { (s1: SortedQuizletSet<SortTerm>, s2: SortedQuizletSet<SortTerm>) -> Bool in
-                return s1.createdDate > s2.createdDate
-            })
-            
-            bySetAtoZ.sort(by: { (s1: SortedQuizletSet<SortTerm>, s2: SortedQuizletSet<SortTerm>) -> Bool in
-                return s1.title.compare(s2.title, options: [.caseInsensitive, .numeric]) != .orderedDescending
-            })
-        }
-        
-        return SortedTerms(AtoZ: AtoZ, bySet: bySet, bySetAtoZ: bySetAtoZ)
-    }
-    
-    class func collateAtoZ(_ unsortedAtoZterms: [SortTerm]) -> [SortedQuizletSet<SortTerm>] {
-        var sortedAtoZterms = unsortedAtoZterms
-        sortedAtoZterms.sort(by: termComparator)
-
-        var currentCharacter: Character? = nil
-        var currentTerms: [SortTerm]? = nil
-        var AtoZbySet: [SortedQuizletSet<SortTerm>] = []
-
-        for term in sortedAtoZterms {
-            var text = term.termForDisplay.string
-            //var text = term.definitionForDisplay.string
-            text = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-            
-            var firstCharacter: Character
-            if (text.isEmpty) {
-                firstCharacter = " "
-            }
-            else {
-                firstCharacter = text[text.startIndex]
-                
-                // Use '9' as the index view title for all numbers greater than 9
-                if "0"..."9" ~= firstCharacter {
-                    let next = text.characters.index(after: text.startIndex)
-                    if (next != text.endIndex) {
-                        let secondCharacter = text[next]
-                        if ("0"..."9" ~= secondCharacter) {
-                            firstCharacter = "9"
-                        }
-                    }
-                }
-                
-                firstCharacter = Common.toUppercase(firstCharacter)
-            }
-            
-            if (currentCharacter != firstCharacter) {
-                if (currentTerms != nil) {
-                    AtoZbySet.append(SortedQuizletSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
-                }
-                currentTerms = []
-                currentCharacter = firstCharacter
-            }
-            currentTerms!.append(term)
-        }
-        
-        if (currentTerms != nil) {
-            AtoZbySet.append(SortedQuizletSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
-        }
-        
-        return AtoZbySet
-    }
-    
-    class func termComparator(_ t1: SortTerm, t2: SortTerm) -> Bool {
-        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: [.caseInsensitive, .numeric])) {
-        case .orderedAscending:
-            return true
-        case .orderedDescending:
-            return false
-        case .orderedSame:
-            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: [.caseInsensitive, .numeric]) != .orderedDescending
-        }
     }
     
     lazy var searchQueue: OperationQueue = {
