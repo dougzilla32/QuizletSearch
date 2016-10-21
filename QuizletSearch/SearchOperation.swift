@@ -123,14 +123,14 @@ class SearchOperation: Operation {
         
         switch (sortSelection) {
         case .atoZ:
-            searchTerms.AtoZ = searchTermsBySetForQuery(query, termsBySet: sortedTerms.AtoZ)
+            searchTerms.AtoZ = searchTermsBySetForQuery(query, sortTermsBySet: sortedTerms.AtoZ)
             // searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
         case .bySet:
-            searchTerms.bySet = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySet)
+            searchTerms.bySet = searchTermsBySetForQuery(query, sortTermsBySet: sortedTerms.bySet)
         case .bySetAtoZ:
-            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, termsBySet: sortedTerms.bySetAtoZ)
+            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, sortTermsBySet: sortedTerms.bySetAtoZ)
         }
     }
     
@@ -164,19 +164,19 @@ class SearchOperation: Operation {
     }
     */
     
-    func searchTermsBySetForQuery(_ query: StringWithBoundaries, termsBySet: [SortedQuizletSet<SortTerm>]) -> [SortedQuizletSet<SearchTerm>] {
+    func searchTermsBySetForQuery(_ query: StringWithBoundaries, sortTermsBySet: [SortedQuizletSet<SortTerm>]) -> [SortedQuizletSet<SearchTerm>] {
         var searchTermsBySet: [SortedQuizletSet<SearchTerm>] = []
         if (query.string.isWhitespace()) {
-            for quizletSet in termsBySet {
-                var termsForSet = [SearchTerm]()
+            for quizletSet in sortTermsBySet {
+                var searchTermsForSet = [SearchTerm]()
                 for term in quizletSet.terms {
-                    termsForSet.append(SearchTerm(sortTerm: term))
+                    searchTermsForSet.append(SearchTerm(sortTerm: term))
                 }
-                searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+                searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: searchTermsForSet, createdDate: quizletSet.createdDate))
             }
         } else {
-            for quizletSet in termsBySet {
-                var termsForSet = [SearchTerm]()
+            for quizletSet in sortTermsBySet {
+                var searchTermsForSet = [SearchTerm]()
                 
                 for term in quizletSet.terms {
                     if (self.isCancelled) {
@@ -188,15 +188,15 @@ class SearchOperation: Operation {
                     let definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
                     
                     if (termRanges.count > 0 || definitionRanges.count > 0) {
-                        termsForSet.append(SearchTerm(sortTerm: term,
+                        searchTermsForSet.append(SearchTerm(sortTerm: term,
                             score: 0.0,
                             termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
                             definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
                     }
                 }
                 
-                if (termsForSet.count > 0) {
-                    searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
+                if (searchTermsForSet.count > 0) {
+                    searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: searchTermsForSet, createdDate: quizletSet.createdDate))
                 }
             }
         }
