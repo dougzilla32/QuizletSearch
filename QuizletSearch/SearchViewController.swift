@@ -32,8 +32,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     // MARK: - Sorting
     
-    var sortedTerms = SortedTerms<SortTerm>()
-    var searchTerms = SortedTerms<SearchTerm>()
+    var allTerms = SortedSetsAndTerms<SortTerm>()
+    var searchTerms = SortedSetsAndTerms<SearchTerm>()
     
     @IBAction func sortStyleChanged(_ sender: AnyObject) {
         trace("SearchViewController.sortStyleChanged executeSearchForQuery", searchBar.text)
@@ -50,7 +50,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         var data = ""
         switch (currentSortSelection()) {
         case .atoZ:
-            for set in sortedTerms.AtoZ {
+            for set in allTerms.AtoZ {
                 for term in set.terms {
                     data.append(term.termForDisplay.string)
                     data.append("\t")
@@ -59,7 +59,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 }
             }
         case .bySet:
-            for set in sortedTerms.bySet {
+            for set in allTerms.bySet {
                 if (!data.isEmpty) {
                     data.append("\n")
                 }
@@ -73,7 +73,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 }
             }
         case .bySetAtoZ:
-            for set in sortedTerms.bySetAtoZ {
+            for set in allTerms.bySetAtoZ {
                 if (!data.isEmpty) {
                     data.append("\n")
                 }
@@ -197,7 +197,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         
         DispatchQueue.main.async(execute: {
             trace("SearchViewController.executeSearchForQuery from viewDidLayoutSubviews")
-            self.sortedTerms = SearchOperation.initSortedTerms()
+            self.allTerms = SearchOperation.initSortedTerms()
             self.showActivityIndicator = false
             self.executeSearchForQuery(self.searchBar.text)
         })
@@ -383,12 +383,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             }
             */
             
-            let sortedTerms = SearchOperation.initSortedTerms()
+            let allTerms = SearchOperation.initSortedTerms()
             
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
             dispatch_sync_main({
                 trace("SearchViewController.contextDidSave executeSearchForQuery", self.searchBar.text)
-                self.sortedTerms = sortedTerms
+                self.allTerms = allTerms
                 self.executeSearchForQuery(self.searchBar.text)
             })
         }
@@ -419,7 +419,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         trace("SearchViewController.executeSearchForQuery", query)
         currentSearchOperation?.cancel()
         
-        let searchOp = SearchOperation(query: query ?? "", sortSelection: currentSortSelection(), sortedTerms: sortedTerms)
+        let searchOp = SearchOperation(query: query ?? "", sortSelection: currentSortSelection(), allTerms: allTerms)
         searchOp.qualityOfService = QualityOfService.userInitiated
 
         searchOp.completionBlock = {

@@ -52,7 +52,7 @@ class SortedQuizletSet<T> {
     }
 }
 
-class SortedTerms<T> {
+class SortedSetsAndTerms<T> {
     // var AtoZ: [T]
     var AtoZ: [SortedQuizletSet<T>]
     var bySet: [SortedQuizletSet<T>]
@@ -102,14 +102,14 @@ class SortedTerms<T> {
 class SearchOperation: Operation {
     let query: String
     let sortSelection: SortSelection
-    let sortedTerms: SortedTerms<SortTerm>
+    let allTerms: SortedSetsAndTerms<SortTerm>
     
-    let searchTerms = SortedTerms<SearchTerm>()
+    let searchTerms = SortedSetsAndTerms<SearchTerm>()
     
-    init(query: String, sortSelection: SortSelection, sortedTerms: SortedTerms<SortTerm>) {
+    init(query: String, sortSelection: SortSelection, allTerms: SortedSetsAndTerms<SortTerm>) {
         self.query = query
         self.sortSelection = sortSelection
-        self.sortedTerms = sortedTerms
+        self.allTerms = allTerms
     }
     
     override func main() {
@@ -125,14 +125,14 @@ class SearchOperation: Operation {
         
         switch (sortSelection) {
         case .atoZ:
-            searchTerms.AtoZ = searchTermsBySetForQuery(query, sortTermsBySet: sortedTerms.AtoZ)
+            searchTerms.AtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.AtoZ)
             // searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
         case .bySet:
-            searchTerms.bySet = searchTermsBySetForQuery(query, sortTermsBySet: sortedTerms.bySet)
+            searchTerms.bySet = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.bySet)
         case .bySetAtoZ:
-            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, sortTermsBySet: sortedTerms.bySetAtoZ)
+            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.bySetAtoZ)
         }
     }
     
@@ -209,7 +209,7 @@ class SearchOperation: Operation {
         return []
     }
     
-    class func initSortedTerms() -> SortedTerms<SortTerm> {
+    class func initSortedTerms() -> SortedSetsAndTerms<SortTerm> {
         var AtoZterms: [SortTerm] = []
         var AtoZ: [SortedQuizletSet<SortTerm>] = []
         var bySet: [SortedQuizletSet<SortTerm>] = []
@@ -250,7 +250,7 @@ class SearchOperation: Operation {
             })
         }
         
-        return SortedTerms(AtoZ: AtoZ, bySet: bySet, bySetAtoZ: bySetAtoZ)
+        return SortedSetsAndTerms(AtoZ: AtoZ, bySet: bySet, bySetAtoZ: bySetAtoZ)
     }
     
     class func collateAtoZ(_ unsortedAtoZterms: [SortTerm]) -> [SortedQuizletSet<SortTerm>] {
