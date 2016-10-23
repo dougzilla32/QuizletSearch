@@ -36,6 +36,7 @@
 		914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADD1B6AA4ED0025C585 /* Root.swift */; };
 		914D0AE31B6AA4ED0025C585 /* Term.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADE1B6AA4ED0025C585 /* Term.swift */; };
 		914D0AE41B6AA4ED0025C585 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADF1B6AA4ED0025C585 /* User.swift */; };
+		915BFF011DBAA56500BA0B6A /* SearchIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 915BFF001DBAA56500BA0B6A /* SearchIndex.swift */; };
 		916BBEE21BD176F2008A0FB8 /* QueryPagers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */; };
 		9170E7C21BCC949500C70847 /* InsetTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9170E7C11BCC949500C70847 /* InsetTextField.swift */; };
 		9187F47B1B68AD1500FA528F /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9187F47A1B68AD1500FA528F /* Common.swift */; };
@@ -102,6 +103,7 @@
 		914D0ADD1B6AA4ED0025C585 /* Root.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Root.swift; path = Model/Root.swift; sourceTree = "<group>"; };
 		914D0ADE1B6AA4ED0025C585 /* Term.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Term.swift; path = Model/Term.swift; sourceTree = "<group>"; };
 		914D0ADF1B6AA4ED0025C585 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = User.swift; path = Model/User.swift; sourceTree = "<group>"; };
+		915BFF001DBAA56500BA0B6A /* SearchIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchIndex.swift; sourceTree = "<group>"; };
 		916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryPagers.swift; sourceTree = "<group>"; };
 		9170E7C11BCC949500C70847 /* InsetTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsetTextField.swift; sourceTree = "<group>"; };
 		9187F47A1B68AD1500FA528F /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Common.swift; sourceTree = "<group>"; };
@@ -219,6 +221,7 @@
 				911C41041B9F7A7C007E0AEE /* SearchTableViewCell.swift */,
 				911C410A1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift */,
 				911C41081BA10A21007E0AEE /* SearchOperation.swift */,
+				915BFF001DBAA56500BA0B6A /* SearchIndex.swift */,
 				91EA7CFD1BB0BD3C00273996 /* AddQueryViewController.swift */,
 				910BC27C1BCA19B9007F1A9E /* AddQueryModel.swift */,
 				91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */,
@@ -354,6 +357,7 @@
 					};
 					9126FDCA1B1D0E1100642E56 = {
 						CreatedOnToolsVersion = 6.3.1;
+						DevelopmentTeam = FYX55SR9QC;
 						LastSwiftMigration = 0800;
 						TestTargetID = 9126FDB51B1D0E1000642E56;
 					};
@@ -437,6 +441,7 @@
 				91B4AB581B6845EB0043675A /* StringScore.swift in Sources */,
 				91EA7CFE1BB0BD3C00273996 /* AddQueryViewController.swift in Sources */,
 				912DFCF71BBAD106002D67FA /* SetPager.swift in Sources */,
+				915BFF011DBAA56500BA0B6A /* SearchIndex.swift in Sources */,
 				912DFCFB1BBAD5F4002D67FA /* UnexpectedResponse.swift in Sources */,
 				91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */,
 				918C96B21C1D2FE100AA80DE /* RBBLinearInterpolation.swift in Sources */,
@@ -635,6 +640,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = FYX55SR9QC;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
@@ -656,6 +662,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
+				DEVELOPMENT_TEAM = FYX55SR9QC;
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",

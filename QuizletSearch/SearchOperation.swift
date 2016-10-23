@@ -10,7 +10,7 @@ import UIKit
 import CoreData
 import Foundation
 
-class SortTerm {
+class SortTerm: Equatable, Hashable {
     let termForDisplay: StringWithBoundaries
     let definitionForDisplay: StringWithBoundaries
     
@@ -24,13 +24,21 @@ class SortTerm {
         self.termForCompare = term.term.lowercased().decomposeAndNormalize()
         self.definitionForCompare = term.definition.lowercased().decomposeAndNormalize()
     }
+    
+    static func ==(lhs: SortTerm, rhs: SortTerm) -> Bool {
+        return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+
+    var hashValue: Int {
+        return ObjectIdentifier(self).hashValue
+    }
 }
 
 class SearchTerm {
     let sortTerm: SortTerm
     let score: Double
-    let termRanges: [NSRange]
-    let definitionRanges: [NSRange]
+    var termRanges: [NSRange]
+    var definitionRanges: [NSRange]
     
     init(sortTerm: SortTerm, score: Double = 0.0, termRanges: [NSRange] = [], definitionRanges: [NSRange] = []) {
         self.sortTerm = sortTerm
@@ -40,15 +48,23 @@ class SearchTerm {
     }
 }
 
-class SortedQuizletSet<T> {
+class SortedQuizletSet<T>: Equatable, Hashable {
     let title: String
-    let terms: [T]
+    var terms: [T]
     let createdDate: Int64
     
     init(title: String, terms: [T], createdDate: Int64) {
         self.title = title
         self.terms = terms
         self.createdDate = createdDate
+    }
+
+    static func ==(lhs: SortedQuizletSet<T>, rhs: SortedQuizletSet<T>) -> Bool {
+        return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
+    }
+    
+    var hashValue: Int {
+        return ObjectIdentifier(self).hashValue
     }
 }
 
@@ -266,26 +282,7 @@ class SearchOperation: Operation {
             //var text = term.definitionForDisplay.string
             text = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
             
-            var firstCharacter: Character
-            if (text.isEmpty) {
-                firstCharacter = " "
-            }
-            else {
-                firstCharacter = text[text.startIndex]
-                
-                // Use '9' as the index view title for all numbers greater than 9
-                if "0"..."9" ~= firstCharacter {
-                    let next = text.characters.index(after: text.startIndex)
-                    if (next != text.endIndex) {
-                        let secondCharacter = text[next]
-                        if ("0"..."9" ~= secondCharacter) {
-                            firstCharacter = "9"
-                        }
-                    }
-                }
-                
-                firstCharacter = Common.toUppercase(firstCharacter)
-            }
+            let firstCharacter = firstCharacterForSet(text: text)
             
             if (currentCharacter != firstCharacter) {
                 if (currentTerms != nil) {
@@ -302,6 +299,30 @@ class SearchOperation: Operation {
         }
         
         return AtoZbySet
+    }
+    
+    class func firstCharacterForSet(text: String) -> Character {
+        var firstCharacter: Character
+        if (text.isEmpty) {
+            firstCharacter = " "
+        }
+        else {
+            firstCharacter = text[text.startIndex]
+            
+            // Use '9' as the index view title for all numbers greater than 9
+            if "0"..."9" ~= firstCharacter {
+                let next = text.characters.index(after: text.startIndex)
+                if (next != text.endIndex) {
+                    let secondCharacter = text[next]
+                    if ("0"..."9" ~= secondCharacter) {
+                        firstCharacter = "9"
+                    }
+                }
+            }
+            
+            firstCharacter = Common.toUppercase(firstCharacter)
+        }
+        return firstCharacter
     }
 
     class func termComparator(_ t1: SortTerm, t2: SortTerm) -> Bool {
