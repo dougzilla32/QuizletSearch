@@ -32,8 +32,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     // MARK: - Sorting
     
-    var allTerms = SortedSetsAndTerms<SortTerm>()
-    var searchTerms = SortedSetsAndTerms<SearchTerm>()
+    var searchIndex: SearchIndex?
+    var searchTerms: SearchedAndSorted = SortedSetsAndTerms()
     
     @IBAction func sortStyleChanged(_ sender: AnyObject) {
         trace("SearchViewController.sortStyleChanged executeSearchForQuery", searchBar.text)
@@ -47,10 +47,14 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // MARK: - Export action
     
     @IBAction func exportSetData(_ sender: AnyObject) {
+        if (searchIndex == nil) {
+            return
+        }
+        
         var data = ""
         switch (currentSortSelection()) {
         case .atoZ:
-            for set in allTerms.AtoZ {
+            for set in searchIndex!.allTerms.AtoZ {
                 for term in set.terms {
                     data.append(term.termForDisplay.string)
                     data.append("\t")
@@ -59,7 +63,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 }
             }
         case .bySet:
-            for set in allTerms.bySet {
+            for set in searchIndex!.allTerms.bySet {
                 if (!data.isEmpty) {
                     data.append("\n")
                 }
@@ -73,7 +77,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 }
             }
         case .bySetAtoZ:
-            for set in allTerms.bySetAtoZ {
+            for set in searchIndex!.allTerms.bySetAtoZ {
                 if (!data.isEmpty) {
                     data.append("\n")
                 }
@@ -197,7 +201,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         
         DispatchQueue.main.async(execute: {
             trace("SearchViewController.executeSearchForQuery from viewDidLayoutSubviews")
-            self.allTerms = SearchOperation.initSortedTerms()
+            self.searchIndex = SearchIndex(query: (UIApplication.shared.delegate as! AppDelegate).dataModel.currentQuery)
             self.showActivityIndicator = false
             self.executeSearchForQuery(self.searchBar.text)
         })
@@ -383,12 +387,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             }
             */
             
-            let allTerms = SearchOperation.initSortedTerms()
+            let searchIndex = SearchIndex(query: (UIApplication.shared.delegate as! AppDelegate).dataModel.currentQuery)
             
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
             dispatch_sync_main({
                 trace("SearchViewController.contextDidSave executeSearchForQuery", self.searchBar.text)
-                self.allTerms = allTerms
+                self.searchIndex = searchIndex
                 self.executeSearchForQuery(self.searchBar.text)
             })
         }
@@ -415,35 +419,66 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     var currentSearchOperation: SearchOperation?
     
-    func executeSearchForQuery(_ query: String?) {
-        trace("SearchViewController.executeSearchForQuery", query)
+    func executeSearchForQuery(_ queryString: String?) {
+        trace("SearchViewController.executeSearchForQuery", queryString)
         currentSearchOperation?.cancel()
         
-        let searchOp = SearchOperation(query: query ?? "", sortSelection: currentSortSelection(), allTerms: allTerms)
-        searchOp.qualityOfService = QualityOfService.userInitiated
-
-        searchOp.completionBlock = {
-            DispatchQueue.main.async(execute: {
-                if (searchOp.isCancelled) {
-                    return
+        if (searchIndex == nil) {
+            return
+        }
+        
+        let query = (queryString ?? "").lowercased().decomposeAndNormalize()
+        if (query.string.isWhitespace()) {
+            searchTerms = searchIndex!.allTerms
+            self.tableView.reloadData()
+        }
+        else if (query.nsString.length <= searchIndex!.MaxCount) {
+            var result: SearchedAndSorted? = searchIndex!.find(query.string)
+            if (result == nil) {
+                result = SearchedSetsAndTerms()
+            }
+            searchTerms = result!
+            self.tableView.reloadData()
+        }
+        else {
+            let s = query.nsString.substring(to: searchIndex!.MaxCount)
+            var result = searchIndex!.find(s)
+            if (result == nil) {
+                result = IndexedSetsAndTerms()
+            }
+            else {
+                let searchOp = SearchOperation(query: query, sortSelection: currentSortSelection(), allTerms: result!)
+                searchOp.qualityOfService = QualityOfService.userInitiated
+                
+                searchOp.completionBlock = {
+                    DispatchQueue.main.async(execute: {
+                        if (searchOp.isCancelled) {
+                            return
+                        }
+                        
+                        self.searchTerms = searchOp.searchTerms
+                        
+                        /*
+                        switch (searchOp.sortSelection) {
+                        case .atoZ:
+                            self.searchTerms.AtoZ = searchOp.searchTerms.AtoZ
+                            // searchTerms.levenshteinMatch = searchOp.searchTerms.levenshteinMatch
+                        // searchTerms.stringScoreMatch = searchOp.searchTerms.stringScoreMatch
+                        case .bySet:
+                            self.searchTerms.bySet = searchOp.searchTerms.bySet
+                        case .bySetAtoZ:
+                            self.searchTerms.bySetAtoZ = searchOp.searchTerms.bySetAtoZ
+                        }
+                        */
+                        
+                        self.tableView.reloadData()
+                    })
                 }
                 
-                switch (searchOp.sortSelection) {
-                case .atoZ:
-                    self.searchTerms.AtoZ = searchOp.searchTerms.AtoZ
-                    // searchTerms.levenshteinMatch = searchOp.searchTerms.levenshteinMatch
-                    // searchTerms.stringScoreMatch = searchOp.searchTerms.stringScoreMatch
-                case .bySet:
-                    self.searchTerms.bySet = searchOp.searchTerms.bySet
-                case .bySetAtoZ:
-                    self.searchTerms.bySetAtoZ = searchOp.searchTerms.bySetAtoZ
-                }
-                self.tableView.reloadData()
-            })
+                currentSearchOperation = searchOp
+                searchQueue.addOperation(searchOp)
+            }
         }
-
-        currentSearchOperation = searchOp
-        searchQueue.addOperation(searchOp)
     }
     
     override func didReceiveMemoryWarning() {
@@ -462,7 +497,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         var numberOfSections: Int
         switch (currentSortSelection()) {
         case .atoZ:
-            numberOfSections = searchTerms.AtoZ.count
+            numberOfSections = searchTerms.getAtoZCount()
             /*
             numberOfSections = 1
             if (searchTerms.levenshteinMatch.count > 0) {
@@ -473,9 +508,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             }
             */
         case .bySet:
-            numberOfSections = searchTerms.bySet.count
+            numberOfSections = searchTerms.getBySetCount()
         case .bySetAtoZ:
-            numberOfSections = searchTerms.bySetAtoZ.count
+            numberOfSections = searchTerms.getBySetAtoZCount()
         }
         return numberOfSections
     }
@@ -489,7 +524,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         var numberOfRows: Int
         switch (currentSortSelection()) {
         case .atoZ:
-            numberOfRows = searchTerms.AtoZ[section].terms.count
+            numberOfRows = searchTerms.getAtoZTermCount(index: section)
             /*
             switch (section) {
             case 0:
@@ -503,9 +538,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             }
             */
         case .bySet:
-            numberOfRows = searchTerms.bySet[section].terms.count
+            numberOfRows = searchTerms.getBySetTermCount(index: section)
         case .bySetAtoZ:
-            numberOfRows = searchTerms.bySetAtoZ[section].terms.count
+            numberOfRows = searchTerms.getBySetAtoZTermCount(index: section)
         }
         return numberOfRows
     }
@@ -639,7 +674,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         var title: String?
         switch (currentSortSelection()) {
         case .atoZ:
-            title = searchTerms.AtoZ[section].title
+            title = searchTerms.getAtoZTitle(index: section)
             /*
             switch (section) {
             case 0:
@@ -653,9 +688,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             }
             */
         case .bySet:
-            title = searchTerms.bySet[section].title
+            title = searchTerms.getBySetTitle(index: section)
         case .bySetAtoZ:
-            title = searchTerms.bySetAtoZ[section].title
+            title = searchTerms.getBySetAtoZTitle(index: section)
         }
         
         cell.headerLabel.font = preferredSearchFont
@@ -715,21 +750,11 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         
         switch (currentSortSelection()) {
         case .atoZ:
-            titles = []
-            for section in searchTerms.AtoZ {
-                titles!.append(section.title)
-            }
+            titles = searchTerms.getAtoZSectionIndexTitles()
         case .bySet:
             titles = nil
         case .bySetAtoZ:
-            titles = []
-            for section in searchTerms.bySetAtoZ {
-                var firstCharacter = Common.firstNonWhitespaceCharacter(section.title)
-                if (firstCharacter == nil) {
-                    firstCharacter = " "
-                }
-                titles!.append("\(firstCharacter!)")
-            }
+            titles = searchTerms.getBySetAtoZSectionIndexTitles()
         }
         
         return titles

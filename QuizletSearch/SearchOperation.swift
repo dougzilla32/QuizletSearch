@@ -6,123 +6,16 @@
 //  Copyright (c) 2015 Doug Stein. All rights reserved.
 //
 
-import UIKit
-import CoreData
 import Foundation
 
-class SortTerm: Equatable, Hashable {
-    let termForDisplay: StringWithBoundaries
-    let definitionForDisplay: StringWithBoundaries
-    
-    let termForCompare: StringWithBoundaries
-    let definitionForCompare: StringWithBoundaries
-    
-    init(term: Term) {
-        self.termForDisplay = StringWithBoundaries(string: term.term)
-        self.definitionForDisplay = StringWithBoundaries(string: term.definition)
-        
-        self.termForCompare = term.term.lowercased().decomposeAndNormalize()
-        self.definitionForCompare = term.definition.lowercased().decomposeAndNormalize()
-    }
-    
-    static func ==(lhs: SortTerm, rhs: SortTerm) -> Bool {
-        return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
-    }
-
-    var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
-    }
-}
-
-class SearchTerm {
-    let sortTerm: SortTerm
-    let score: Double
-    var termRanges: [NSRange]
-    var definitionRanges: [NSRange]
-    
-    init(sortTerm: SortTerm, score: Double = 0.0, termRanges: [NSRange] = [], definitionRanges: [NSRange] = []) {
-        self.sortTerm = sortTerm
-        self.score = score
-        self.termRanges = termRanges
-        self.definitionRanges = definitionRanges
-    }
-}
-
-class SortedQuizletSet<T>: Equatable, Hashable {
-    let title: String
-    var terms: [T]
-    let createdDate: Int64
-    
-    init(title: String, terms: [T], createdDate: Int64) {
-        self.title = title
-        self.terms = terms
-        self.createdDate = createdDate
-    }
-
-    static func ==(lhs: SortedQuizletSet<T>, rhs: SortedQuizletSet<T>) -> Bool {
-        return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
-    }
-    
-    var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
-    }
-}
-
-class SortedSetsAndTerms<T> {
-    // var AtoZ: [T]
-    var AtoZ: [SortedQuizletSet<T>]
-    var bySet: [SortedQuizletSet<T>]
-    var bySetAtoZ: [SortedQuizletSet<T>]
-    
-    var levenshteinMatch: [T] = []
-    var stringScoreMatch: [T] = []
-    
-    init() {
-        AtoZ = []
-        bySet = []
-        bySetAtoZ = []
-    }
-    
-    init(AtoZ: [SortedQuizletSet<T>], bySet: [SortedQuizletSet<T>], bySetAtoZ: [SortedQuizletSet<T>]) {
-        self.AtoZ = AtoZ
-        self.bySet = bySet
-        self.bySetAtoZ = bySetAtoZ
-    }
-    
-    func termForPath(_ indexPath: IndexPath, sortSelection: SortSelection) -> T {
-        var term: T
-        switch (sortSelection) {
-        case .atoZ:
-            term = AtoZ[indexPath.section].terms[indexPath.row]
-            /*
-            switch (indexPath.section) {
-            case 0:
-                term = AtoZ[indexPath.row]
-            case 1:
-                term = (levenshteinMatch.count > 0) ? levenshteinMatch[indexPath.row] : stringScoreMatch[indexPath.row]
-            case 2:
-                term = stringScoreMatch[indexPath.row]
-            default:
-                abort()
-            }
-            */
-        case .bySet:
-            term = bySet[indexPath.section].terms[indexPath.row]
-        case .bySetAtoZ:
-            term = bySetAtoZ[indexPath.section].terms[indexPath.row]
-        }
-        return term
-    }
-}
-
 class SearchOperation: Operation {
-    let query: String
+    let query: StringWithBoundaries
     let sortSelection: SortSelection
-    let allTerms: SortedSetsAndTerms<SortTerm>
+    let allTerms: IndexedSetsAndTerms
     
-    let searchTerms = SortedSetsAndTerms<SearchTerm>()
+    let searchTerms = SearchedSetsAndTerms()
     
-    init(query: String, sortSelection: SortSelection, allTerms: SortedSetsAndTerms<SortTerm>) {
+    init(query: StringWithBoundaries, sortSelection: SortSelection, allTerms: IndexedSetsAndTerms) {
         self.query = query
         self.sortSelection = sortSelection
         self.allTerms = allTerms
@@ -132,23 +25,21 @@ class SearchOperation: Operation {
         updateSearchTermsForQuery(query)
     }
     
-    func updateSearchTermsForQuery(_ queryString: String) {
-        let query = queryString.lowercased().decomposeAndNormalize()
-        
+    func updateSearchTermsForQuery(_ query: StringWithBoundaries) {
         if (self.isCancelled) {
             return
         }
         
         switch (sortSelection) {
         case .atoZ:
-            searchTerms.AtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.AtoZ)
+            searchTerms.AtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.getAtoZ())
             // searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
             // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
         case .bySet:
-            searchTerms.bySet = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.bySet)
+            searchTerms.bySet = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.getBySet())
         case .bySetAtoZ:
-            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.bySetAtoZ)
+            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.getBySetAtoZ())
         }
     }
     
@@ -182,13 +73,13 @@ class SearchOperation: Operation {
     }
     */
     
-    func searchTermsBySetForQuery(_ query: StringWithBoundaries, sortTermsBySet: [SortedQuizletSet<SortTerm>]) -> [SortedQuizletSet<SearchTerm>] {
+    func searchTermsBySetForQuery(_ query: StringWithBoundaries, sortTermsBySet: [SortedQuizletSet<SearchTerm>]) -> [SortedQuizletSet<SearchTerm>] {
         var searchTermsBySet: [SortedQuizletSet<SearchTerm>] = []
         if (query.string.isWhitespace()) {
             for quizletSet in sortTermsBySet {
                 var searchTermsForSet = [SearchTerm]()
                 for term in quizletSet.terms {
-                    searchTermsForSet.append(SearchTerm(sortTerm: term))
+                    searchTermsForSet.append(term)
                 }
                 searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: searchTermsForSet, createdDate: quizletSet.createdDate))
             }
@@ -202,14 +93,14 @@ class SearchOperation: Operation {
                     }
                     
                     let options = NSString.CompareOptions.WhitespaceInsensitiveSearch
-                    let termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
-                    let definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
+                    let termRanges = String.characterRangesOfUnichars(term.sortTerm.termForCompare, targetString: query, options: options)
+                    let definitionRanges = String.characterRangesOfUnichars(term.sortTerm.definitionForCompare, targetString: query, options: options)
                     
                     if (termRanges.count > 0 || definitionRanges.count > 0) {
-                        searchTermsForSet.append(SearchTerm(sortTerm: term,
-                            score: 0.0,
-                            termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
-                            definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
+                        searchTermsForSet.append(SearchTerm(sortTerm: term.sortTerm,
+//                            score: 0.0,
+                            termRanges: term.sortTerm.termForDisplay.characterRangesToUnicharRanges(termRanges),
+                            definitionRanges: term.sortTerm.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
                     }
                 }
                 
@@ -225,117 +116,6 @@ class SearchOperation: Operation {
         return []
     }
     
-    class func initSortedTerms() -> SortedSetsAndTerms<SortTerm> {
-        var AtoZterms: [SortTerm] = []
-        var AtoZ: [SortedQuizletSet<SortTerm>] = []
-        var bySet: [SortedQuizletSet<SortTerm>] = []
-        var bySetAtoZ: [SortedQuizletSet<SortTerm>] = []
-        
-        if let query = (UIApplication.shared.delegate as! AppDelegate).dataModel.currentQuery {
-            for set in query.sets {
-                let quizletSet = set as! QuizletSet
-                var termsForSet = [SortTerm]()
-                
-                for termAny in quizletSet.terms {
-                    let term = termAny as! Term
-                    if (term.term.isWhitespace() && term.definition.isWhitespace()) {
-                        continue
-                    }
-                    let sortTerm = SortTerm(term: term)
-                    AtoZterms.append(sortTerm)
-                    termsForSet.append(sortTerm)
-                }
-                
-                // Use native term order for 'bySet'
-                bySet.append(SortedQuizletSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
-                
-                // Use alphabetically sorted terms for 'bySetAtoZ'
-                termsForSet.sort(by: termComparator)
-                bySetAtoZ.append(SortedQuizletSet(title: quizletSet.title, terms: termsForSet, createdDate: quizletSet.createdDate))
-            }
-            
-            AtoZ = collateAtoZ(AtoZterms)
-            // sort(&AtoZterms, termComparator)
-            
-            bySet.sort(by: { (s1: SortedQuizletSet<SortTerm>, s2: SortedQuizletSet<SortTerm>) -> Bool in
-                return s1.createdDate > s2.createdDate
-            })
-            
-            bySetAtoZ.sort(by: { (s1: SortedQuizletSet<SortTerm>, s2: SortedQuizletSet<SortTerm>) -> Bool in
-                return s1.title.compare(s2.title, options: [.caseInsensitive, .numeric]) != .orderedDescending
-            })
-        }
-        
-        return SortedSetsAndTerms(AtoZ: AtoZ, bySet: bySet, bySetAtoZ: bySetAtoZ)
-    }
-    
-    class func collateAtoZ(_ unsortedAtoZterms: [SortTerm]) -> [SortedQuizletSet<SortTerm>] {
-        var sortedAtoZterms = unsortedAtoZterms
-        sortedAtoZterms.sort(by: termComparator)
-        
-        var currentCharacter: Character? = nil
-        var currentTerms: [SortTerm]? = nil
-        var AtoZbySet: [SortedQuizletSet<SortTerm>] = []
-        
-        for term in sortedAtoZterms {
-            var text = term.termForDisplay.string
-            //var text = term.definitionForDisplay.string
-            text = text.trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
-            
-            let firstCharacter = firstCharacterForSet(text: text)
-            
-            if (currentCharacter != firstCharacter) {
-                if (currentTerms != nil) {
-                    AtoZbySet.append(SortedQuizletSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
-                }
-                currentTerms = []
-                currentCharacter = firstCharacter
-            }
-            currentTerms!.append(term)
-        }
-        
-        if (currentTerms != nil) {
-            AtoZbySet.append(SortedQuizletSet(title: "\(currentCharacter!)", terms: currentTerms!, createdDate: 0))
-        }
-        
-        return AtoZbySet
-    }
-    
-    class func firstCharacterForSet(text: String) -> Character {
-        var firstCharacter: Character
-        if (text.isEmpty) {
-            firstCharacter = " "
-        }
-        else {
-            firstCharacter = text[text.startIndex]
-            
-            // Use '9' as the index view title for all numbers greater than 9
-            if "0"..."9" ~= firstCharacter {
-                let next = text.characters.index(after: text.startIndex)
-                if (next != text.endIndex) {
-                    let secondCharacter = text[next]
-                    if ("0"..."9" ~= secondCharacter) {
-                        firstCharacter = "9"
-                    }
-                }
-            }
-            
-            firstCharacter = Common.toUppercase(firstCharacter)
-        }
-        return firstCharacter
-    }
-
-    class func termComparator(_ t1: SortTerm, t2: SortTerm) -> Bool {
-        switch (t1.termForDisplay.string.compare(t2.termForDisplay.string, options: [.caseInsensitive, .numeric])) {
-        case .orderedAscending:
-            return true
-        case .orderedDescending:
-            return false
-        case .orderedSame:
-            return t1.definitionForDisplay.string.compare(t2.definitionForDisplay.string, options: [.caseInsensitive, .numeric]) != .orderedDescending
-        }
-    }
-
     class func levenshteinMatchForQuery(_ query: String, sortTerms: [SortTerm]) -> [SearchTerm] {
         var levenshteinMatch: [SearchTerm] = []
         if (!query.isWhitespace()) {
@@ -344,7 +124,9 @@ class SearchOperation: Operation {
                 let definitionScore = computeLevenshteinScore(query, target: sortTerm.definitionForDisplay.string)
                 
                 if (termScore > 0.70 || definitionScore > 0.70) {
-                    levenshteinMatch.append(SearchTerm(sortTerm: sortTerm, score: Swift.max(termScore, definitionScore)))
+                    levenshteinMatch.append(SearchTerm(sortTerm: sortTerm
+//                                                       score: Swift.max(termScore, definitionScore)
+                    ))
                 }
             }
         }
@@ -360,7 +142,9 @@ class SearchOperation: Operation {
                 let definitionScore = sortTerm.definitionForDisplay.string.scoreAgainst(lowercaseQuery)
                 
                 if (termScore > 0.70 || definitionScore > 0.70) {
-                    stringScoreMatch.append(SearchTerm(sortTerm: sortTerm, score: Swift.max(termScore, definitionScore)))
+                    stringScoreMatch.append(SearchTerm(sortTerm: sortTerm
+//                                                       score: Swift.max(termScore, definitionScore)
+                    ))
                 }
             }
         }
