@@ -300,6 +300,81 @@ class Common {
     }
 }
 
+class StringAndIndex {
+    let string: StringWithBoundaries
+    var unicharIndex: Int
+    var characterIndex: Int
+    var characterSubIndex: Int
+    let skipWhitespaceOption: Bool
+    
+    init(string: StringWithBoundaries, options: NSString.CompareOptions) {
+        self.string = string
+        self.unicharIndex = 0
+        self.characterIndex = 0
+        self.characterSubIndex = 0
+        self.skipWhitespaceOption = options.contains(.WhitespaceInsensitiveSearch)
+    }
+    
+    init(stringAndIndex: StringAndIndex) {
+        self.string = stringAndIndex.string
+        self.unicharIndex = stringAndIndex.unicharIndex
+        self.characterIndex = stringAndIndex.characterIndex
+        self.characterSubIndex = stringAndIndex.characterSubIndex
+        self.skipWhitespaceOption = stringAndIndex.skipWhitespaceOption
+    }
+    
+    func isEnd() -> Bool {
+        skipWhitespace()
+        return unicharIndex == string.nsString.length
+    }
+    
+    func isLastCharacter() -> Bool {
+        return characterIndex >= (string.characterBoundaries.count - 2)
+    }
+    
+    func currentUnichar() -> unichar {
+        return string.nsString.character(at: unicharIndex)
+    }
+    
+    func advance() {
+        unicharIndex += 1
+        if (unicharIndex == string.characterBoundaries[characterIndex + 1]) {
+            characterIndex += 1
+            characterSubIndex = 0
+        } else {
+            characterSubIndex += 1
+        }
+    }
+    
+    func advanceToCharacterBoundary() {
+        if (unicharIndex != string.characterBoundaries[characterIndex]) {
+            while (unicharIndex != string.characterBoundaries[characterIndex + 1]) {
+                unicharIndex += 1
+            }
+            characterIndex += 1
+            characterSubIndex = 0
+        }
+    }
+    
+    func advanceCharacter() {
+        characterIndex += 1
+        unicharIndex = string.characterBoundaries[characterIndex]
+        characterSubIndex = 0
+    }
+    
+    func skipWhitespace() {
+        if (skipWhitespaceOption) {
+            while (unicharIndex < string.nsString.length && StringAndIndex.isWhitespace(string.nsString.character(at: unicharIndex))) {
+                advance()
+            }
+        }
+    }
+    
+    class func isWhitespace(_ character: unichar) -> Bool {
+        return CharacterSet.whitespacesAndNewlines.contains(UnicodeScalar(character)!)
+    }
+}
+
 class StringWithBoundaries {
     let string: String
     let nsString: NSString
@@ -336,6 +411,53 @@ class StringWithBoundaries {
         }
         characterBoundaries.append(index)
         return characterBoundaries
+    }
+
+    // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
+    static func characterRangesOfUnichars(_ sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSString.CompareOptions = NSString.CompareOptions(rawValue: 0)) -> [NSRange] {
+        
+        var source = StringAndIndex(string: sourceString, options: options)
+        let target = StringAndIndex(string: targetString, options: options)
+        if (target.isEnd()) {
+            return []
+        }
+        
+        let firstTargetCharacter = target.currentUnichar()
+        var ranges = [NSRange]()
+        
+        while ((source.string.nsString.length - source.unicharIndex) >= target.string.nsString.length) {
+            // while (!source.isEnd()) {
+            if (source.currentUnichar() == firstTargetCharacter) {
+                let sourceSubstring = StringAndIndex(stringAndIndex: source)
+                let targetSubstring = StringAndIndex(stringAndIndex: target)
+                
+                sourceSubstring.advance()
+                targetSubstring.advance()
+                
+                var foundMismatch = false
+                var prevSourceSubstringCharacterIndex = source.characterIndex
+                
+                while (!foundMismatch && !sourceSubstring.isEnd() && !targetSubstring.isEnd()) {
+                    prevSourceSubstringCharacterIndex = sourceSubstring.characterIndex
+                    foundMismatch = (sourceSubstring.currentUnichar() != targetSubstring.currentUnichar()) ||
+                        (!targetSubstring.isLastCharacter() && sourceSubstring.characterSubIndex != targetSubstring.characterSubIndex)
+                    sourceSubstring.advance()
+                    targetSubstring.advance()
+                }
+                
+                if (!foundMismatch && targetSubstring.isEnd()) {
+                    ranges.append(NSMakeRange(source.characterIndex, prevSourceSubstringCharacterIndex - source.characterIndex + 1))
+                    source = sourceSubstring
+                    source.advanceToCharacterBoundary()
+                } else {
+                    source.advanceCharacter()
+                }
+            } else {
+                source.advanceCharacter()
+            }
+        }
+        
+        return ranges
     }
 }
 
@@ -408,128 +530,6 @@ extension String {
             guessStrings.append(g )
         }
         return guessStrings
-    }
-
-    fileprivate class StringAndIndex {
-        let string: StringWithBoundaries
-        var unicharIndex: Int
-        var characterIndex: Int
-        var characterSubIndex: Int
-        let skipWhitespaceOption: Bool
-        
-        init(string: StringWithBoundaries, options: NSString.CompareOptions) {
-            self.string = string
-            self.unicharIndex = 0
-            self.characterIndex = 0
-            self.characterSubIndex = 0
-            self.skipWhitespaceOption = options.contains(.WhitespaceInsensitiveSearch)
-        }
-        
-        init(stringAndIndex: StringAndIndex) {
-            self.string = stringAndIndex.string
-            self.unicharIndex = stringAndIndex.unicharIndex
-            self.characterIndex = stringAndIndex.characterIndex
-            self.characterSubIndex = stringAndIndex.characterSubIndex
-            self.skipWhitespaceOption = stringAndIndex.skipWhitespaceOption
-        }
-        
-        func isEnd() -> Bool {
-            skipWhitespace()
-            return unicharIndex == string.nsString.length
-        }
-        
-        func isLastCharacter() -> Bool {
-            return characterIndex >= (string.characterBoundaries.count - 2)
-        }
-        
-        func currentUnichar() -> unichar {
-            return string.nsString.character(at: unicharIndex)
-        }
-        
-        func advance() {
-            unicharIndex += 1
-            if (unicharIndex == string.characterBoundaries[characterIndex + 1]) {
-                characterIndex += 1
-                characterSubIndex = 0
-            } else {
-                characterSubIndex += 1
-            }
-        }
-        
-        func advanceToCharacterBoundary() {
-            if (unicharIndex != string.characterBoundaries[characterIndex]) {
-                while (unicharIndex != string.characterBoundaries[characterIndex + 1]) {
-                    unicharIndex += 1
-                }
-                characterIndex += 1
-                characterSubIndex = 0
-            }
-        }
-        
-        func advanceCharacter() {
-            characterIndex += 1
-            unicharIndex = string.characterBoundaries[characterIndex]
-            characterSubIndex = 0
-        }
-        
-        func skipWhitespace() {
-            if (skipWhitespaceOption) {
-                while (unicharIndex < string.nsString.length && StringAndIndex.isWhitespace(string.nsString.character(at: unicharIndex))) {
-                    advance()
-                }
-            }
-        }
-        
-        class func isWhitespace(_ character: unichar) -> Bool {
-            return CharacterSet.whitespacesAndNewlines.contains(UnicodeScalar(character)!)
-        }
-    }
-    
-    // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
-    static func characterRangesOfUnichars(_ sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSString.CompareOptions = NSString.CompareOptions(rawValue: 0)) -> [NSRange] {
-        
-        var source = StringAndIndex(string: sourceString, options: options)
-        let target = StringAndIndex(string: targetString, options: options)
-        if (target.isEnd()) {
-            return []
-        }
-        
-        let firstTargetCharacter = target.currentUnichar()
-        var ranges = [NSRange]()
-
-        while ((source.string.nsString.length - source.unicharIndex) >= target.string.nsString.length) {
-        // while (!source.isEnd()) {
-            if (source.currentUnichar() == firstTargetCharacter) {
-                let sourceSubstring = StringAndIndex(stringAndIndex: source)
-                let targetSubstring = StringAndIndex(stringAndIndex: target)
-                
-                sourceSubstring.advance()
-                targetSubstring.advance()
-                
-                var foundMismatch = false
-                var prevSourceSubstringCharacterIndex = source.characterIndex
-
-                while (!foundMismatch && !sourceSubstring.isEnd() && !targetSubstring.isEnd()) {
-                    prevSourceSubstringCharacterIndex = sourceSubstring.characterIndex
-                    foundMismatch = (sourceSubstring.currentUnichar() != targetSubstring.currentUnichar()) ||
-                                    (!targetSubstring.isLastCharacter() && sourceSubstring.characterSubIndex != targetSubstring.characterSubIndex)
-                    sourceSubstring.advance()
-                    targetSubstring.advance()
-                }
-
-                if (!foundMismatch && targetSubstring.isEnd()) {
-                    ranges.append(NSMakeRange(source.characterIndex, prevSourceSubstringCharacterIndex - source.characterIndex + 1))
-                    source = sourceSubstring
-                    source.advanceToCharacterBoundary()
-                } else {
-                    source.advanceCharacter()
-                }
-            } else {
-                source.advanceCharacter()
-            }
-        }
-
-        return ranges
     }
 
     func decomposeAndNormalize() -> StringWithBoundaries {

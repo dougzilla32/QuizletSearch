@@ -23,12 +23,14 @@ class SearchIndex {
     private func buildIndex(allTerms: SortedSetsAndTerms) {
         for set in allTerms.bySet {
             for term in set.terms {
-                buildIndex(text: term.termForCompare.string,
+                buildIndex(textForCompare: term.termForCompare,
+                           textForDisplay: term.termForDisplay,
                            isDefinition: false,
                            term: term,
                            set: set,
                            firstCharacter: SearchIndex.firstCharacterForSet(text: term.termForDisplay.string))
-                buildIndex(text: term.definitionForCompare.string,
+                buildIndex(textForCompare: term.definitionForCompare,
+                           textForDisplay: term.definitionForDisplay,
                            isDefinition: true,
                            term: term,
                            set: set,
@@ -36,13 +38,13 @@ class SearchIndex {
             }
         }
     }
-    
-    private func buildIndex(text: String, isDefinition: Bool, term: SortTerm, set: SortedQuizletSet<SortTerm>, firstCharacter: Character) {
+
+    private func buildIndex(textForCompare: StringWithBoundaries, textForDisplay: StringWithBoundaries, isDefinition: Bool, term: SortTerm, set: SortedQuizletSet<SortTerm>, firstCharacter: Character) {
         var currentCharacterIndex = 0
         var substrings = [String]()
         var substringsIndex = -1
         
-        for uc in text.utf16 {
+        for uc in textForCompare.string.utf16 {
             // for c in lowerText.characters {
             let c = Character(UnicodeScalar(uc)!)
             if (Common.isAlphaNumeric(c)) {
@@ -70,6 +72,7 @@ class SearchIndex {
                 
                 addRangeToIndex(range: NSRange(location: currentCharacterIndex, length: 1), forSubstring: newString, isDefinition: isDefinition, term: term, set: set, firstCharacter: firstCharacter)
                 // print("Index[\(newString)] = \(index[newString]!)")
+                
             }
             else {
                 // Commented out to allow search across word boundaries:

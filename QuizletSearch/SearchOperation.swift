@@ -93,8 +93,8 @@ class SearchOperation: Operation {
                     }
                     
                     let options = NSString.CompareOptions.WhitespaceInsensitiveSearch
-                    let termRanges = String.characterRangesOfUnichars(term.sortTerm.termForCompare, targetString: query, options: options)
-                    let definitionRanges = String.characterRangesOfUnichars(term.sortTerm.definitionForCompare, targetString: query, options: options)
+                    let termRanges = StringWithBoundaries.characterRangesOfUnichars(term.sortTerm.termForCompare, targetString: query, options: options)
+                    let definitionRanges = StringWithBoundaries.characterRangesOfUnichars(term.sortTerm.definitionForCompare, targetString: query, options: options)
                     
                     if (termRanges.count > 0 || definitionRanges.count > 0) {
                         searchTermsForSet.append(SearchTerm(sortTerm: term.sortTerm,

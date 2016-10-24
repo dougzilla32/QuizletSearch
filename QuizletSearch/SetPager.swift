@@ -339,9 +339,9 @@ class SetPager {
             }
             
             let options: NSString.CompareOptions = [.caseInsensitive, .WhitespaceInsensitiveSearch]
-            if (String.characterRangesOfUnichars(qset.normalizedTitle!, targetString: q, options: options).count > 0 ||
-                String.characterRangesOfUnichars(qset.normalizedDescription!, targetString: q, options: options).count > 0 ||
-                String.characterRangesOfUnichars(qset.normalizedCreatedBy!, targetString: q, options: options).count > 0) {
+            if (StringWithBoundaries.characterRangesOfUnichars(qset.normalizedTitle!, targetString: q, options: options).count > 0 ||
+                StringWithBoundaries.characterRangesOfUnichars(qset.normalizedDescription!, targetString: q, options: options).count > 0 ||
+                StringWithBoundaries.characterRangesOfUnichars(qset.normalizedCreatedBy!, targetString: q, options: options).count > 0) {
                     newQSets.append(qset)
             }
             
