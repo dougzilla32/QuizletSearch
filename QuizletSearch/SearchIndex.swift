@@ -54,7 +54,7 @@ class SearchIndex {
     private func buildIndex(textForCompare: StringWithBoundaries, textForDisplay: StringWithBoundaries, isDefinition: Bool, term: SortTerm, set: SortedQuizletSet<SortTerm>, firstCharacter: Character) {
         var substrings = [StringIndexCount]()
 
-        let text = StringAndIndex(string: textForCompare, options: .WhitespaceInsensitiveSearch)
+        let text = UnicharIterator(string: textForCompare, options: .WhitespaceInsensitiveSearch)
         
         while (!text.isEnd()) {
             var isFirst = true

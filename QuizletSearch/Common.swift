@@ -300,7 +300,7 @@ class Common {
     }
 }
 
-class StringAndIndex {
+class UnicharIterator {
     let string: StringWithBoundaries
     var unicharIndex: Int
     var characterIndex: Int
@@ -315,7 +315,7 @@ class StringAndIndex {
         self.skipWhitespaceOption = options.contains(.WhitespaceInsensitiveSearch)
     }
     
-    init(stringAndIndex: StringAndIndex) {
+    init(stringAndIndex: UnicharIterator) {
         self.string = stringAndIndex.string
         self.unicharIndex = stringAndIndex.unicharIndex
         self.characterIndex = stringAndIndex.characterIndex
@@ -368,7 +368,7 @@ class StringAndIndex {
     
     func skipWhitespace() {
         if (skipWhitespaceOption) {
-            while (unicharIndex < string.nsString.length && StringAndIndex.isWhitespace(string.nsString.character(at: unicharIndex))) {
+            while (unicharIndex < string.nsString.length && UnicharIterator.isWhitespace(string.nsString.character(at: unicharIndex))) {
                 advance()
             }
         }
@@ -426,8 +426,8 @@ class StringWithBoundaries {
     // 'sourceString' and 'targetString' should already be lowercased, decomposed, and normalized when calling this function
     static func characterRangesOfUnichars(_ sourceString: StringWithBoundaries, targetString: StringWithBoundaries, options: NSString.CompareOptions = NSString.CompareOptions(rawValue: 0)) -> [NSRange] {
         
-        var source = StringAndIndex(string: sourceString, options: options)
-        let target = StringAndIndex(string: targetString, options: options)
+        var source = UnicharIterator(string: sourceString, options: options)
+        let target = UnicharIterator(string: targetString, options: options)
         if (target.isEnd()) {
             return []
         }
@@ -438,8 +438,8 @@ class StringWithBoundaries {
         while ((source.string.nsString.length - source.unicharIndex) >= target.string.nsString.length) {
             // while (!source.isEnd()) {
             if (source.currentUnichar() == firstTargetCharacter) {
-                let sourceSubstring = StringAndIndex(stringAndIndex: source)
-                let targetSubstring = StringAndIndex(stringAndIndex: target)
+                let sourceSubstring = UnicharIterator(stringAndIndex: source)
+                let targetSubstring = UnicharIterator(stringAndIndex: target)
                 
                 sourceSubstring.advance()
                 targetSubstring.advance()
@@ -502,7 +502,7 @@ extension String {
     func isWhitespace() -> Bool {
         let string = self as NSString
         for i in 0..<string.length {
-            if (!StringAndIndex.isWhitespace(string.character(at: i))) {
+            if (!UnicharIterator.isWhitespace(string.character(at: i))) {
                 return false
             }
         }
