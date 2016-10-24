@@ -38,54 +38,59 @@ class SearchIndex {
             }
         }
     }
-
-    private func buildIndex(textForCompare: StringWithBoundaries, textForDisplay: StringWithBoundaries, isDefinition: Bool, term: SortTerm, set: SortedQuizletSet<SortTerm>, firstCharacter: Character) {
-        var currentCharacterIndex = 0
-        var substrings = [String]()
-        var substringsIndex = -1
+    
+    class StringIndexCount {
+        var text: String
+        var characterIndex: Int
+        var unicharCount: Int
         
-        for uc in textForCompare.string.utf16 {
-            // for c in lowerText.characters {
-            let c = Character(UnicodeScalar(uc)!)
-            if (Common.isAlphaNumeric(c)) {
-                if (substrings.count == 0) {
-                    substringsIndex = currentCharacterIndex
-                    // print("")
-                }
-                else {
-                    if (substrings.count == MaxCount) {
-                        substrings.removeFirst()
-                        substringsIndex += 1
-                    }
-                    for i in 0 ..< substrings.count {
-                        var substr = substrings[i]
-                        substr.append(c)
-                        substrings[i] = substr
-                        
-                        addRangeToIndex(range: NSRange(location: substringsIndex + i, length: currentCharacterIndex - substringsIndex - i), forSubstring: substr,  isDefinition: isDefinition, term: term, set: set, firstCharacter: firstCharacter)
-                        // print("index[\(substr)] = \(index[substr]!)")
-                    }
-                }
-                
-                let newString = String(c)
-                substrings.append(newString)
-                
-                addRangeToIndex(range: NSRange(location: currentCharacterIndex, length: 1), forSubstring: newString, isDefinition: isDefinition, term: term, set: set, firstCharacter: firstCharacter)
-                // print("Index[\(newString)] = \(index[newString]!)")
-                
-            }
-            else {
-                // Commented out to allow search across word boundaries:
-                //
-                // Reset on word boundary
-                //   substrings.removeAll()
-                //   substringsIndex = -1
-            }
-            
-            currentCharacterIndex += 1
+        init(text: String, characterIndex: Int, unicharCount: Int) {
+            self.text = text
+            self.characterIndex = characterIndex
+            self.unicharCount = unicharCount
         }
     }
-    
+
+    private func buildIndex(textForCompare: StringWithBoundaries, textForDisplay: StringWithBoundaries, isDefinition: Bool, term: SortTerm, set: SortedQuizletSet<SortTerm>, firstCharacter: Character) {
+        var substrings = [StringIndexCount]()
+
+        let text = StringAndIndex(string: textForCompare, options: .WhitespaceInsensitiveSearch)
+        
+        while (!text.isEnd()) {
+            var isFirst = true
+            repeat {
+                var unichar = text.currentUnichar()
+                let c = NSString.init(characters: &unichar, length: 1) as String
+                
+                for sic in substrings {
+                    sic.text.append(c)
+                    var range = NSRange(location: sic.characterIndex, length: text.characterIndex - sic.characterIndex + 1) // always +1?
+                    range = textForDisplay.characterRangeToUnicharRange(range)
+                    addRangeToIndex(range: range, forSubstring: sic.text, isDefinition: isDefinition, term: term, set: set, firstCharacter: firstCharacter)
+                    sic.unicharCount += 1
+                    if (sic.unicharCount == MaxCount) {
+                        substrings.removeFirst()
+                    }
+                }
+                
+                if (isFirst) {
+                    isFirst = false
+                    let sic = StringIndexCount(text: c, characterIndex: text.characterIndex, unicharCount: 1)
+                    substrings.append(sic)
+                    
+                    var range = NSRange(location: sic.characterIndex, length: text.characterIndex - sic.characterIndex + 1) // always +1?
+                    range = textForDisplay.characterRangeToUnicharRange(range)
+                    addRangeToIndex(range: range, forSubstring: sic.text, isDefinition: isDefinition, term: term, set: set, firstCharacter: firstCharacter)
+                }
+                
+                text.advance()
+            } while (!text.isCharacterBoundary() && substrings.count > 0)
+            
+            
+            text.advanceToCharacterBoundary()
+        }
+    }
+
     func addRangeToIndex(range: NSRange, forSubstring: String, isDefinition: Bool, term: SortTerm, set: SortedQuizletSet<SortTerm>, firstCharacter: Character) {
         var indexedSetsAndTerms = index[forSubstring]
         if (indexedSetsAndTerms == nil) {

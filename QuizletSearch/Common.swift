@@ -346,6 +346,10 @@ class StringAndIndex {
         }
     }
     
+    func isCharacterBoundary() -> Bool {
+        return unicharIndex == string.characterBoundaries[characterIndex]
+    }
+    
     func advanceToCharacterBoundary() {
         if (unicharIndex != string.characterBoundaries[characterIndex]) {
             while (unicharIndex != string.characterBoundaries[characterIndex + 1]) {
@@ -390,6 +394,12 @@ class StringWithBoundaries {
         self.string = string
         self.nsString = string as NSString
         self.characterBoundaries = characterBoundaries
+    }
+    
+    func characterRangeToUnicharRange(_ characterRange: NSRange) -> NSRange {
+        let start = characterBoundaries[characterRange.location]
+        let end = characterBoundaries[characterRange.location + characterRange.length]
+        return NSMakeRange(start, end - start)
     }
     
     func characterRangesToUnicharRanges(_ characterRanges: [NSRange]) -> [NSRange] {
