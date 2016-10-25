@@ -658,6 +658,8 @@ class IndexedSetsAndTerms: SearchedAndSorted {
         }
         else {
             searchTerm = SearchTerm(sortTerm: term)
+            termPair.sortTerm = term
+            termPair.searchTerm = searchTerm
             
             var searchSet = setIndex.index[firstCharacter]
             if (searchSet == nil) {
@@ -689,6 +691,8 @@ class IndexedSetsAndTerms: SearchedAndSorted {
         }
         else {
             searchTerm = SearchTerm(sortTerm: term)
+            termPair.sortTerm = term
+            termPair.searchTerm = searchTerm
             
             if (setPair.sortSet != set) {
                 setPair.searchSet = SortedQuizletSet<SearchTerm>(title: set.title, terms: [searchTerm], createdDate: set.createdDate)
