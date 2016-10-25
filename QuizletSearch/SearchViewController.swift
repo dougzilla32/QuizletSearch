@@ -51,45 +51,14 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             return
         }
         
-        var data = ""
+        let data: String
         switch (currentSortSelection()) {
         case .atoZ:
-            for set in searchIndex!.allTerms.AtoZ {
-                for term in set.terms {
-                    data.append(term.termForDisplay.string)
-                    data.append("\t")
-                    data.append(term.definitionForDisplay.string)
-                    data.append("\n")
-                }
-            }
+            data = searchTerms.exportAtoZ()
         case .bySet:
-            for set in searchIndex!.allTerms.bySet {
-                if (!data.isEmpty) {
-                    data.append("\n")
-                }
-                data.append(set.title)
-                data.append("\n")
-                for term in set.terms {
-                    data.append(term.termForDisplay.string)
-                    data.append("\t")
-                    data.append(term.definitionForDisplay.string)
-                    data.append("\n")
-                }
-            }
+            data = searchTerms.exportBySet()
         case .bySetAtoZ:
-            for set in searchIndex!.allTerms.bySetAtoZ {
-                if (!data.isEmpty) {
-                    data.append("\n")
-                }
-                data.append(set.title)
-                data.append("\n")
-                for term in set.terms {
-                    data.append(term.termForDisplay.string)
-                    data.append("\t")
-                    data.append(term.definitionForDisplay.string)
-                    data.append("\n")
-                }
-            }
+            data = searchTerms.exportBySetAtoZ()
         }
         
         let activityViewController = UIActivityViewController(activityItems: [data], applicationActivities: nil)
@@ -193,13 +162,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         navigationController?.isNavigationBarHidden = true
     }
     
-    override func viewWillLayoutSubviews() {
-        super.viewWillLayoutSubviews()
-        
-        headerHeightCache.removeAll(keepingCapacity: true)
-        rowHeightCache.removeAll(keepingCapacity: true)
-    }
-    
     var isFirstViewDidLayoutSubviews = false
     
     override func viewDidLayoutSubviews() {
@@ -208,6 +170,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         if (!isFirstViewDidLayoutSubviews) { return }
         isFirstViewDidLayoutSubviews = false
         
+        headerHeightCache.removeAll(keepingCapacity: true)
+        rowHeightCache.removeAll(keepingCapacity: true)
+
         DispatchQueue.main.async(execute: {
             trace("SearchViewController.executeSearchForQuery from viewDidLayoutSubviews")
             self.searchIndex = SearchIndex(query: (UIApplication.shared.delegate as! AppDelegate).dataModel.currentQuery)
@@ -227,14 +192,16 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
     }
     
+    // Called when the view has been fully transitioned onto the screen. Default does nothing
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+    }
+    
     // Called after the view was dismissed, covered or otherwise hidden.
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
         
         self.refreshControl.endRefreshing()
-        headerHeightCache = [:]
-        rowHeightCache = [:]
-        isFirstViewDidLayoutSubviews = false
     }
     
     func hideTitleText() -> CGPoint {
@@ -579,14 +546,15 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     lazy var highlightForegroundColor = UIColor(red: 25.0 / 255.0, green: 86.0 / 255.0, blue: 204.0 / 255.0, alpha: 1.0)
-    lazy var highlightBackgroundColor = UIColor(red: 163.0 / 255.0, green: 205.0 / 255.0, blue: 254.0 / 255.0, alpha: 1.0)
+    lazy var highlightBackgroundColor = UIColor(red: 217.0 / 255.0, green: 232.0 / 255.0, blue: 251.0 / 255.0, alpha: 1.0)
     
     func configureCell(_ cell: SearchTableViewCell, searchTerm: SearchTerm) {
         let termForDisplay = searchTerm.sortTerm.termForDisplay.string
         let termText = NSMutableAttributedString(string: termForDisplay)
         for range in searchTerm.termRanges {
             termText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
-            termText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
+             termText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
+            termText.addAttribute(NSBackgroundColorAttributeName, value: highlightBackgroundColor, range: range)
         }
         cell.termLabel.font = preferredSearchFont
         cell.termLabel.attributedText = termText
@@ -595,7 +563,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         let definitionText = NSMutableAttributedString(string: definitionForDisplay)
         for range in searchTerm.definitionRanges {
             definitionText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
-            definitionText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
+             definitionText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
+            definitionText.addAttribute(NSBackgroundColorAttributeName, value: highlightBackgroundColor, range: range)
         }
         cell.definitionLabel.font = preferredSearchFont
         cell.definitionLabel.attributedText = definitionText

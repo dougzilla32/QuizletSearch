@@ -9,8 +9,12 @@
 import CoreData
 import Foundation
 
+let BetweenTermAndDefinition = "\t"
+let BetweenRows = "\n"
+let BetweenSets = "\n"
+
 class SearchIndex {
-    let MaxCount = 3
+    let MaxCount = 2
 
     var allTerms: SortedSetsAndTerms
     var index = [String: IndexedSetsAndTerms]()
@@ -76,11 +80,14 @@ class SearchIndex {
                 if (isFirst) {
                     isFirst = false
                     let sic = StringIndexCount(text: c, characterIndex: text.characterIndex, unicharCount: 1)
-                    substrings.append(sic)
                     
                     var range = NSRange(location: sic.characterIndex, length: text.characterIndex - sic.characterIndex + 1) // always +1?
                     range = textForDisplay.characterRangeToUnicharRange(range)
                     addRangeToIndex(range: range, forSubstring: sic.text, isDefinition: isDefinition, term: term, set: set, firstCharacter: firstCharacter)
+                    
+                    if (MaxCount > 1) {
+                        substrings.append(sic)
+                    }
                 }
                 
                 text.advance()
@@ -311,6 +318,12 @@ protocol SearchedAndSorted {
     func getBySetAtoZSectionIndexTitles() -> [String]
     
     func termForPath(_ indexPath: IndexPath, sortSelection: SortSelection) -> SearchTerm
+    
+    func exportAtoZ() -> String
+    
+    func exportBySet() -> String
+    
+    func exportBySetAtoZ() -> String
 }
 
 class SortedSetsAndTerms: SearchedAndSorted {
@@ -397,6 +410,55 @@ class SortedSetsAndTerms: SearchedAndSorted {
             term = bySetAtoZ[indexPath.section].terms[indexPath.row]
         }
         return SearchTerm(sortTerm: term)
+    }
+
+    func exportAtoZ() -> String {
+        var data = ""
+        for set in AtoZ {
+            for term in set.terms {
+                data.append(term.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
+    }
+    
+    func exportBySet() -> String {
+        var data = ""
+        for set in bySet {
+            if (!data.isEmpty) {
+                data.append(BetweenSets)
+            }
+            data.append(set.title)
+            data.append(BetweenRows)
+            for term in set.terms {
+                data.append(term.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
+    }
+    
+    func exportBySetAtoZ() -> String {
+        var data = ""
+        for set in bySetAtoZ {
+            if (!data.isEmpty) {
+                data.append(BetweenSets)
+            }
+            data.append(set.title)
+            data.append(BetweenRows)
+            for term in set.terms {
+                data.append(term.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
     }
 }
 
@@ -499,6 +561,55 @@ class SearchedSetsAndTerms: SearchedAndSorted {
             term = bySetAtoZ[indexPath.section].terms[indexPath.row]
         }
         return term
+    }
+
+    func exportAtoZ() -> String {
+        var data = ""
+        for set in AtoZ {
+            for term in set.terms {
+                data.append(term.sortTerm.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.sortTerm.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
+    }
+    
+    func exportBySet() -> String {
+        var data = ""
+        for set in bySet {
+            if (!data.isEmpty) {
+                data.append(BetweenSets)
+            }
+            data.append(set.title)
+            data.append(BetweenRows)
+            for term in set.terms {
+                data.append(term.sortTerm.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.sortTerm.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
+    }
+    
+    func exportBySetAtoZ() -> String {
+        var data = ""
+        for set in bySetAtoZ {
+            if (!data.isEmpty) {
+                data.append(BetweenSets)
+            }
+            data.append(set.title)
+            data.append(BetweenRows)
+            for term in set.terms {
+                data.append(term.sortTerm.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.sortTerm.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
     }
 }
 
@@ -636,6 +747,55 @@ class IndexedSetsAndTerms: SearchedAndSorted {
             term = getBySetAtoZ()[indexPath.section].terms[indexPath.row]
         }
         return term
+    }
+
+    func exportAtoZ() -> String {
+        var data = ""
+        for set in getAtoZ() {
+            for term in set.terms {
+                data.append(term.sortTerm.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.sortTerm.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
+    }
+    
+    func exportBySet() -> String {
+        var data = ""
+        for set in getBySet() {
+            if (!data.isEmpty) {
+                data.append(BetweenSets)
+            }
+            data.append(set.title)
+            data.append(BetweenRows)
+            for term in set.terms {
+                data.append(term.sortTerm.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.sortTerm.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
+    }
+    
+    func exportBySetAtoZ() -> String {
+        var data = ""
+        for set in getBySetAtoZ() {
+            if (!data.isEmpty) {
+                data.append(BetweenSets)
+            }
+            data.append(set.title)
+            data.append(BetweenRows)
+            for term in set.terms {
+                data.append(term.sortTerm.termForDisplay.string)
+                data.append(BetweenTermAndDefinition)
+                data.append(term.sortTerm.definitionForDisplay.string)
+                data.append(BetweenRows)
+            }
+        }
+        return data
     }
 
     func appendRange(range: NSRange, isDefinition: Bool, term: SortTerm, set: SortedQuizletSet<SortTerm>, firstCharacter: Character) {
