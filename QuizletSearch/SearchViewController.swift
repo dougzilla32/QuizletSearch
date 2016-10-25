@@ -285,7 +285,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         sizingCell.termLabel.font = preferredSearchFont
         sizingCell.definitionLabel.font = preferredSearchFont
         estimatedHeaderHeight = nil
-//        estimatedHeight = nil
+        // estimatedHeight = nil
        
         sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], for: UIControlState())
         

@@ -26,7 +26,7 @@
 import UIKit
 import ObjectiveC
 
-let isEasyAnimationEnabled = true
+let isEasyAnimationEnabled = false
 
 // MARK: EA private structures
 
