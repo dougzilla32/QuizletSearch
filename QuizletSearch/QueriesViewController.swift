@@ -7,6 +7,7 @@
 //
 
 import UIKit
+
 fileprivate func < <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   switch (lhs, rhs) {
   case let (l?, r?):
@@ -27,6 +28,7 @@ fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
   }
 }
 
+let WhooshAnimationEnabled = false
 
 class QueriesViewController: TableContainerController, UITextFieldDelegate {
 
@@ -205,15 +207,17 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
                 animationContext = nil
             }
             
-            let searchViewController = segue.destination as! SearchViewController
-            searchViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: @escaping () -> Void) in
-                searchViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .fadeOut, completionHandler: {
-                    searchViewController.animationContext = nil
-                    self.showLabelAtIndexPath(indexPath, label: label)
-                    completionHandler()
-                })
-
-                self.hideLabelAtIndexPath(indexPath, label: label)
+            if (WhooshAnimationEnabled) {
+                let searchViewController = segue.destination as! SearchViewController
+                searchViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: @escaping () -> Void) in
+                    searchViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .fadeOut, completionHandler: {
+                        searchViewController.animationContext = nil
+                        self.showLabelAtIndexPath(indexPath, label: label)
+                        completionHandler()
+                    })
+                    
+                    self.hideLabelAtIndexPath(indexPath, label: label)
+                }
             }
         }
         
@@ -350,8 +354,6 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             self.searchBarVisibilityWorkaround(.insertOnly)
         }
         recursiveReloadCounter -= 1
-        
-        CommonAnimation.letterSpin()
     }
     
     @IBAction func updateText(_ sender: AnyObject) {

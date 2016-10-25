@@ -323,12 +323,14 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
                 animationContext = nil
             }
             
-            queriesViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: @escaping () -> Void) in
-                queriesViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .fadeIn, completionHandler: {
+            if (WhooshAnimationEnabled) {
+                queriesViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: @escaping () -> Void) in
+                    queriesViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .fadeIn, completionHandler: {
                         queriesViewController.animationContext = nil
                         self.showTitleText()
                         completionHandler()
-                })
+                    })
+                }
             }
         }
     }
