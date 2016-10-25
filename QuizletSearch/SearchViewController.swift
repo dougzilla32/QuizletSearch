@@ -135,10 +135,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
 //        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
 //    }
     
-    override func viewWillAppear(_ animated: Bool) {
-        navigationController?.isNavigationBarHidden = true
-    }
-
     override func viewDidLoad() {
         trace("SearchViewController viewDidLoad()")
         super.viewDidLoad()
@@ -193,9 +189,22 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         isFirstViewDidLayoutSubviews = true
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        navigationController?.isNavigationBarHidden = true
+    }
+    
+    override func viewWillLayoutSubviews() {
+        super.viewWillLayoutSubviews()
+        
+        headerHeightCache.removeAll(keepingCapacity: true)
+        rowHeightCache.removeAll(keepingCapacity: true)
+    }
+    
     var isFirstViewDidLayoutSubviews = false
     
     override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
         if (!isFirstViewDidLayoutSubviews) { return }
         isFirstViewDidLayoutSubviews = false
         
@@ -216,6 +225,16 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             })
             self.animationBlock = nil
         }
+    }
+    
+    // Called after the view was dismissed, covered or otherwise hidden.
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        
+        self.refreshControl.endRefreshing()
+        headerHeightCache = [:]
+        rowHeightCache = [:]
+        isFirstViewDidLayoutSubviews = false
     }
     
     func hideTitleText() -> CGPoint {
@@ -266,7 +285,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         sizingCell.termLabel.font = preferredSearchFont
         sizingCell.definitionLabel.font = preferredSearchFont
         estimatedHeaderHeight = nil
-        estimatedHeight = nil
+//        estimatedHeight = nil
        
         sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], for: UIControlState())
         
@@ -275,12 +294,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         searchTextField.font = preferredSearchFont
         searchTextField.autocapitalizationType = UITextAutocapitalizationType.none
         searchTextField.enablesReturnKeyAutomatically = false
-    }
-    
-    // Called after the view was dismissed, covered or otherwise hidden.
-    override func viewDidDisappear(_ animated: Bool) {
-        super.viewDidDisappear(animated)
-        self.refreshControl.endRefreshing()
     }
     
     // MARK: - Search View Controller
@@ -558,16 +571,15 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
         
         let cell = tableView.dequeueReusableCell(withIdentifier: "SearchTableViewCell", for: indexPath) as! SearchTableViewCell
-        configureCell(cell, atIndexPath: indexPath)
+        let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+        configureCell(cell, searchTerm: searchTerm)
         return cell
     }
     
     lazy var highlightForegroundColor = UIColor(red: 25.0 / 255.0, green: 86.0 / 255.0, blue: 204.0 / 255.0, alpha: 1.0)
     lazy var highlightBackgroundColor = UIColor(red: 163.0 / 255.0, green: 205.0 / 255.0, blue: 254.0 / 255.0, alpha: 1.0)
     
-    func configureCell(_ cell: SearchTableViewCell, atIndexPath indexPath: IndexPath) {
-        let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-        
+    func configureCell(_ cell: SearchTableViewCell, searchTerm: SearchTerm) {
         let termForDisplay = searchTerm.sortTerm.termForDisplay.string
         let termText = NSMutableAttributedString(string: termForDisplay)
         for range in searchTerm.termRanges {
@@ -596,6 +608,18 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // Row height
     //
     
+    var rowHeightCache: [SortTerm: RowHeight] = [:]
+    
+    struct RowHeight {
+        let height: CGFloat
+        var isEstimate: Bool
+        
+        init(height: CGFloat, isEstimate: Bool) {
+            self.height = height
+            self.isEstimate = isEstimate
+        }
+    }
+    
     lazy var sizingCell: SearchTableViewCell = {
         [unowned self] in
         return self.tableView.dequeueReusableCell(withIdentifier: "SearchTableViewCell") as! SearchTableViewCell
@@ -609,9 +633,17 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         if (showActivityIndicator) {
             return UITableViewAutomaticDimension
         }
-        
-        configureCell(sizingCell, atIndexPath:indexPath)
-        return calculateRowHeight(sizingCell)
+
+        let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+        var rh = rowHeightCache[searchTerm.sortTerm]
+        if (rh == nil || rh!.isEstimate) {
+            configureCell(sizingCell, searchTerm: searchTerm)
+            rh = RowHeight(height: calculateRowHeight(sizingCell), isEstimate: false)
+            if (rh!.height > 0) {
+                rowHeightCache[searchTerm.sortTerm] = rh
+            }
+        }
+        return rh!.height
     }
     
     func calculateRowHeight(_ cell: SearchTableViewCell) -> CGFloat {
@@ -632,67 +664,76 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return height + 1.0 // Add 1.0 for the cell separator height
     }
     
-    var estimatedHeight: CGFloat?
-    
+    // var estimatedHeight: CGFloat?
+
     func tableView(_ tableView: UITableView,
-        estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
-            if (showActivityIndicator) {
-                return self.tableView(tableView, heightForRowAtIndexPath: indexPath)
-            }
-            
-            /* TODO: make sure performance is ok for large sets, may need to go back to quicker estimates
-             if (estimatedHeight == nil) {
-                sizingCell.termLabel.font = preferredSearchFont
-                sizingCell.termLabel.text = "Term"
-                sizingCell.definitionLabel.font = preferredSearchFont
-                sizingCell.definitionLabel.text = "Definition"
-                estimatedHeight = calculateRowHeight(sizingCell)
-             }
-            */
-            
-            let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+                   estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
+        if (showActivityIndicator) {
+            return self.tableView(tableView, heightForRowAtIndexPath: indexPath)
+        }
+        
+        // TODO: make sure performance is ok for large sets, may need to go back to quicker estimates
+        // if (estimatedHeight == nil) {
+        //    sizingCell.termLabel.font = preferredSearchFont
+        //    sizingCell.termLabel.text = "Term"
+        //    sizingCell.definitionLabel.font = preferredSearchFont
+        //    sizingCell.definitionLabel.text = "Definition"
+        //    estimatedHeight = calculateRowHeight(sizingCell)
+        // }
+        
+        let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+        var rh = rowHeightCache[searchTerm.sortTerm]
+        if (rh == nil) {
             sizingCell.termLabel.text = searchTerm.sortTerm.termForDisplay.string
             sizingCell.termLabel.font = preferredSearchFont
             
             sizingCell.definitionLabel.text = searchTerm.sortTerm.definitionForDisplay.string
             sizingCell.definitionLabel.font = preferredSearchFont
-
-            return calculateRowHeight(sizingCell)
+            
+            rh = RowHeight(height: calculateRowHeight(sizingCell), isEstimate: true)
+            if (rh!.height > 0) {
+                rowHeightCache[searchTerm.sortTerm] = rh
+            }
+        }
+        return rh!.height
     }
-
+    
     //
     // Header
     //
     
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let cell = tableView.dequeueReusableCell(withIdentifier: "SearchTableViewHeaderCell") as! SearchTableViewHeaderCell
-        configureHeaderCell(cell, section: section)
+        configureHeaderCell(cell, title: headerCellTitle(section: section))
         return cell
     }
     
-    func configureHeaderCell(_ cell: SearchTableViewHeaderCell, section: Int) {
+    func headerCellTitle(section: Int) -> String? {
         var title: String?
         switch (currentSortSelection()) {
         case .atoZ:
             title = searchTerms.getAtoZTitle(index: section)
             /*
-            switch (section) {
-            case 0:
-            title = nil
-            case 1:
-            title = (searchTerms.levenshteinMatch.count > 0) ? "Levenshtein Matches" : "String Score Matches"
-            case 2:
-            title = "String Score Matches"
-            default:
-            title = nil
-            }
-            */
+             switch (section) {
+             case 0:
+             title = nil
+             case 1:
+             title = (searchTerms.levenshteinMatch.count > 0) ? "Levenshtein Matches" : "String Score Matches"
+             case 2:
+             title = "String Score Matches"
+             default:
+             title = nil
+             }
+             */
         case .bySet:
             title = searchTerms.getBySetTitle(index: section)
         case .bySetAtoZ:
             title = searchTerms.getBySetAtoZTitle(index: section)
         }
-        
+        return title
+    }
+    
+    func configureHeaderCell(_ cell: SearchTableViewHeaderCell, title: String?) {
         cell.headerLabel.font = preferredSearchFont
         cell.headerLabel.text = title
         cell.backgroundColor = UIColor(red: 239, green: 239, blue: 239, alpha: 1.0)
@@ -701,6 +742,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     //
     // Header height
     //
+    
+    var headerHeightCache: [String: CGFloat] = [:]
     
     lazy var headerSizingCell: SearchTableViewHeaderCell = {
         [unowned self] in
@@ -712,8 +755,16 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             return 0
         }
         
-        configureHeaderCell(headerSizingCell, section: section)
-        return calculateHeaderHeight(headerSizingCell)
+        let title = headerCellTitle(section: section)
+        var height = headerHeightCache[title ?? ""]
+        if (height == nil) {
+            configureHeaderCell(headerSizingCell, title: title)
+            height = calculateHeaderHeight(headerSizingCell)
+            if (height! > 0) {
+                headerHeightCache[title ?? ""] = height
+            }
+        }
+        return height!
     }
     
     func calculateHeaderHeight(_ cell: SearchTableViewHeaderCell) -> CGFloat {
