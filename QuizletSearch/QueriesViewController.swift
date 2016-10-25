@@ -85,7 +85,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        tableView.layer.cornerRadius = 12
+        // tableView.layer.cornerRadius = 12
         // view.clipsToBounds = true
         
         currentUser = dataModel.currentUser!

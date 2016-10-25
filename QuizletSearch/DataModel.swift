@@ -259,6 +259,11 @@ class DataModel: NSObject {
         var idsToFetch = [NSNumber]()
         var maxModifiedDate: Int64 = 0
         for qset in qsets! {
+            if (qset.id == 0) {
+                // Skip placeholder sets that are inserted by the SetPager to handle the case where the number of qsets in the result is less than
+                // what we expected (test case: search for "hello" and scroll down to page 8 and page 9 or search for "dogs" and scroll to page 7 or so)
+                continue
+            }
             let existingSet = existingSetsMap.removeValue(forKey: qset.id)
             if (existingSet != nil) {
                 existingSet!.copyFrom(qset, moc: moc)
