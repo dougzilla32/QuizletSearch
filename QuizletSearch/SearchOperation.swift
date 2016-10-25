@@ -11,14 +11,23 @@ import Foundation
 class SearchOperation: Operation {
     let query: StringWithBoundaries
     let sortSelection: SortSelection
-    let allTerms: IndexedSetsAndTerms
+    let allTermsSorted: SortedSetsAndTerms?
+    let allTermsIndexed: IndexedSetsAndTerms?
     
     let searchTerms = SearchedSetsAndTerms()
     
-    init(query: StringWithBoundaries, sortSelection: SortSelection, allTerms: IndexedSetsAndTerms) {
+    init(query: StringWithBoundaries, sortSelection: SortSelection, allTermsSorted: SortedSetsAndTerms) {
         self.query = query
         self.sortSelection = sortSelection
-        self.allTerms = allTerms
+        self.allTermsSorted = allTermsSorted
+        self.allTermsIndexed = nil
+    }
+    
+    init(query: StringWithBoundaries, sortSelection: SortSelection, allTermsIndexed: IndexedSetsAndTerms) {
+        self.query = query
+        self.sortSelection = sortSelection
+        self.allTermsIndexed = allTermsIndexed
+        self.allTermsSorted = nil
     }
     
     override func main() {
@@ -30,61 +39,73 @@ class SearchOperation: Operation {
             return
         }
         
-        switch (sortSelection) {
-        case .atoZ:
-            searchTerms.AtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.getAtoZ())
-            // searchTerms.AtoZ = searchTermsForQuery(query, terms: sortedTerms.AtoZ)
-            // searchTerms.levenshteinMatch = SearchViewController.levenshteinMatchForQuery(query, terms: sortedTerms.AtoZ)
-            // searchTerms.stringScoreMatch = SearchViewController.stringScoreMatchForQuery(query, terms: sortedTerms.AtoZ)
-        case .bySet:
-            searchTerms.bySet = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.getBySet())
-        case .bySetAtoZ:
-            searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTerms.getBySetAtoZ())
+        if (allTermsSorted != nil) {
+            switch (sortSelection) {
+            case .atoZ:
+                searchTerms.AtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTermsSorted!.AtoZ)
+            case .bySet:
+                searchTerms.bySet = searchTermsBySetForQuery(query, sortTermsBySet: allTermsSorted!.bySet)
+            case .bySetAtoZ:
+                searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, sortTermsBySet: allTermsSorted!.bySetAtoZ)
+            }
+        }
+        else {
+            switch (sortSelection) {
+            case .atoZ:
+                searchTerms.AtoZ = searchTermsBySetForQuery(query, searchTermsBySet: allTermsIndexed!.getAtoZ())
+            case .bySet:
+                searchTerms.bySet = searchTermsBySetForQuery(query, searchTermsBySet: allTermsIndexed!.getBySet())
+            case .bySetAtoZ:
+                searchTerms.bySetAtoZ = searchTermsBySetForQuery(query, searchTermsBySet: allTermsIndexed!.getBySetAtoZ())
+            }
         }
     }
     
-    /*
-    func searchTermsForQuery(query: StringWithBoundaries, terms: [SortTerm]) -> [SearchTerm] {
-        var searchTerms: [SearchTerm] = []
-        if (query.string.isWhitespace()) {
-            for term in terms {
-                searchTerms.append(SearchTerm(sortTerm: term))
-            }
-        } else {
-            let options = NSStringCompareOptions.WhitespaceInsensitiveSearch
-            
-            for term in terms {
-                if (self.cancelled) {
-                    return []
-                }
-                
-                let termRanges = String.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
-                let definitionRanges = String.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
-                
-                if (termRanges.count > 0 || definitionRanges.count > 0) {
-                    searchTerms.append(SearchTerm(sortTerm: term,
-                        score: 0.0,
-                        termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
-                        definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
-                }
-            }
-        }
-        return searchTerms
-    }
-    */
-    
-    func searchTermsBySetForQuery(_ query: StringWithBoundaries, sortTermsBySet: [SortedQuizletSet<SearchTerm>]) -> [SortedQuizletSet<SearchTerm>] {
-        var searchTermsBySet: [SortedQuizletSet<SearchTerm>] = []
+    func searchTermsBySetForQuery(_ query: StringWithBoundaries, sortTermsBySet: [SortedQuizletSet<SortTerm>]) -> [SortedQuizletSet<SearchTerm>] {
+        var result: [SortedQuizletSet<SearchTerm>] = []
         if (query.string.isWhitespace()) {
             for quizletSet in sortTermsBySet {
                 var searchTermsForSet = [SearchTerm]()
                 for term in quizletSet.terms {
-                    searchTermsForSet.append(term)
+                    searchTermsForSet.append(SearchTerm(sortTerm: term))
                 }
-                searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: searchTermsForSet, createdDate: quizletSet.createdDate))
+                result.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: searchTermsForSet, createdDate: quizletSet.createdDate))
             }
         } else {
             for quizletSet in sortTermsBySet {
+                var searchTermsForSet = [SearchTerm]()
+                
+                for term in quizletSet.terms {
+                    if (self.isCancelled) {
+                        return []
+                    }
+                    
+                    let options = NSString.CompareOptions.WhitespaceInsensitiveSearch
+                    let termRanges = StringWithBoundaries.characterRangesOfUnichars(term.termForCompare, targetString: query, options: options)
+                    let definitionRanges = StringWithBoundaries.characterRangesOfUnichars(term.definitionForCompare, targetString: query, options: options)
+                    
+                    if (termRanges.count > 0 || definitionRanges.count > 0) {
+                        searchTermsForSet.append(SearchTerm(sortTerm: term,
+                            // score: 0.0,
+                            termRanges: term.termForDisplay.characterRangesToUnicharRanges(termRanges),
+                            definitionRanges: term.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
+                    }
+                }
+                
+                if (searchTermsForSet.count > 0) {
+                    result.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: searchTermsForSet, createdDate: quizletSet.createdDate))
+                }
+            }
+        }
+        return result
+    }
+    
+    func searchTermsBySetForQuery(_ query: StringWithBoundaries, searchTermsBySet: [SortedQuizletSet<SearchTerm>]) -> [SortedQuizletSet<SearchTerm>] {
+        var result: [SortedQuizletSet<SearchTerm>] = []
+        if (query.string.isWhitespace()) {
+            result = searchTermsBySet
+        } else {
+            for quizletSet in searchTermsBySet {
                 var searchTermsForSet = [SearchTerm]()
                 
                 for term in quizletSet.terms {
@@ -98,18 +119,18 @@ class SearchOperation: Operation {
                     
                     if (termRanges.count > 0 || definitionRanges.count > 0) {
                         searchTermsForSet.append(SearchTerm(sortTerm: term.sortTerm,
-//                            score: 0.0,
+                            // score: 0.0,
                             termRanges: term.sortTerm.termForDisplay.characterRangesToUnicharRanges(termRanges),
                             definitionRanges: term.sortTerm.definitionForDisplay.characterRangesToUnicharRanges(definitionRanges)))
                     }
                 }
                 
                 if (searchTermsForSet.count > 0) {
-                    searchTermsBySet.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: searchTermsForSet, createdDate: quizletSet.createdDate))
+                    result.append(SortedQuizletSet<SearchTerm>(title: quizletSet.title, terms: searchTermsForSet, createdDate: quizletSet.createdDate))
                 }
             }
         }
-        return searchTermsBySet
+        return result
     }
     
     func searchTermsBySetForQuery(_ query: StringWithBoundaries, termsTable: [String: SortedQuizletSet<SearchTerm>]) -> [SortedQuizletSet<SearchTerm>] {

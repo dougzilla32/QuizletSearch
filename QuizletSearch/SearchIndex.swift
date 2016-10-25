@@ -13,6 +13,10 @@ let BetweenTermAndDefinition = "\t"
 let BetweenRows = "\n"
 let BetweenSets = "\n"
 
+// Turns out the search index is way too big and takes too long to create
+// for larger data sets
+let SearchIndexEnabled = false
+
 class SearchIndex {
     let MaxCount = 2
 
@@ -21,7 +25,9 @@ class SearchIndex {
     
     init(query: Query?) {
         allTerms = SearchIndex.initSortedTerms(query: query)
-        buildIndex(allTerms: allTerms)
+        if (SearchIndexEnabled) {
+            buildIndex(allTerms: allTerms)
+        }
     }
     
     private func buildIndex(allTerms: SortedSetsAndTerms) {

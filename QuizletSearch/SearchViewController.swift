@@ -252,7 +252,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         sizingCell.termLabel.font = preferredSearchFont
         sizingCell.definitionLabel.font = preferredSearchFont
         estimatedHeaderHeight = nil
-        // estimatedHeight = nil
+        estimatedHeight = nil
        
         sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], for: UIControlState())
         
@@ -375,6 +375,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             dispatch_sync_main({
                 trace("SearchViewController.contextDidSave executeSearchForQuery", self.searchBar.text)
                 self.searchIndex = searchIndex
+                headerHeightCache.removeAll(keepingCapacity: true)
+                rowHeightCache.removeAll(keepingCapacity: true)
                 self.executeSearchForQuery(self.searchBar.text)
             })
         }
@@ -414,7 +416,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             searchTerms = searchIndex!.allTerms
             self.tableView.reloadData()
         }
-        else if (query.nsString.length <= searchIndex!.MaxCount) {
+        else if (SearchIndexEnabled && query.nsString.length <= searchIndex!.MaxCount) {
             var result: SearchedAndSorted? = searchIndex!.find(query.string)
             if (result == nil) {
                 result = SearchedSetsAndTerms()
@@ -423,42 +425,37 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             self.tableView.reloadData()
         }
         else {
-            let s = query.nsString.substring(to: searchIndex!.MaxCount)
-            var result = searchIndex!.find(s)
-            if (result == nil) {
-                result = IndexedSetsAndTerms()
+            let searchOp: SearchOperation?
+            if (SearchIndexEnabled) {
+                let s = query.nsString.substring(to: searchIndex!.MaxCount)
+                var result = searchIndex!.find(s)
+                if (result == nil) {
+                    result = IndexedSetsAndTerms()
+                    searchOp = nil
+                }
+                else {
+                    searchOp = SearchOperation(query: query, sortSelection: currentSortSelection(), allTermsIndexed: result!)
+                }
             }
             else {
-                let searchOp = SearchOperation(query: query, sortSelection: currentSortSelection(), allTerms: result!)
-                searchOp.qualityOfService = QualityOfService.userInitiated
-                
-                searchOp.completionBlock = {
+                searchOp = SearchOperation(query: query, sortSelection: currentSortSelection(), allTermsSorted: searchIndex!.allTerms)
+            }
+            
+            if (searchOp != nil) {
+                searchOp!.qualityOfService = QualityOfService.userInitiated
+                searchOp!.completionBlock = {
                     DispatchQueue.main.async(execute: {
-                        if (searchOp.isCancelled) {
+                        if (searchOp!.isCancelled) {
                             return
                         }
                         
-                        self.searchTerms = searchOp.searchTerms
-                        
-                        /*
-                        switch (searchOp.sortSelection) {
-                        case .atoZ:
-                            self.searchTerms.AtoZ = searchOp.searchTerms.AtoZ
-                            // searchTerms.levenshteinMatch = searchOp.searchTerms.levenshteinMatch
-                        // searchTerms.stringScoreMatch = searchOp.searchTerms.stringScoreMatch
-                        case .bySet:
-                            self.searchTerms.bySet = searchOp.searchTerms.bySet
-                        case .bySetAtoZ:
-                            self.searchTerms.bySetAtoZ = searchOp.searchTerms.bySetAtoZ
-                        }
-                        */
-                        
+                        self.searchTerms = searchOp!.searchTerms
                         self.tableView.reloadData()
                     })
                 }
                 
-                currentSearchOperation = searchOp
-                searchQueue.addOperation(searchOp)
+                currentSearchOperation = searchOp!
+                searchQueue.addOperation(searchOp!)
             }
         }
     }
@@ -579,17 +576,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // Row height
     //
     
-    var rowHeightCache: [SortTerm: RowHeight] = [:]
-    
-    struct RowHeight {
-        let height: CGFloat
-        var isEstimate: Bool
-        
-        init(height: CGFloat, isEstimate: Bool) {
-            self.height = height
-            self.isEstimate = isEstimate
-        }
-    }
+    var rowHeightCache: [SortTerm: CGFloat] = [:]
     
     lazy var sizingCell: SearchTableViewCell = {
         [unowned self] in
@@ -606,15 +593,15 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
 
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-        var rh = rowHeightCache[searchTerm.sortTerm]
-        if (rh == nil || rh!.isEstimate) {
+        var height = rowHeightCache[searchTerm.sortTerm]
+        if (height == nil) {
             configureCell(sizingCell, searchTerm: searchTerm)
-            rh = RowHeight(height: calculateRowHeight(sizingCell), isEstimate: false)
-            if (rh!.height > 0) {
-                rowHeightCache[searchTerm.sortTerm] = rh
+            height = calculateRowHeight(sizingCell)
+            if (height! > 0) {
+                rowHeightCache[searchTerm.sortTerm] = height!
             }
         }
-        return rh!.height
+        return height!
     }
     
     func calculateRowHeight(_ cell: SearchTableViewCell) -> CGFloat {
@@ -635,38 +622,27 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return height + 1.0 // Add 1.0 for the cell separator height
     }
     
-    // var estimatedHeight: CGFloat?
+    var estimatedHeight: CGFloat?
 
     func tableView(_ tableView: UITableView,
                    estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
         if (showActivityIndicator) {
             return self.tableView(tableView, heightForRowAtIndexPath: indexPath)
         }
-        
-        // TODO: make sure performance is ok for large sets, may need to go back to quicker estimates
-        // if (estimatedHeight == nil) {
-        //    sizingCell.termLabel.font = preferredSearchFont
-        //    sizingCell.termLabel.text = "Term"
-        //    sizingCell.definitionLabel.font = preferredSearchFont
-        //    sizingCell.definitionLabel.text = "Definition"
-        //    estimatedHeight = calculateRowHeight(sizingCell)
-        // }
-        
+
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-        var rh = rowHeightCache[searchTerm.sortTerm]
-        if (rh == nil) {
-            sizingCell.termLabel.text = searchTerm.sortTerm.termForDisplay.string
-            sizingCell.termLabel.font = preferredSearchFont
-            
-            sizingCell.definitionLabel.text = searchTerm.sortTerm.definitionForDisplay.string
-            sizingCell.definitionLabel.font = preferredSearchFont
-            
-            rh = RowHeight(height: calculateRowHeight(sizingCell), isEstimate: true)
-            if (rh!.height > 0) {
-                rowHeightCache[searchTerm.sortTerm] = rh
+        var height = rowHeightCache[searchTerm.sortTerm]
+        if (height == nil) {
+            if (estimatedHeight == nil) {
+                sizingCell.termLabel.font = preferredSearchFont
+                sizingCell.termLabel.text = "Term"
+                sizingCell.definitionLabel.font = preferredSearchFont
+                sizingCell.definitionLabel.text = "Definition"
+                estimatedHeight = calculateRowHeight(sizingCell)
             }
+            height = estimatedHeight!
         }
-        return rh!.height
+        return height!
     }
     
     //
