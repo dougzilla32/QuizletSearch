@@ -965,8 +965,8 @@
                                 </subviews>
                                 <color key="backgroundColor" red="0.0" green="0.47450980390000003" blue="0.74901960779999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
-                                    <constraint firstAttribute="trailing" secondItem="Myz-fE-z14" secondAttribute="trailing" constant="-2" id="EM0-Lt-O9G"/>
-                                    <constraint firstItem="Myz-fE-z14" firstAttribute="leading" secondItem="bAy-tf-HMa" secondAttribute="leading" constant="6" id="Yfd-RM-z9O"/>
+                                    <constraint firstAttribute="trailing" secondItem="Myz-fE-z14" secondAttribute="trailing" constant="1" id="EM0-Lt-O9G"/>
+                                    <constraint firstItem="Myz-fE-z14" firstAttribute="leading" secondItem="bAy-tf-HMa" secondAttribute="leading" constant="9" id="Yfd-RM-z9O"/>
                                     <constraint firstAttribute="bottom" secondItem="Myz-fE-z14" secondAttribute="bottom" constant="16" id="vGh-N5-PUe"/>
                                     <constraint firstItem="Myz-fE-z14" firstAttribute="top" secondItem="bAy-tf-HMa" secondAttribute="top" constant="16" id="yXm-e6-UYY"/>
                                 </constraints>
@@ -994,11 +994,11 @@
                                 </subviews>
                                 <color key="backgroundColor" red="0.0" green="0.47450980390000003" blue="0.74901960779999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <constraints>
-                                    <constraint firstAttribute="width" secondItem="3cw-cT-3YJ" secondAttribute="width" constant="4" id="0an-fM-Fk5"/>
+                                    <constraint firstAttribute="width" secondItem="3cw-cT-3YJ" secondAttribute="width" constant="10" id="0an-fM-Fk5"/>
                                     <constraint firstAttribute="bottom" secondItem="3cw-cT-3YJ" secondAttribute="bottom" constant="13" id="EwZ-8K-DU4"/>
-                                    <constraint firstItem="3cw-cT-3YJ" firstAttribute="leading" secondItem="4cO-98-W7Q" secondAttribute="leading" constant="-1" id="I4A-az-pda"/>
+                                    <constraint firstItem="3cw-cT-3YJ" firstAttribute="leading" secondItem="4cO-98-W7Q" secondAttribute="leading" constant="2" id="I4A-az-pda"/>
                                     <constraint firstItem="3cw-cT-3YJ" firstAttribute="top" secondItem="4cO-98-W7Q" secondAttribute="top" constant="15" id="ROs-e4-Umw"/>
-                                    <constraint firstAttribute="trailing" secondItem="3cw-cT-3YJ" secondAttribute="trailing" constant="5" id="dcK-6o-mjx"/>
+                                    <constraint firstAttribute="trailing" secondItem="3cw-cT-3YJ" secondAttribute="trailing" constant="8" id="dcK-6o-mjx"/>
                                 </constraints>
                             </view>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="8IP-x1-ERJ">
