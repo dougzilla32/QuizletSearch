@@ -941,6 +941,13 @@
                         <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
+                            <searchBar contentMode="redraw" placeholder="Search" translatesAutoresizingMaskIntoConstraints="NO" id="6Ql-ol-eWP">
+                                <color key="barTintColor" red="0.0" green="0.47450980390000003" blue="0.74901960779999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <textInputTraits key="textInputTraits"/>
+                                <connections>
+                                    <outlet property="delegate" destination="bQl-lE-mnK" id="P1o-4G-otc"/>
+                                </connections>
+                            </searchBar>
                             <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="myX-vO-he7" userLabel="Status Fill">
                                 <color key="backgroundColor" red="0.0" green="0.47450980392156861" blue="0.74901960784313726" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </view>
@@ -950,57 +957,28 @@
                                     <constraint firstAttribute="height" constant="2" id="4mn-Gn-t0w"/>
                                 </constraints>
                             </view>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bAy-tf-HMa" userLabel="Back View">
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Myz-fE-z14">
-                                        <fontDescription key="fontDescription" name="Arial-BoldMT" family="Arial" pointSize="15"/>
-                                        <state key="normal" backgroundImage="Left-20-white">
-                                            <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                        </state>
-                                        <state key="highlighted" backgroundImage="Left-20-gray"/>
-                                        <connections>
-                                            <segue destination="tBm-ae-7KW" kind="unwind" identifier="SearchUnwind" unwindAction="unwindFromSearch:" id="U5W-1G-qva"/>
-                                        </connections>
-                                    </button>
-                                </subviews>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Myz-fE-z14" userLabel="Back Button">
                                 <color key="backgroundColor" red="0.0" green="0.47450980390000003" blue="0.74901960779999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <constraints>
-                                    <constraint firstAttribute="trailing" secondItem="Myz-fE-z14" secondAttribute="trailing" constant="1" id="EM0-Lt-O9G"/>
-                                    <constraint firstItem="Myz-fE-z14" firstAttribute="leading" secondItem="bAy-tf-HMa" secondAttribute="leading" constant="9" id="Yfd-RM-z9O"/>
-                                    <constraint firstAttribute="bottom" secondItem="Myz-fE-z14" secondAttribute="bottom" constant="16" id="vGh-N5-PUe"/>
-                                    <constraint firstItem="Myz-fE-z14" firstAttribute="top" secondItem="bAy-tf-HMa" secondAttribute="top" constant="16" id="yXm-e6-UYY"/>
-                                </constraints>
-                            </view>
-                            <searchBar contentMode="redraw" placeholder="Search" translatesAutoresizingMaskIntoConstraints="NO" id="6Ql-ol-eWP">
-                                <color key="barTintColor" red="0.0" green="0.47450980390000003" blue="0.74901960779999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <textInputTraits key="textInputTraits"/>
+                                <inset key="contentEdgeInsets" minX="5" minY="16" maxX="3" maxY="16"/>
+                                <state key="normal" image="Left-20-white">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <state key="highlighted" image="Left-20-gray"/>
                                 <connections>
-                                    <outlet property="delegate" destination="bQl-lE-mnK" id="P1o-4G-otc"/>
+                                    <segue destination="tBm-ae-7KW" kind="unwind" identifier="SearchUnwind" unwindAction="unwindFromSearch:" id="U5W-1G-qva"/>
                                 </connections>
-                            </searchBar>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="4cO-98-W7Q" userLabel="Edit View">
-                                <subviews>
-                                    <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3cw-cT-3YJ">
-                                        <state key="normal" backgroundImage="Edit-24-white">
-                                            <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                        </state>
-                                        <state key="disabled" backgroundImage="Edit unselected"/>
-                                        <state key="selected" backgroundImage="Plus Button"/>
-                                        <state key="highlighted" backgroundImage="Edit-24-gray"/>
-                                        <connections>
-                                            <segue destination="mBm-hZ-Rd7" kind="presentation" identifier="EditQuery" modalTransitionStyle="coverVertical" id="Dkh-38-rks"/>
-                                        </connections>
-                                    </button>
-                                </subviews>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3cw-cT-3YJ" userLabel="Edit Button">
                                 <color key="backgroundColor" red="0.0" green="0.47450980390000003" blue="0.74901960779999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
-                                <constraints>
-                                    <constraint firstAttribute="width" secondItem="3cw-cT-3YJ" secondAttribute="width" constant="10" id="0an-fM-Fk5"/>
-                                    <constraint firstAttribute="bottom" secondItem="3cw-cT-3YJ" secondAttribute="bottom" constant="13" id="EwZ-8K-DU4"/>
-                                    <constraint firstItem="3cw-cT-3YJ" firstAttribute="leading" secondItem="4cO-98-W7Q" secondAttribute="leading" constant="2" id="I4A-az-pda"/>
-                                    <constraint firstItem="3cw-cT-3YJ" firstAttribute="top" secondItem="4cO-98-W7Q" secondAttribute="top" constant="15" id="ROs-e4-Umw"/>
-                                    <constraint firstAttribute="trailing" secondItem="3cw-cT-3YJ" secondAttribute="trailing" constant="8" id="dcK-6o-mjx"/>
-                                </constraints>
-                            </view>
+                                <inset key="contentEdgeInsets" minX="4" minY="15" maxX="4" maxY="13"/>
+                                <state key="normal" image="Edit-24-white">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                                <state key="highlighted" image="Edit-24-gray"/>
+                                <connections>
+                                    <segue destination="mBm-hZ-Rd7" kind="presentation" identifier="EditQuery" modalTransitionStyle="coverVertical" id="Dkh-38-rks"/>
+                                </connections>
+                            </button>
                             <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="22" sectionFooterHeight="22" translatesAutoresizingMaskIntoConstraints="NO" id="8IP-x1-ERJ">
                                 <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <prototypes>
@@ -1115,28 +1093,28 @@
                         <constraints>
                             <constraint firstItem="8IP-x1-ERJ" firstAttribute="top" secondItem="6Ql-ol-eWP" secondAttribute="bottom" id="0jF-cA-tGc"/>
                             <constraint firstAttribute="trailing" secondItem="Wqe-jp-IQC" secondAttribute="trailing" id="3H9-zN-fjs"/>
+                            <constraint firstItem="Myz-fE-z14" firstAttribute="leading" secondItem="yd5-Gg-7Eq" secondAttribute="leading" id="5Mg-qw-gva"/>
+                            <constraint firstItem="6Ql-ol-eWP" firstAttribute="leading" secondItem="Myz-fE-z14" secondAttribute="trailing" constant="-6" id="8ke-rK-JMf"/>
                             <constraint firstItem="I2L-3C-vGe" firstAttribute="top" secondItem="JjU-gw-FoA" secondAttribute="bottom" id="9aE-fK-BBZ"/>
                             <constraint firstItem="8IP-x1-ERJ" firstAttribute="leading" secondItem="yd5-Gg-7Eq" secondAttribute="leading" id="AKU-BH-JXe"/>
                             <constraint firstItem="Wqe-jp-IQC" firstAttribute="leading" secondItem="yd5-Gg-7Eq" secondAttribute="leading" id="BhO-tZ-U4f"/>
                             <constraint firstAttribute="trailing" secondItem="I2L-3C-vGe" secondAttribute="trailing" id="CEx-mT-5gg"/>
-                            <constraint firstItem="4cO-98-W7Q" firstAttribute="baseline" secondItem="6Ql-ol-eWP" secondAttribute="baseline" id="LUA-e3-ebb"/>
+                            <constraint firstAttribute="trailing" secondItem="3cw-cT-3YJ" secondAttribute="trailing" id="JhO-cf-FhQ"/>
                             <constraint firstItem="Wqe-jp-IQC" firstAttribute="top" secondItem="8IP-x1-ERJ" secondAttribute="bottom" id="RD8-kU-m6e"/>
                             <constraint firstAttribute="trailing" secondItem="Wqe-jp-IQC" secondAttribute="trailing" id="RoY-2M-jvY"/>
-                            <constraint firstAttribute="trailing" secondItem="4cO-98-W7Q" secondAttribute="trailing" id="TZv-FH-brs"/>
-                            <constraint firstItem="bAy-tf-HMa" firstAttribute="leading" secondItem="yd5-Gg-7Eq" secondAttribute="leading" id="V2c-Fv-ibV"/>
-                            <constraint firstItem="4cO-98-W7Q" firstAttribute="leading" secondItem="6Ql-ol-eWP" secondAttribute="trailing" id="W4E-oh-mVi"/>
+                            <constraint firstItem="Myz-fE-z14" firstAttribute="top" secondItem="I2L-3C-vGe" secondAttribute="bottom" id="RxQ-cf-37l"/>
+                            <constraint firstItem="8IP-x1-ERJ" firstAttribute="top" secondItem="3cw-cT-3YJ" secondAttribute="bottom" id="XLV-6T-wIU"/>
                             <constraint firstAttribute="trailing" secondItem="8IP-x1-ERJ" secondAttribute="trailing" id="ZV8-yG-U3c"/>
                             <constraint firstItem="myX-vO-he7" firstAttribute="leading" secondItem="yd5-Gg-7Eq" secondAttribute="leading" id="c6F-6e-5MR"/>
-                            <constraint firstItem="4cO-98-W7Q" firstAttribute="top" secondItem="I2L-3C-vGe" secondAttribute="bottom" id="cGx-0C-b3P"/>
                             <constraint firstItem="6Ql-ol-eWP" firstAttribute="top" secondItem="myX-vO-he7" secondAttribute="bottom" id="crN-0N-t7g"/>
                             <constraint firstItem="6Ql-ol-eWP" firstAttribute="top" secondItem="I2L-3C-vGe" secondAttribute="bottom" id="e4t-5m-Cpu"/>
                             <constraint firstItem="myX-vO-he7" firstAttribute="top" secondItem="yd5-Gg-7Eq" secondAttribute="top" id="ev4-en-aLJ"/>
                             <constraint firstItem="Kd0-ky-6zS" firstAttribute="top" secondItem="Wqe-jp-IQC" secondAttribute="bottom" id="fYu-YT-r24"/>
                             <constraint firstItem="I2L-3C-vGe" firstAttribute="leading" secondItem="yd5-Gg-7Eq" secondAttribute="leading" id="gnS-ge-eYm"/>
+                            <constraint firstItem="3cw-cT-3YJ" firstAttribute="top" secondItem="I2L-3C-vGe" secondAttribute="bottom" id="ioP-N1-fk2"/>
                             <constraint firstAttribute="trailing" secondItem="myX-vO-he7" secondAttribute="trailing" id="qFd-th-KPN"/>
-                            <constraint firstItem="bAy-tf-HMa" firstAttribute="top" secondItem="I2L-3C-vGe" secondAttribute="bottom" id="r2K-SQ-kIQ"/>
-                            <constraint firstItem="8IP-x1-ERJ" firstAttribute="top" secondItem="bAy-tf-HMa" secondAttribute="bottom" id="vUP-Ni-ddG"/>
-                            <constraint firstItem="6Ql-ol-eWP" firstAttribute="leading" secondItem="bAy-tf-HMa" secondAttribute="trailing" id="ywo-7D-uiM"/>
+                            <constraint firstItem="8IP-x1-ERJ" firstAttribute="top" secondItem="Myz-fE-z14" secondAttribute="bottom" id="ucd-9s-u9p"/>
+                            <constraint firstItem="3cw-cT-3YJ" firstAttribute="leading" secondItem="6Ql-ol-eWP" secondAttribute="trailing" constant="-6" id="wJN-y6-FvC"/>
                         </constraints>
                     </view>
                     <userDefinedRuntimeAttributes>
@@ -1200,7 +1178,6 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Edit unselected" width="24" height="24"/>
         <image name="Edit-24-gray" width="24" height="24"/>
         <image name="Edit-24-white" width="24" height="24"/>
         <image name="Left-20-gray" width="20" height="20"/>
