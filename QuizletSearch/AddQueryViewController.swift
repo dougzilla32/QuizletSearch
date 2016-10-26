@@ -70,6 +70,11 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         // Disable selections in the table
         tableView.allowsSelection = false
         
+        // Dismiss keyboard when user touches the table
+        let gestureRecognizer = UITapGestureRecognizer(target: self,  action: #selector(AddQueryViewController.hideKeyboard(_:)))
+        gestureRecognizer.cancelsTouchesInView = false
+        tableView.addGestureRecognizer(gestureRecognizer)
+        
         // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
         tableView.keyboardDismissMode = .interactive
         
@@ -205,13 +210,18 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     // Have the keyboard close when 'Return' is pressed
-    func searchBar(_ searchBar: UISearchBar, range: NSRange, replacementText text: String) -> Bool
+    func searchBar(_ searchBar: UISearchBar, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool // called before text changes
     {
         if (text == "\n") {
             // The user pressed 'Search'
             searchBar.resignFirstResponder()
         }
         return true
+    }
+    
+    func hideKeyboard(_ recognizer: UITapGestureRecognizer) {
+        searchBar?.resignFirstResponder()
+        currentFirstResponder?.target.resignFirstResponder()
     }
     
     // MARK: - Search
