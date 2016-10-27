@@ -67,13 +67,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Disable selections in the table
-        tableView.allowsSelection = false
-        
-        // Dismiss keyboard when user touches the table
-        let gestureRecognizer = UITapGestureRecognizer(target: self,  action: #selector(AddQueryViewController.hideKeyboard(_:)))
-        gestureRecognizer.cancelsTouchesInView = false
-        tableView.addGestureRecognizer(gestureRecognizer)
+        // Enable selections in the table
+        tableView.allowsSelection = true
         
         // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
         tableView.keyboardDismissMode = .interactive
@@ -217,11 +212,6 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             searchBar.resignFirstResponder()
         }
         return true
-    }
-    
-    func hideKeyboard(_ recognizer: UITapGestureRecognizer) {
-        searchBar?.resignFirstResponder()
-        currentFirstResponder?.target.resignFirstResponder()
     }
     
     // MARK: - Search
@@ -670,6 +660,17 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         return model.isHeaderAtPath(indexPath) ? nil : indexPath
     }
 
+    // Called after the user changes the selection.
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        if let resultRow = model.resultRowForIndexPath(indexPath),
+           let qset = model.pagers.peekQSetForRow(resultRow) {
+
+            Common.launchQuizletForSet(id: qset.id, deadline: .now() + 0.5, execute: {
+                tableView.deselectRow(at: indexPath, animated: false)
+            })
+        }
+    }
+    
     override func numberOfSections(in tableView: UITableView) -> Int {
         // Return the number of sections.
         return 2

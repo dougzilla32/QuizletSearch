@@ -47,7 +47,7 @@ func max<T : Comparable>(_ items: T?...) -> T? {
 }
 */
 
-func dispatch_sync_main(_ block: ()->()) -> Void {
+func dispatchSyncMain(_ block: ()->()) -> Void {
     if (Thread.isMainThread) {
         block()
     }
@@ -199,6 +199,20 @@ class Common {
             return (width != 0) ? width: Common.hardcodedTableIndexViewWidth
         }
         return Common.hardcodedTableIndexViewWidth
+    }
+    
+    class func launchQuizletForSet(id: Int64, deadline: DispatchTime, execute work: @escaping @convention(block) () -> Swift.Void) {
+        let url = URL(string: "http://quizlet.com/\(id)")
+        
+        if #available(iOS 10.0, *) {
+            UIApplication.shared.open(url!, options: [:], completionHandler: {(b) in
+                DispatchQueue.main.asyncAfter(deadline: deadline, execute: work)
+            })
+        } else {
+            // Fallback on earlier versions
+            UIApplication.shared.openURL(url!)
+            DispatchQueue.main.asyncAfter(deadline: deadline, execute: work)
+        }
     }
     
     // iPhone 4s, 5, 5s, 6, 6s, 6 Plus, 6s Plus : 15

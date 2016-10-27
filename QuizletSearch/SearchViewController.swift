@@ -28,7 +28,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     var animationContext: WhooshAnimationContext?
     
     let SearchBarPlaceholderPrefix = "Search \""
-    let SearchBarPlaceholderSuffix = "\" sets"
+    let SearchBarPlaceholderSuffix = "\" terms"
     
     // MARK: - Sorting
     
@@ -93,10 +93,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return true
     }
     
-    func hideKeyboard(_ recognizer: UITapGestureRecognizer) {
-        searchBar.resignFirstResponder()
-    }
-
     // MARK: - View Controller
         
     override var shouldAutorotate : Bool {
@@ -369,7 +365,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             let searchIndex = SearchIndex(query: (UIApplication.shared.delegate as! AppDelegate).dataModel.currentQuery)
             
             // Note: need to call dispatch_sync on the main dispatch queue.  The UI update must happen in the main dispatch queue, and the contextDidSaveNotification cannot return until all objects have been updated.  If a deleted object is used after this method returns then the app will crash with a bad access error.
-            dispatch_sync_main({
+            dispatchSyncMain({
                 trace("SearchViewController.contextDidSave executeSearchForQuery", self.searchBar.text)
                 self.searchIndex = searchIndex
                 
@@ -468,21 +464,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // Called after the user changes the selection.
     func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-        let url = URL(string: "http://quizlet.com/\(searchTerm.sortTerm.setId)")
 
-        if #available(iOS 10.0, *) {
-            UIApplication.shared.open(url!, options: [:], completionHandler: {(b) in
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
-                    self.tableView.deselectRow(at: indexPath, animated: false)
-                })
-            })
-        } else {
-            // Fallback on earlier versions
-            UIApplication.shared.openURL(url!)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
-                self.tableView.deselectRow(at: indexPath, animated: false)
-            })
-        }
+        Common.launchQuizletForSet(id: searchTerm.sortTerm.setId, deadline: .now() + 0.5, execute: {
+            tableView.deselectRow(at: indexPath, animated: false)
+        })
     }
     
     func numberOfSectionsInTableView(_ tableView: UITableView) -> Int {

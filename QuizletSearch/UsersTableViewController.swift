@@ -58,5 +58,9 @@ class UsersTableViewController: UITableViewController {
         // Return the number of rows in the section.
         return 0
     }
+
+    func hideKeyboard(_ recognizer: UITapGestureRecognizer) {
+        // currentFirstResponder?.target.resignFirstResponder()
+    }
 }
 
