@@ -35,6 +35,14 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     var searchIndex: SearchIndex?
     var searchTerms: SearchedAndSorted = SortedSetsAndTerms()
     
+    struct TermHeight {
+        let height: CGFloat
+        let termIsTaller: Bool
+    }
+    
+    var termHeightCache: [SortTerm: TermHeight] = [:]
+    var headerHeightCache: [String: CGFloat] = [:]
+    
     @IBAction func sortStyleChanged(_ sender: AnyObject) {
         trace("SearchViewController.sortStyleChanged executeSearchForQuery", searchBar.text)
         executeSearchForQuery(searchBar.text)
@@ -76,7 +84,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         executeSearchForQuery(searchBar.text)
     }
     
-    // Have the keyboard close when 'Return' is pressed
+    // Have the keyboard close when 'Search' is pressed
     func searchBar(_ searchBar: UISearchBar, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool // called before text changes
     {
         if (text == "\n") {
@@ -99,25 +107,12 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return .all
     }
     
-//    override func loadView() {
-//        super.loadView()
-//        (UIApplication.sharedApplication().delegate as! AppDelegate).refreshAndRestartTimer(allowCellularAccess: true)
-//    }
-    
     override func viewDidLoad() {
         trace("SearchViewController viewDidLoad()")
         super.viewDidLoad()
         
-        // Disable selections in the table
-        tableView.allowsSelection = false
-        
-        // Dismiss keyboard when user touches the table
-        let gestureRecognizer = UITapGestureRecognizer(target: self,  action: #selector(SearchViewController.hideKeyboard(_:)))
-        gestureRecognizer.cancelsTouchesInView = false
-        tableView.addGestureRecognizer(gestureRecognizer)
-        
-        // Dismiss the keyboard as soon as the user drags the table
-        // tableView.keyboardDismissMode = .OnDrag
+        // Enable selections in the table
+        tableView.allowsSelection = true
         
         // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
         tableView.keyboardDismissMode = .interactive
@@ -128,9 +123,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             name: NSNotification.Name.UIContentSizeCategoryDidChange,
             object: nil)
         resetFonts()
-        
-        // Uncomment the following line to display an Edit button in the navigation bar for this view controller.
-        // self.navigationItem.rightBarButtonItem = self.editButtonItem()
         
         let moc = (UIApplication.shared.delegate as! AppDelegate).managedObjectContext
         NotificationCenter.default.addObserver(self,
@@ -159,6 +151,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
         navigationController?.isNavigationBarHidden = true
     }
     
@@ -170,8 +164,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         if (!isFirstViewDidLayoutSubviews) { return }
         isFirstViewDidLayoutSubviews = false
         
+        termHeightCache.removeAll(keepingCapacity: true)
         headerHeightCache.removeAll(keepingCapacity: true)
-        rowHeightCache.removeAll(keepingCapacity: true)
 
         DispatchQueue.main.async(execute: {
             trace("SearchViewController.executeSearchForQuery from viewDidLayoutSubviews")
@@ -249,8 +243,11 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         preferredSearchFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
         preferredBoldSearchFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
         
-        sizingCell.termLabel.font = preferredSearchFont
-        sizingCell.definitionLabel.font = preferredSearchFont
+        termSizingCell.termLabel.font = preferredSearchFont
+        termSizingCell.definitionLabel.font = preferredSearchFont
+        definitionSizingCell.termLabel.font = preferredSearchFont
+        definitionSizingCell.definitionLabel.font = preferredSearchFont
+
         estimatedHeaderHeight = nil
         estimatedHeight = nil
        
@@ -375,8 +372,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             dispatch_sync_main({
                 trace("SearchViewController.contextDidSave executeSearchForQuery", self.searchBar.text)
                 self.searchIndex = searchIndex
+                
+                termHeightCache.removeAll(keepingCapacity: true)
                 headerHeightCache.removeAll(keepingCapacity: true)
-                rowHeightCache.removeAll(keepingCapacity: true)
+
                 self.executeSearchForQuery(self.searchBar.text)
             })
         }
@@ -462,11 +461,30 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
-        // TODO: Dispose of any data model resources that can be refetched
     }
     
     // MARK: - Table view data source
 
+    // Called after the user changes the selection.
+    func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
+        let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
+        let url = URL(string: "http://quizlet.com/\(searchTerm.sortTerm.setId)")
+
+        if #available(iOS 10.0, *) {
+            UIApplication.shared.open(url!, options: [:], completionHandler: {(b) in
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                    self.tableView.deselectRow(at: indexPath, animated: false)
+                })
+            })
+        } else {
+            // Fallback on earlier versions
+            UIApplication.shared.openURL(url!)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: {
+                self.tableView.deselectRow(at: indexPath, animated: false)
+            })
+        }
+    }
+    
     func numberOfSectionsInTableView(_ tableView: UITableView) -> Int {
         if (showActivityIndicator) {
             return 1
@@ -535,33 +553,63 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
             activityIndicator.startAnimating()
             return cell
         }
-        
-        let cell = tableView.dequeueReusableCell(withIdentifier: "SearchTableViewCell", for: indexPath) as! SearchTableViewCell
+
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-        configureCell(cell, searchTerm: searchTerm)
+        var termHeight = termHeightCache[searchTerm.sortTerm]
+        if (termHeight == nil) {
+            _ = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
+            termHeight = termHeightCache[searchTerm.sortTerm]
+        }
+
+        let cell = tableView.dequeueReusableCell(withIdentifier: "SearchTableViewCell", for: indexPath) as! SearchTableViewCell
+        
+        // Force the label heights to the max of their respective heights, otherwise some rows will be too short.  AutoLayout has problems
+        // getting the height correct for the two labels together (I think because of the text wrapping in the labels).
+        SearchViewController.updateHeightConstraint(label: cell.termLabel, height: termHeight!.height)
+        SearchViewController.updateHeightConstraint(label: cell.definitionLabel, height: termHeight!.height)
+        
+        configureCell(cell, searchTerm: searchTerm, useTerm: true, useDefinition: true)
         return cell
+    }
+    
+    class func updateHeightConstraint(label: UILabel, height: CGFloat) {
+        var foundHeight = false
+        for c in label.constraints {
+            if (c.firstAttribute == .height) {
+                foundHeight = true
+                c.constant = height
+                break
+            }
+        }
+        if (!foundHeight) {
+            label.addConstraint(NSLayoutConstraint(item: label, attribute: .height, relatedBy: .equal, toItem: nil, attribute: .notAnAttribute, multiplier: 1, constant: height))
+        }
     }
     
     lazy var highlightForegroundColor = UIColor(red: 25.0 / 255.0, green: 86.0 / 255.0, blue: 204.0 / 255.0, alpha: 1.0)
     lazy var highlightBackgroundColor = UIColor(red: 217.0 / 255.0, green: 232.0 / 255.0, blue: 251.0 / 255.0, alpha: 1.0)
     
-    func configureCell(_ cell: SearchTableViewCell, searchTerm: SearchTerm) {
-        let termForDisplay = searchTerm.sortTerm.termForDisplay.string
+    func configureCell(_ cell: SearchTableViewCell, searchTerm: SearchTerm, useTerm: Bool, useDefinition: Bool) {
+        let termForDisplay = useTerm ? searchTerm.sortTerm.termForDisplay.string : ""
         let termText = NSMutableAttributedString(string: termForDisplay)
-        for range in searchTerm.termRanges {
-            termText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
-             termText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
-            termText.addAttribute(NSBackgroundColorAttributeName, value: highlightBackgroundColor, range: range)
+        if (useTerm) {
+            for range in searchTerm.termRanges {
+                termText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
+                termText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
+                termText.addAttribute(NSBackgroundColorAttributeName, value: highlightBackgroundColor, range: range)
+            }
         }
         cell.termLabel.font = preferredSearchFont
         cell.termLabel.attributedText = termText
         
-        let definitionForDisplay = searchTerm.sortTerm.definitionForDisplay.string
+        let definitionForDisplay = useDefinition ? searchTerm.sortTerm.definitionForDisplay.string : ""
         let definitionText = NSMutableAttributedString(string: definitionForDisplay)
-        for range in searchTerm.definitionRanges {
-            definitionText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
-             definitionText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
-            definitionText.addAttribute(NSBackgroundColorAttributeName, value: highlightBackgroundColor, range: range)
+        if (useDefinition) {
+            for range in searchTerm.definitionRanges {
+                definitionText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
+                definitionText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
+                definitionText.addAttribute(NSBackgroundColorAttributeName, value: highlightBackgroundColor, range: range)
+            }
         }
         cell.definitionLabel.font = preferredSearchFont
         cell.definitionLabel.attributedText = definitionText
@@ -576,12 +624,30 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // Row height
     //
     
-    var rowHeightCache: [SortTerm: CGFloat] = [:]
-    
-    lazy var sizingCell: SearchTableViewCell = {
+    lazy var termSizingCell: SearchTableViewCell = {
         [unowned self] in
-        return self.tableView.dequeueReusableCell(withIdentifier: "SearchTableViewCell") as! SearchTableViewCell
-    }()
+        let cell = self.tableView.dequeueReusableCell(withIdentifier: "SearchTableViewTermCell") as! SearchTableViewCell
+        SearchViewController.removeHeightConstraint(label: cell.termLabel)
+        SearchViewController.removeHeightConstraint(label: cell.definitionLabel)
+        return cell
+        }()
+    
+    lazy var definitionSizingCell: SearchTableViewCell = {
+        [unowned self] in
+        let cell = self.tableView.dequeueReusableCell(withIdentifier: "SearchTableViewDefinitionCell") as! SearchTableViewCell
+        SearchViewController.removeHeightConstraint(label: cell.termLabel)
+        SearchViewController.removeHeightConstraint(label: cell.definitionLabel)
+        return cell
+        }()
+    
+    class func removeHeightConstraint(label: UILabel) {
+        for c in label.constraints {
+            if (c.firstAttribute == .height) {
+                label.removeConstraint(c)
+                break
+            }
+        }
+    }
     
     /**
      * This method should make dynamically sizing table view cells work with iOS 7.  I have not been able
@@ -593,12 +659,18 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
 
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-        var height = rowHeightCache[searchTerm.sortTerm]
+        
+        var height = termHeightCache[searchTerm.sortTerm]?.height
         if (height == nil) {
-            configureCell(sizingCell, searchTerm: searchTerm)
-            height = calculateRowHeight(sizingCell)
+            configureCell(termSizingCell, searchTerm: searchTerm, useTerm: true, useDefinition: false)
+            let termHeight = calculateRowHeight(termSizingCell)
+
+            configureCell(definitionSizingCell, searchTerm: searchTerm, useTerm: false, useDefinition: true)
+            let definitionHeight = calculateRowHeight(definitionSizingCell)
+            
+            height = max(termHeight, definitionHeight)
             if (height! > 0) {
-                rowHeightCache[searchTerm.sortTerm] = height!
+                termHeightCache[searchTerm.sortTerm] = TermHeight(height: height!, termIsTaller: termHeight > definitionHeight)
             }
         }
         return height!
@@ -606,10 +678,10 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     func calculateRowHeight(_ cell: SearchTableViewCell) -> CGFloat {
         // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
-        sizingCell.termLabel.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
-        sizingCell.definitionLabel.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        cell.termLabel.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
+        cell.definitionLabel.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
 
-        return calculateHeight(sizingCell)
+        return calculateHeight(cell)
     }
     
     func calculateHeight(_ cell: UITableViewCell) -> CGFloat {
@@ -624,21 +696,20 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     var estimatedHeight: CGFloat?
 
-    func tableView(_ tableView: UITableView,
-                   estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
         if (showActivityIndicator) {
             return self.tableView(tableView, heightForRowAtIndexPath: indexPath)
         }
 
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
-        var height = rowHeightCache[searchTerm.sortTerm]
+        var height = termHeightCache[searchTerm.sortTerm]?.height
         if (height == nil) {
             if (estimatedHeight == nil) {
-                sizingCell.termLabel.font = preferredSearchFont
-                sizingCell.termLabel.text = "Term"
-                sizingCell.definitionLabel.font = preferredSearchFont
-                sizingCell.definitionLabel.text = "Definition"
-                estimatedHeight = calculateRowHeight(sizingCell)
+                termSizingCell.termLabel.font = preferredSearchFont
+                termSizingCell.termLabel.text = "Term"
+                termSizingCell.definitionLabel.font = preferredSearchFont
+                termSizingCell.definitionLabel.text = "Definition"
+                estimatedHeight = calculateRowHeight(termSizingCell)
             }
             height = estimatedHeight!
         }
@@ -689,8 +760,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     //
     // Header height
     //
-    
-    var headerHeightCache: [String: CGFloat] = [:]
     
     lazy var headerSizingCell: SearchTableViewHeaderCell = {
         [unowned self] in
@@ -762,15 +831,5 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
         return index
     }
-    
-    /*
-    // MARK: - Navigation
-    
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using [segue destinationViewController].
-        // Pass the selected object to the new view controller.
-    }
-    */
 }
 

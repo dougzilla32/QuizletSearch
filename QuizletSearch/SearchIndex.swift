@@ -244,12 +244,16 @@ class SortTerm: Equatable, Hashable {
     let termForCompare: StringWithBoundaries
     let definitionForCompare: StringWithBoundaries
     
+    let setId: Int64
+    
     init(term: Term) {
         self.termForDisplay = StringWithBoundaries(string: term.term)
         self.definitionForDisplay = StringWithBoundaries(string: term.definition)
         
         self.termForCompare = term.term.lowercased().decomposeAndNormalize()
         self.definitionForCompare = term.definition.lowercased().decomposeAndNormalize()
+        
+        self.setId = term.set.id
     }
     
     static func ==(lhs: SortTerm, rhs: SortTerm) -> Bool {
