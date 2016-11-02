@@ -85,13 +85,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // tableView.layer.cornerRadius = 12
-        // view.clipsToBounds = true
-        
         currentUser = dataModel.currentUser!
-        
-//         tableView.rowHeight = UITableViewAutomaticDimension
-//         tableView.estimatedRowHeight = 44.0
         
         // Respond to dynamic type font changes
         NotificationCenter.default.addObserver(self,
@@ -109,6 +103,12 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
                 self.tableView.setContentOffset(CGPoint(x: 0, y: self.searchBarHeight), animated: false)
             })
         }
+    }
+    
+    override func viewDidLayoutSubviews() {
+        super.viewDidLayoutSubviews()
+
+        updateFooterShadow(force: true)
     }
     
     deinit {
@@ -193,22 +193,25 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             (segue.destination.childViewControllers[0] as! AddQueryViewController).configureForAdd()
         }
         else if (segue.identifier == "Search") {
-            // Animate the filter's characters into the SearchViewController's search bar
-            let indexPath = tableView.indexPathForSelectedRow!
-            let cell = tableView.cellForRow(at: indexPath)!
-            let label = cell.contentView.viewWithTag(100) as! UILabel
-            
-            let origin = label.frame.origin
-            let mainWindow = UIApplication.shared.keyWindow!
-            let sourcePoint = label.superview!.convert(origin, to: mainWindow)
+            let searchViewController = segue.destination as! SearchViewController
 
-            if (animationContext != nil) {
-                animationContext!.cancel()
-                animationContext = nil
-            }
+            searchViewController.searchBarBecomesFirstResponder = true
             
             if (WhooshAnimationEnabled) {
-                let searchViewController = segue.destination as! SearchViewController
+                // Animate the filter's characters into the SearchViewController's search bar
+                let indexPath = tableView.indexPathForSelectedRow!
+                let cell = tableView.cellForRow(at: indexPath)!
+                let label = cell.contentView.viewWithTag(100) as! UILabel
+                
+                let origin = label.frame.origin
+                let mainWindow = UIApplication.shared.keyWindow!
+                let sourcePoint = label.superview!.convert(origin, to: mainWindow)
+                
+                if (animationContext != nil) {
+                    animationContext!.cancel()
+                    animationContext = nil
+                }
+            
                 searchViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: @escaping () -> Void) in
                     searchViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .fadeOut, completionHandler: {
                         searchViewController.animationContext = nil
@@ -456,7 +459,6 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
         trace("select", indexPath.row)
         dataModel.currentQuery = dataModel.currentUser?.queries[indexPath.row] as? Query
-//        self.performSegueWithIdentifier("MySegue", sender: self)
     }
     
     // MARK: - Table view data source
@@ -488,6 +490,10 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
             currentUser.removeQueryAtIndex(indexPath.row)
             dataModel.saveChanges()
             tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
+            
+            // Call reloadData to workaround a bug where the footer jumps to the bottom of
+            // the table after deleting a row.
+            tableView.reloadData()
         }
     }
     
@@ -498,19 +504,13 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
     override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var numRows = currentUser.queries.count
-        if (!inEditMode) {
-            numRows += 1
-        }
         numRows += extraRows
         return numRows
     }
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cellId: String
-        if (indexPath.row == currentUser.queries.count && !inEditMode) {
-            cellId = "Add button"
-        }
-        else if (indexPath.row >= currentUser.queries.count) {
+        if (indexPath.row >= currentUser.queries.count) {
             cellId = "Empty"
         }
         else if (inEditMode || indexPath.row == editingRow) {
@@ -571,7 +571,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
     func tableView(_ tableView: UITableView, heightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
         let cell = (inEditMode || indexPath.row == editingRow) ? textFieldSizingCell : labelSizingCell
-        configureCell(cell, atIndexPath:indexPath)
+        configureCell(cell, atIndexPath: indexPath)
         return calculateHeight(cell)
     }
     
@@ -596,7 +596,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
         let cell = tableView.dequeueReusableCell(withIdentifier: "Header")!
         configureHeaderCell(cell, section: section)
-        return cell
+        return cell.contentView
     }
     
     func configureHeaderCell(_ cell: UITableViewCell, section: Int) {
@@ -604,10 +604,6 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         label.text = "Filtered by sets containing:"
         label.font = preferredFont
     }
-    
-    //
-    // Header height
-    //
     
     lazy var headerSizingCell: UITableViewCell = {
         [unowned self] in
@@ -624,5 +620,91 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         let label = cell.contentView.viewWithTag(100) as! UILabel
         label.bounds = CGRect(x: 0.0, y: 0.0, width: 0.0, height: 0.0)
         return calculateHeight(cell)
+    }
+    
+    //
+    // Footer
+    //
+    
+    var footerCell: UITableViewCell?
+    
+    var footerTopSeparator: UIView?
+    
+    var footerHeight: CGFloat = 0.0
+    
+    func isFooterAtBottomOfFrame() -> Bool {
+        return tableView.contentOffset.y < (tableView.contentSize.height - tableView.frame.size.height)
+    }
+    
+    func updateFooterShadow(force: Bool) {
+        if let cell = footerCell {
+            let layer = cell.contentView.layer
+            if (isFooterAtBottomOfFrame()) {
+                if (force || layer.shadowPath == nil) {
+                    let bezierPath = UIBezierPath(rect: CGRect(x: 15, y: -5.0, width: tableView.frame.width, height: 5.0))
+                    layer.shadowOffset = CGSize(width: 0.0, height: 5.0)
+                    layer.shadowOpacity = 0.5
+                    layer.shadowPath = bezierPath.cgPath
+                }
+                footerTopSeparator!.isHidden = true
+            }
+            else {
+                if (force || layer.shadowPath != nil) {
+                    layer.shadowOffset = CGSize(width: 0.0, height: -3.0)
+                    layer.shadowOpacity = 0.0
+                    layer.shadowPath = nil
+                }
+                footerTopSeparator!.isHidden = false
+            }
+        }
+    }
+    
+    func tableView(_ tableView: UITableView, viewForFooterInSection section: Int) -> UIView? {
+        if (inEditMode) {
+            return nil
+        }
+        
+        footerCell = tableView.dequeueReusableCell(withIdentifier: "Footer")!
+        footerTopSeparator = configureFooterCell(footerCell!, section: section)
+        updateFooterShadow(force: false)
+        return footerCell!.contentView
+    }
+    
+    func configureFooterCell(_ cell: UITableViewCell, section: Int) -> UIView {
+        let button = cell.contentView.viewWithTag(100) as! UIButton
+    
+        button.titleLabel!.font = UIFont.systemFont(ofSize: preferredFont!.pointSize
+            + button.contentEdgeInsets.top + button.contentEdgeInsets.bottom + 1)
+
+        // Workaround: the separator for the last row is hidden by the footer
+        let topSep = UIView()
+        topSep.frame = CGRect(x: 15, y: 0.0, width: tableView.frame.width, height: 0.5)
+        topSep.backgroundColor = tableView.separatorColor
+        cell.contentView.addSubview(topSep)
+        
+        // Add a separator to the bottom of the footer
+        let bottomSep = UIView()
+        bottomSep.frame = CGRect(x: 15, y: footerHeight - 1.0, width: tableView.frame.width, height: 0.5)
+        bottomSep.backgroundColor = tableView.separatorColor
+        cell.contentView.addSubview(bottomSep)
+        
+        return topSep
+    }
+    
+    func tableView(_ tableView: UITableView, heightForFooterInSection section: Int) -> CGFloat {
+        if (inEditMode) {
+            return 0
+        }
+        
+        let cell = tableView.dequeueReusableCell(withIdentifier: "Footer")!
+        _ = configureFooterCell(cell, section: section)
+        footerHeight = calculateHeight(cell)
+        return footerHeight
+    }
+    
+    // MARK: Scroll view delegate
+    
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        updateFooterShadow(force: false)
     }
 }

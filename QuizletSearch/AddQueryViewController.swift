@@ -1060,6 +1060,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
                 searchBar = createSearchBar()
                 searchBar.text = model.pagers.queryPager?.query
                 searchBar.delegate = self
+                searchBar.becomeFirstResponder()
             }
 
             return searchBar

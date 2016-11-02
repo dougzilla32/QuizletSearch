@@ -20,6 +20,8 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     @IBOutlet weak var searchBar: UISearchBar!
     
+    var searchBarBecomesFirstResponder = false
+    
     var observedTableIndexViewWidth: CGFloat?
     
     var showActivityIndicator = true
@@ -103,6 +105,16 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return .all
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        navigationController?.isNavigationBarHidden = true
+        
+        if (searchBarBecomesFirstResponder) {
+            searchBar.becomeFirstResponder()
+        }
+    }
+    
     override func viewDidLoad() {
         trace("SearchViewController viewDidLoad()")
         super.viewDidLoad()
@@ -144,12 +156,6 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         
         refreshTable(modified: false)
         isFirstViewDidLayoutSubviews = true
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        navigationController?.isNavigationBarHidden = true
     }
     
     var isFirstViewDidLayoutSubviews = false
@@ -267,23 +273,24 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         }
         else if (segue.identifier == "SearchUnwind" /* && Common.isEmpty(searchBar.text) */) {
             searchBar.text = nil
-            let queriesViewController = segue.destination as! QueriesViewController
-
-            let sourcePoint = hideTitleText()
-
-            let label = UILabel()
-            let searchTextField = Common.findTextField(self.searchBar)!
-            label.text = dataModel().currentQuery!.title
-            label.font = searchTextField.font
-            label.textColor = searchTextField.textColor
-            label.textAlignment = searchTextField.textAlignment
-            
-            if (animationContext != nil) {
-                animationContext!.cancel()
-                animationContext = nil
-            }
             
             if (WhooshAnimationEnabled) {
+                let queriesViewController = segue.destination as! QueriesViewController
+                
+                let sourcePoint = hideTitleText()
+                
+                let label = UILabel()
+                let searchTextField = Common.findTextField(self.searchBar)!
+                label.text = dataModel().currentQuery!.title
+                label.font = searchTextField.font
+                label.textColor = searchTextField.textColor
+                label.textAlignment = searchTextField.textAlignment
+                
+                if (animationContext != nil) {
+                    animationContext!.cancel()
+                    animationContext = nil
+                }
+                
                 queriesViewController.animationBlock = { (targetPoint: CGPoint, completionHandler: @escaping () -> Void) in
                     queriesViewController.animationContext = CommonAnimation.letterWhooshAnimationForLabel(label, sourcePoint: sourcePoint, targetPoint: targetPoint, style: .fadeIn, completionHandler: {
                         queriesViewController.animationContext = nil
