@@ -8,120 +8,142 @@
 
 import UIKit
 
-enum LabelPosition: Int {
-    case bottom
-    
-    case top
-    
-    case left
-    
-    case right
-}
-
 @IBDesignable
 
 class ImageLabelButton: UIButton
 {
+    let MaxDimension: CGFloat = 10000
+    
     @IBInspectable var padding: CGFloat = 2
     
-    var labelPosition: LabelPosition = .bottom
+    enum TitlePosition: Int {
+        case bottom
+        
+        case top
+        
+        case left
+        
+        case right
+    }
     
-    @IBInspectable var labelLocation: Int {
+    var titlePositionEnum: TitlePosition = .bottom
+    
+    @IBInspectable var titlePosition: Int {
         get {
-            return self.labelPosition.rawValue
+            return self.titlePositionEnum.rawValue
         }
         set (position) {
-            self.labelPosition = LabelPosition(rawValue: position) ?? .bottom
+            self.titlePositionEnum = TitlePosition(rawValue: position) ?? .bottom
         }
     }
-
-    @IBInspectable var labelAtEdge: Bool = false
-
-    @IBInspectable var imageAtEdge: Bool = false
+    
+    @IBInspectable var alignTitle: Bool = true
+    
+    @IBInspectable var alignImage: Bool = false
     
     @IBInspectable var imageSize: CGSize = CGSize.zero
-        
+    
+    private var cachedLabel: UILabel?
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        centerTitleLabel()
+        configTitleLabel()
     }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
-        centerTitleLabel()
+        configTitleLabel()
     }
     
-    private func centerTitleLabel() {
-        self.titleLabel?.textAlignment = .center
+    private func configTitleLabel() {
+        cachedLabel = self.titleLabel
+        cachedLabel?.textAlignment = .center
     }
     
-    private func adjustedTitleRect(forContentRect contentRect: CGRect) -> CGRect {
-        return (currentImage != nil && self.imageSize != CGSize.zero)
-            ? CGRect(origin: CGPoint(x: titleEdgeInsets.left, y: titleEdgeInsets.top),
-                     size: (titleLabel != nil) ? titleLabel!.intrinsicContentSize : CGSize.zero)
-            : super.titleRect(forContentRect: contentRect)
-    }
-
-    private func adjustedImageRect(forContentRect contentRect: CGRect) -> CGRect {
-        return (self.imageSize != CGSize.zero)
-            ? CGRect(origin: CGPoint(x: imageEdgeInsets.left, y: imageEdgeInsets.top), size: self.imageSize)
-            : super.imageRect(forContentRect: contentRect)
-    }
-
     override func titleRect(forContentRect contentRect: CGRect) -> CGRect {
-        var titleRect = adjustedTitleRect(forContentRect: contentRect)
+        let indent = traceIn("titleRect contentRect:", contentRect, object: self)
         
-        if (currentImage != nil) {
-            let titleSize = addInsets(size: titleRect.size, insets: titleEdgeInsets)
+        var titleRect = CGRect.zero
+        if (cachedLabel != nil) {
             var imageSize = adjustedImageRect(forContentRect: contentRect).size
+            var titleSize = calculateTitleSize(forContentRect: contentRect, imageSize: imageSize)
+            trace("titleRect titleSize before:", titleSize, indent: indent)
+
+            titleSize = addInsets(size: titleSize, insets: titleEdgeInsets)
             imageSize = addInsets(size: imageSize, insets: imageEdgeInsets)
 
-            switch (labelPosition) {
+            switch (titlePositionEnum) {
             case .top:
-                titleRect = self.topRect(contentRect: contentRect, topSize: titleSize, bottomSize: imageSize,
-                                         stickTopToEdge: labelAtEdge, stickBottomToEdge: imageAtEdge, fullWidth: true)
+                titleRect = self.topRect(contentRect: contentRect, topSize: titleSize, bottomSize: imageSize, alignTop: alignTitle, alignBottom: alignImage)
             case .bottom:
-                titleRect = self.bottomRect(contentRect: contentRect, topSize: imageSize, bottomSize: titleSize,
-                                            stickTopToEdge: imageAtEdge, stickBottomToEdge: labelAtEdge, fullWidth: true)
+                titleRect = self.bottomRect(contentRect: contentRect, topSize: imageSize, bottomSize: titleSize, alignTop: alignImage, alignBottom: alignTitle)
             case .left:
-                titleRect = self.leftRect(contentRect: contentRect, leftSize: titleSize, rightSize: imageSize,
-                                          stickLeftToEdge: labelAtEdge, stickRightToEdge: imageAtEdge, fullHeight: true)
+                titleRect = self.leftRect(contentRect: contentRect, leftSize: titleSize, rightSize: imageSize, alignLeft: alignTitle, alignRight: alignImage)
             case .right:
-                titleRect = self.rightRect(contentRect: contentRect, leftSize: imageSize, rightSize: titleSize,
-                                           stickLeftToEdge: imageAtEdge, stickRightToEdge: labelAtEdge, fullHeight: true)
+                titleRect = self.rightRect(contentRect: contentRect, leftSize: imageSize, rightSize: titleSize, alignLeft: alignImage, alignRight: alignTitle)
             }
             
             titleRect = removeInsets(rect: titleRect, insets: titleEdgeInsets)
+            
+            trace("titleRect titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
         }
+        
+        traceOut("titleRect contentRect:", contentRect, "titleRect:", titleRect, object: self)
         return titleRect
     }
     
     override func imageRect(forContentRect contentRect: CGRect) -> CGRect {
+        let indent = traceIn("imageRect contentRect:", contentRect, object: self)
+
         var imageRect = adjustedImageRect(forContentRect: contentRect)
+        trace("imageRect imageRect before:", imageRect, indent: indent)
         
-        if (titleLabel?.text != nil) {
+        if (currentTitle != nil) {
+            var titleSize = calculateTitleSize(forContentRect: contentRect, imageSize: imageRect.size)
+
             let imageSize = addInsets(size: imageRect.size, insets: imageEdgeInsets)
-            var titleSize = adjustedTitleRect(forContentRect: contentRect).size
             titleSize = addInsets(size: titleSize, insets: titleEdgeInsets)
             
-            switch (labelPosition) {
+            switch (titlePositionEnum) {
             case .top:
-                imageRect = self.bottomRect(contentRect: contentRect, topSize: titleSize, bottomSize: imageSize,
-                                            stickTopToEdge: labelAtEdge, stickBottomToEdge: imageAtEdge, fullWidth: false)
+                imageRect = self.bottomRect(contentRect: contentRect, topSize: titleSize, bottomSize: imageSize, alignTop: alignTitle, alignBottom: alignImage)
             case .bottom:
-                imageRect = self.topRect(contentRect: contentRect, topSize: imageSize, bottomSize: titleSize,
-                                         stickTopToEdge: imageAtEdge, stickBottomToEdge: labelAtEdge, fullWidth: false)
+                imageRect = self.topRect(contentRect: contentRect, topSize: imageSize, bottomSize: titleSize, alignTop: alignImage, alignBottom: alignTitle)
             case .left:
-                imageRect = self.rightRect(contentRect: contentRect, leftSize: titleSize, rightSize: imageSize,
-                                           stickLeftToEdge: labelAtEdge, stickRightToEdge: imageAtEdge, fullHeight: false)
+                imageRect = self.rightRect(contentRect: contentRect, leftSize: titleSize, rightSize: imageSize, alignLeft: alignTitle, alignRight: alignImage)
             case .right:
-                imageRect = self.leftRect(contentRect: contentRect, leftSize: imageSize, rightSize: titleSize,
-                                          stickLeftToEdge: imageAtEdge, stickRightToEdge: labelAtEdge, fullHeight: false)
+                imageRect = self.leftRect(contentRect: contentRect, leftSize: imageSize, rightSize: titleSize, alignLeft: alignImage, alignRight: alignTitle)
             }
             
             imageRect = removeInsets(rect: imageRect, insets: imageEdgeInsets)
+
+            trace("imageRect titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
         }
+        
+        traceOut("imageRect contentRect:", contentRect, "imageRect:", imageRect, object: self)
         return imageRect
+    }
+    
+    private func calculateTitleSize(forContentRect contentRect: CGRect, imageSize: CGSize) -> CGSize {
+        var titleContentRect = contentRect
+        
+        if (titlePositionEnum == .left || titlePositionEnum == .right) {
+            let adjustWidth = imageSize.width + padding + imageEdgeInsets.left + imageEdgeInsets.right
+            titleContentRect.size.width -= adjustWidth
+            if (titlePositionEnum == .right) {
+                titleContentRect.origin.x += adjustWidth
+            }
+        }
+        
+        let bounds = CGRect(origin: contentRect.origin, size: CGSize(width: titleContentRect.size.width, height: MaxDimension))
+        let boundingRect = cachedLabel?.textRect(forBounds: bounds, limitedToNumberOfLines: cachedLabel!.numberOfLines)
+        return (boundingRect != nil) ? boundingRect!.size : CGSize.zero
+    }
+    
+    private func adjustedImageRect(forContentRect contentRect: CGRect) -> CGRect {
+        return (self.imageSize != CGSize.zero)
+            ? CGRect(origin: CGPoint(x: imageEdgeInsets.left, y: imageEdgeInsets.top), size: self.imageSize)
+            : super.imageRect(forContentRect: contentRect)
     }
     
     private func addInsets(size: CGSize, insets: UIEdgeInsets) -> CGSize {
@@ -140,124 +162,299 @@ class ImageLabelButton: UIButton
         return rect
     }
     
-    private func topRect(contentRect: CGRect, topSize: CGSize, bottomSize: CGSize, stickTopToEdge: Bool, stickBottomToEdge: Bool, fullWidth: Bool) -> CGRect {
-        let x = contentRect.origin.x + (fullWidth ? 0.0 : (contentRect.size.width - topSize.width) / 2.0)
-        let y: CGFloat
-        let halfPad = (contentRect.size.height - (topSize.height + bottomSize.height + padding)) / 2.0
-        if (stickTopToEdge || stickBottomToEdge) {
-            y = stickTopToEdge ? contentRect.origin.y : contentRect.origin.y + halfPad
+    private func topRect(contentRect: CGRect, topSize: CGSize, bottomSize: CGSize, alignTop: Bool, alignBottom: Bool) -> CGRect {
+        let extraWidth = contentRect.size.width - topSize.width
+        var x = contentRect.origin.x
+        if (alignTop) {
+            switch (contentHorizontalAlignment) {
+            case .center:
+                x += extraWidth / 2.0
+            case .right:
+                x += extraWidth
+            default:
+                break
+            }
         }
         else {
-            y = contentRect.origin.y + halfPad
+            x += extraWidth / 2.0
         }
         
-        let width = fullWidth ? contentRect.size.width : topSize.width
-        let height = topSize.height
+        let extraHeight = (contentRect.size.height - (topSize.height + bottomSize.height + padding))
+        var y = contentRect.origin.y
+        if (alignTop || alignBottom) {
+            switch (contentVerticalAlignment) {
+            case .center:
+                y += extraHeight / 2.0
+            case .bottom:
+                y += alignTop ? extraHeight : extraHeight / 2.0
+            default:
+                break
+            }
+        }
+        else {
+            y += extraHeight / 2.0
+        }
+        
+        let width = (alignTop && contentHorizontalAlignment == .fill) ? contentRect.size.width : topSize.width
+        
+        var height = topSize.height
+        if (contentVerticalAlignment == .fill) {
+            if (alignTop && alignBottom) {
+                height += extraHeight / 2.0
+            }
+            else if (alignTop) {
+                height += extraHeight
+            }
+        }
         
         return CGRect(x: x, y: y, width: width, height: height)
     }
     
-    private func bottomRect(contentRect: CGRect, topSize: CGSize, bottomSize: CGSize, stickTopToEdge: Bool, stickBottomToEdge: Bool, fullWidth: Bool) -> CGRect {
-        let x = contentRect.origin.x + (fullWidth ? 0.0 : (contentRect.size.width - bottomSize.width) / 2.0)
-        let y: CGFloat
-        let halfPad = (contentRect.size.height - (topSize.height + bottomSize.height + padding)) / 2.0
-        if (stickTopToEdge || stickBottomToEdge) {
-            y = stickBottomToEdge
-                ? contentRect.origin.y + contentRect.size.height - bottomSize.height
-                : contentRect.origin.y + topSize.height + halfPad
+    private func bottomRect(contentRect: CGRect, topSize: CGSize, bottomSize: CGSize, alignTop: Bool, alignBottom: Bool) -> CGRect {
+        let extraWidth = contentRect.size.width - bottomSize.width
+        var x = contentRect.origin.x
+        if (alignBottom) {
+            switch (contentHorizontalAlignment) {
+            case .center:
+                x += extraWidth / 2.0
+            case .right:
+                x += extraWidth
+            default:
+                break
+            }
         }
         else {
-            y = contentRect.origin.y + halfPad + topSize.height + padding
+            x += extraWidth / 2.0
         }
         
-        let width = fullWidth ? contentRect.size.width : bottomSize.width
-        let height = bottomSize.height
+        let extraHeight = (contentRect.size.height - (topSize.height + bottomSize.height + padding))
+        var y = contentRect.origin.y + topSize.height + padding
+        if (alignTop || alignBottom) {
+            switch (contentVerticalAlignment) {
+            case .center:
+                y += extraHeight / 2.0
+            case .top:
+                if (!alignBottom) {
+                    y += extraHeight / 2.0
+                }
+            case .bottom:
+                y += extraHeight
+            case .fill:
+                if (alignBottom && alignTop) {
+                    y += extraHeight / 2.0
+                }
+                else if (alignBottom) {
+                    y += extraHeight
+                }
+            }
+        }
+        else {
+            y += extraHeight / 2.0
+        }
+        
+        let width = (alignBottom && contentHorizontalAlignment == .fill) ? contentRect.size.width : bottomSize.width
+        
+        var height = bottomSize.height
+        if (contentVerticalAlignment == .fill) {
+            if (alignTop && alignBottom) {
+                height += extraHeight / 2.0
+            }
+            else if (alignBottom) {
+                height += extraHeight
+            }
+        }
         
         return CGRect(x: x, y: y, width: width, height: height)
     }
     
-    private func leftRect(contentRect: CGRect, leftSize: CGSize, rightSize: CGSize, stickLeftToEdge: Bool, stickRightToEdge: Bool, fullHeight: Bool) -> CGRect {
-        let x: CGFloat
-        let halfPad = (contentRect.size.width - (leftSize.width + rightSize.width + padding)) / 2.0
-        if (stickLeftToEdge || stickRightToEdge) {
-            x = stickLeftToEdge ? contentRect.origin.x : contentRect.origin.x + halfPad
+    private func leftRect(contentRect: CGRect, leftSize: CGSize, rightSize: CGSize, alignLeft: Bool, alignRight: Bool) -> CGRect {
+        let extraWidth = (contentRect.size.width - (leftSize.width + rightSize.width + padding))
+        var x = contentRect.origin.x
+        if (alignLeft || alignRight) {
+            switch (contentHorizontalAlignment) {
+            case .center:
+                x += extraWidth / 2.0
+            case .right:
+                x += alignLeft ? extraWidth : extraWidth / 2.0
+            default:
+                break
+            }
         }
         else {
-            x = contentRect.origin.x + halfPad
+            x += extraWidth / 2.0
         }
-        let y = contentRect.origin.y + (fullHeight ? 0.0 : (contentRect.size.height - leftSize.height) / 2.0)
         
-        let width = leftSize.width
-        let height = fullHeight ? contentRect.size.height : leftSize.height
+        let extraHeight = contentRect.size.height - leftSize.height
+        var y = contentRect.origin.y
+        if (alignLeft) {
+            switch (contentVerticalAlignment) {
+            case .center:
+                y += extraHeight / 2.0
+            case .bottom:
+                y += extraHeight
+            default:
+                break
+            }
+        }
+        else {
+            y += extraHeight / 2.0
+        }
+        
+        var width = leftSize.width
+        if (contentHorizontalAlignment == .fill) {
+            if (alignLeft && alignRight) {
+                width += extraWidth / 2.0
+            }
+            else if (alignLeft) {
+                width += extraWidth
+            }
+        }
+        
+        let height = (alignLeft && contentVerticalAlignment == .fill) ? contentRect.size.height : leftSize.height
         
         return CGRect(x: x, y: y, width: width, height: height)
     }
     
-    private func rightRect(contentRect: CGRect, leftSize: CGSize, rightSize: CGSize, stickLeftToEdge: Bool, stickRightToEdge: Bool, fullHeight: Bool) -> CGRect {
-        let x: CGFloat
-        let halfPad = (contentRect.size.width - (leftSize.width + rightSize.width + padding)) / 2.0
-        if (stickLeftToEdge || stickRightToEdge) {
-            x = stickRightToEdge
-                ? contentRect.origin.x + contentRect.size.width - rightSize.width
-                : contentRect.origin.x + leftSize.width + halfPad
+    private func rightRect(contentRect: CGRect, leftSize: CGSize, rightSize: CGSize, alignLeft: Bool, alignRight: Bool) -> CGRect {
+        let extraWidth = (contentRect.size.width - (leftSize.width + rightSize.width + padding))
+        var x = contentRect.origin.x + leftSize.width + padding
+        if (alignLeft || alignRight) {
+            switch (contentHorizontalAlignment) {
+            case .center:
+                x += extraWidth / 2.0
+            case .left:
+                if (!alignRight) {
+                    x += extraWidth / 2.0
+                }
+            case .right:
+                x += extraWidth
+            case .fill:
+                if (alignRight && alignLeft) {
+                    x += extraWidth / 2.0
+                }
+                else if (alignRight) {
+                    x += extraWidth
+                }
+            }
         }
         else {
-            x = contentRect.origin.x + halfPad + leftSize.width + padding
+            x += extraWidth / 2.0
         }
-        let y = contentRect.origin.y + (fullHeight ? 0.0 : (contentRect.size.height - rightSize.height) / 2.0)
         
-        let width = rightSize.width
-        let height = fullHeight ? contentRect.size.height : rightSize.height
+        let extraHeight = contentRect.size.height - rightSize.height
+        var y = contentRect.origin.y
+        if (alignRight) {
+            switch (contentVerticalAlignment) {
+            case .center:
+                y += extraHeight / 2.0
+            case .bottom:
+                y += extraHeight
+            default:
+                break
+            }
+        }
+        else {
+            y += extraHeight / 2.0
+        }
+        
+        var width = rightSize.width
+        if (contentHorizontalAlignment == .fill) {
+            if (alignLeft && alignRight) {
+                width += extraWidth / 2.0
+            }
+            else if (alignRight) {
+                width += extraWidth
+            }
+        }
+        
+        let height = (alignRight && contentVerticalAlignment == .fill) ? contentRect.size.height : rightSize.height
         
         return CGRect(x: x, y: y, width: width, height: height)
     }
-    
+
     override var intrinsicContentSize: CGSize {
+        let indent = traceIn("intrinsicContentSize", object: self)
         var intrinsicSize: CGSize
         
-        if (titleLabel?.text != nil && imageView?.image != nil) {
-            let labelSize = titleLabel!.intrinsicContentSize
-            let imageSize = (self.imageSize != CGSize.zero) ? self.imageSize : imageView!.intrinsicContentSize
+        if (currentTitle != nil && currentImage != nil) {
+            if (currentTitle == "The quick brown fox jumped over the lazy dog") {
+                print("Woo hoo!")
+            }
+
+            let imageSize = (self.imageSize != CGSize.zero)
+                ? self.imageSize :
+                super.imageRect(forContentRect: CGRect(x: 0, y: 0, width: MaxDimension, height: MaxDimension)).size
+
+            var lineBreakMode = cachedLabel!.lineBreakMode
+            let attributedText: NSAttributedString? = cachedLabel!.attributedText
+            if (attributedText != nil) {
+                attributedText!.enumerateAttribute(NSParagraphStyleAttributeName, in: NSMakeRange(0, attributedText!.length), options: []) {
+                    value, range, stop in
+                    let lbm = (value as? NSParagraphStyle)?.lineBreakMode
+                    if (lbm != nil) {
+                        lineBreakMode = lbm!
+                    }
+                }
+            }
+
+            let contentWidth: CGFloat
+            switch (lineBreakMode) {
+            case .byWordWrapping, // Wrap at word boundaries, default
+                 .byCharWrapping: // Wrap at character boundaries
+                contentWidth = self.frame.size.width - (contentEdgeInsets.left + contentEdgeInsets.right)
+            case .byClipping, // Simply clip
+                 .byTruncatingHead, // Truncate at head of line: "...wxyz"
+                 .byTruncatingTail, // Truncate at tail of line: "abcd..."
+                 .byTruncatingMiddle: // Truncate middle of line:  "ab...yz"
+                contentWidth = MaxDimension
+            }
             
-            switch (labelPosition) {
+            let titleSize = titleRect(forContentRect: CGRect(
+                x: contentEdgeInsets.left,
+                y: contentEdgeInsets.top,
+                width: contentWidth,
+                height: MaxDimension))
+            
+            switch (titlePositionEnum) {
             case .top, .bottom:
+                trace("intrinsicContentSize titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
                 intrinsicSize = CGSize(width:
                     contentEdgeInsets.left + contentEdgeInsets.right +
-                        max(labelSize.width + titleEdgeInsets.left + titleEdgeInsets.right,
+                        max(titleSize.width + titleEdgeInsets.left + titleEdgeInsets.right,
                             imageSize.width + imageEdgeInsets.left + imageEdgeInsets.right),
                                        height:
                     contentEdgeInsets.top + contentEdgeInsets.bottom
-                        + labelSize.height + titleEdgeInsets.top + titleEdgeInsets.bottom
+                        + titleSize.height + titleEdgeInsets.top + titleEdgeInsets.bottom
                         + imageSize.height + imageEdgeInsets.top + imageEdgeInsets.bottom
                         + padding)
             case .left, .right:
+                trace("intrinsicContentSize titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
                 intrinsicSize = CGSize(width:
                     contentEdgeInsets.left + contentEdgeInsets.right
-                        + labelSize.width + titleEdgeInsets.left + titleEdgeInsets.right
+                        + titleSize.width + titleEdgeInsets.left + titleEdgeInsets.right
                         + imageSize.width + imageEdgeInsets.left + imageEdgeInsets.right
                         + padding,
                                        height:
                     contentEdgeInsets.top + contentEdgeInsets.bottom
-                        + max(labelSize.height + titleEdgeInsets.top + titleEdgeInsets.bottom,
+                        + max(titleSize.height + titleEdgeInsets.top + titleEdgeInsets.bottom,
                               imageSize.height + imageEdgeInsets.top + imageEdgeInsets.bottom))
             }
         }
-        else {
-            if (titleLabel?.text != nil) {
-                intrinsicSize = super.intrinsicContentSize
-                intrinsicSize.width += titleEdgeInsets.left + titleEdgeInsets.right
-                intrinsicSize.height += titleEdgeInsets.top + titleEdgeInsets.bottom
-            }
-            else if (imageView?.image != nil) {
-                intrinsicSize = (self.imageSize != CGSize.zero) ? self.imageSize : super.intrinsicContentSize
-                intrinsicSize.width += imageEdgeInsets.left + imageEdgeInsets.right
-                intrinsicSize.height += imageEdgeInsets.top + imageEdgeInsets.bottom
-            }
-            else {
-                intrinsicSize = super.intrinsicContentSize
-            }
+        else if (currentTitle != nil) {
+            intrinsicSize = super.intrinsicContentSize
+            intrinsicSize.width += titleEdgeInsets.left + titleEdgeInsets.right
+            intrinsicSize.height += titleEdgeInsets.top + titleEdgeInsets.bottom
         }
-        
+        else if (currentImage != nil) {
+            intrinsicSize = (self.imageSize != CGSize.zero) ? self.imageSize : super.intrinsicContentSize
+            intrinsicSize.width += imageEdgeInsets.left + imageEdgeInsets.right
+            intrinsicSize.height += imageEdgeInsets.top + imageEdgeInsets.bottom
+        }
+        else {
+            intrinsicSize = super.intrinsicContentSize
+        }
+
+        traceOut("intrinsicContentSize intrinsicSize:", intrinsicSize, object: self)
         return intrinsicSize
     }
 }
