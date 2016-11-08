@@ -91,7 +91,7 @@ class CommonAnimation {
         completion:^(BOOL finished) {}];
         */
 
-        if (false) {
+        if (false && true) {
         CATransaction.begin()
 
         let spinAnimation = CABasicAnimation(keyPath: "transform.rotation")
@@ -115,7 +115,7 @@ class CommonAnimation {
             }, completion: { _ in label.removeFromSuperview() })
         }
         
-        if (false) {
+        if (false && true) {
         UIView.animateAndChain(withDuration: 1.0, delay: 0.0, /* usingSpringWithDamping: 0.33, initialSpringVelocity: 0.0, */ options: [ .curveLinear ], animations: {
 
             let translate = CGAffineTransform(translationX: endPosition.x - startPosition.x, y: endPosition.y - startPosition.y)
@@ -138,7 +138,7 @@ class CommonAnimation {
         }
         
         
-        if (false) {
+        if (false && true) {
         CATransaction.begin()
         
         CATransaction.setCompletionBlock({
@@ -168,7 +168,7 @@ class CommonAnimation {
         // self.animationSequence.append(animRotateZ)
         label.layer.add(animRotateZ, forKey: "transform.translation.z")
 
-        if (false) {
+        if (false && true) {
         let animTranslateY = CABasicAnimation(keyPath: "transform.translation.y")
         animTranslateY.duration = 1.5
         animTranslateY.toValue = NSNumber(value: Double(mainWindow.bounds.midY) as Double)
