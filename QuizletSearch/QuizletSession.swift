@@ -707,13 +707,13 @@ class MicrosoftTranslateSession {
                 let httpResponse = response as! HTTPURLResponse
                 if (httpResponse.statusCode != 200) {
                     NSLog("Unexpected response for microsoft translate request: \(HTTPURLResponse.localizedString(forStatusCode: httpResponse.statusCode))")
-                    print(NSString(data: data!, encoding: String.Encoding.utf8.rawValue))
+                    print(NSString(data: data!, encoding: String.Encoding.utf8.rawValue) as Any)
                     return
                 }
                 
                 print("Success")
-                print(response)
-                print(NSString(data: data!, encoding: String.Encoding.utf8.rawValue))
+                print(response as Any)
+                print(NSString(data: data!, encoding: String.Encoding.utf8.rawValue) as Any)
         }).resume()
     }
 }
