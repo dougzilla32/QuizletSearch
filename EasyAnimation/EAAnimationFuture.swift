@@ -182,7 +182,7 @@ public class EAAnimationFuture: Equatable, CustomStringConvertible {
         if debug {
             print("run animation #\(debugNumber)")
         }
-        //TODO: Check if layer-only animations fire a proper completion block
+        //TO DO: Check if layer-only animations fire a proper completion block
         if let animations = animations {
             options.insert(.beginFromCurrentState)
             let animationDelay = DispatchTime.now() + Double(Int64( Double(NSEC_PER_SEC) * self.delay )) / Double(NSEC_PER_SEC)

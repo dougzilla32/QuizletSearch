@@ -119,10 +119,10 @@ private let vanillaLayerKeys = [
 
 private let specializedLayerKeys: [String: [String]] = [
     CAEmitterLayer.self.description(): ["emitterPosition", "emitterZPosition", "emitterSize", "spin", "velocity", "birthRate", "lifetime"],
-    //TODO: test animating arrays, eg colors & locations
+    //TO DO: test animating arrays, eg colors & locations
     CAGradientLayer.self.description(): ["colors", "locations", "endPoint", "startPoint"],
     CAReplicatorLayer.self.description(): ["instanceDelay", "instanceTransform", "instanceColor", "instanceRedOffset", "instanceGreenOffset", "instanceBlueOffset", "instanceAlphaOffset"],
-    //TODO: test animating paths
+    //TO DO: test animating paths
     CAShapeLayer.self.description(): ["path", "fillColor", "lineDashPhase", "lineWidth", "miterLimit", "strokeColor", "strokeStart", "strokeEnd"],
     CATextLayer.self.description(): ["fontSize", "foregroundColor"]
 ]
@@ -142,7 +142,7 @@ public extension UIViewAnimationOptions {
 
 extension UIView {
     
-    //TODO: experiment more with path animations
+    //TO DO: experiment more with path animations
     //public var animationPath: CGPath? { set {} get {return nil}}
     
     // MARK: UIView animation & action methods
@@ -330,7 +330,7 @@ extension UIView {
                     anim.from = pending.fromValue
                     anim.to = pending.layer.value(forKey: pending.keyPath)
                     
-                    //TODO: refine the spring animation setup
+                    //TO DO: refine the spring animation setup
                     //lotta magic numbers to mimic UIKit springs
                     let epsilon = 0.001
                     anim.damping = -2.0 * log(epsilon) / context.duration
