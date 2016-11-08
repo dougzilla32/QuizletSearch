@@ -30,7 +30,7 @@ fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 
 let WhooshAnimationEnabled = false
 
-class QueriesViewController: TableContainerController, UITextFieldDelegate {
+class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScrollViewDelegate, UITableViewDataSource, UITextFieldDelegate {
 
     // Load dataModel lazily so the app gets a chance to show the model load error message in the case where the data model is out of sync.
     lazy var dataModel: DataModel = {
@@ -451,32 +451,32 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
     
     // MARK: - Table view delegate
 
-    func tableView(_ tableView: UITableView, willSelectRowAtIndexPath indexPath: IndexPath) -> IndexPath? {
+    func tableView(_ tableView: UITableView, willSelectRowAt indexPath: IndexPath) -> IndexPath? {
         currentContentOffsetY = tableView.contentOffset.y
         return indexPath
     }
 
-    func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         trace("select", indexPath.row)
         dataModel.currentQuery = dataModel.currentUser?.queries[indexPath.row] as? Query
     }
     
     // MARK: - Table view data source
 
-    func tableView(_ tableView: UITableView, canEditRowAtIndexPath indexPath: IndexPath) -> Bool {
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
         return indexPath.row < currentUser.queries.count
     }
     
-    func tableView(_ tableView: UITableView, canMoveRowAtIndexPath indexPath: IndexPath) -> Bool {
+    func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
         return indexPath.row < currentUser.queries.count
     }
     
-    func tableView(_ tableView: UITableView, moveRowAtIndexPath sourceIndexPath: IndexPath, toIndexPath destinationIndexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, moveRowAt sourceIndexPath: IndexPath, to destinationIndexPath: IndexPath) {
         currentUser.moveQueriesAtIndexes(IndexSet(integer: sourceIndexPath.row), toIndex: destinationIndexPath.row)
         dataModel.saveChanges()
     }
     
-    func tableView(_ tableView: UITableView, commitEditingStyle editingStyle: UITableViewCellEditingStyle, forRowAtIndexPath indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
         if (editingStyle == UITableViewCellEditingStyle.delete) {
             if (currentFirstResponder != nil) {
                 currentContentOffsetY = tableView.contentOffset.y
@@ -497,18 +497,18 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         }
     }
     
-    func numberOfSectionsInTableView(_ tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         // Return the number of sections.
         return 1
     }
     
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         var numRows = currentUser.queries.count
         numRows += extraRows
         return numRows
     }
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         let cellId: String
         if (indexPath.row >= currentUser.queries.count) {
             cellId = "Empty"
@@ -569,7 +569,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         return self.tableView.dequeueReusableCell(withIdentifier: "TextField")!
     }()
     
-    func tableView(_ tableView: UITableView, heightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         let cell = (inEditMode || indexPath.row == editingRow) ? textFieldSizingCell : labelSizingCell
         configureCell(cell, atIndexPath: indexPath)
         return calculateHeight(cell)
@@ -584,8 +584,7 @@ class QueriesViewController: TableContainerController, UITextFieldDelegate {
         return size.height + 1.0 // Add 1.0 for the cell separator height
     }
     
-    func tableView(_ tableView: UITableView,
-        estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
             return 44.0
     }
 

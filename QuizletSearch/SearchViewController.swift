@@ -14,7 +14,7 @@ enum SortSelection: Int {
     case bySet = 0, bySetAtoZ, atoZ
 }
 
-class SearchViewController: TableContainerController, UISearchBarDelegate {
+class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScrollViewDelegate, UITableViewDataSource, UISearchBarDelegate {
     
     @IBOutlet weak var sortStyle: UISegmentedControl!
     
@@ -469,7 +469,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // MARK: - Table view data source
 
     // Called after the user changes the selection.
-    func tableView(_ tableView: UITableView, didSelectRowAtIndexPath indexPath: IndexPath) {
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
 
         Common.launchQuizletForSet(id: searchTerm.sortTerm.setId, deadline: .now() + 0.5, execute: {
@@ -477,7 +477,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         })
     }
     
-    func numberOfSectionsInTableView(_ tableView: UITableView) -> Int {
+    func numberOfSections(in tableView: UITableView) -> Int {
         if (showActivityIndicator) {
             return 1
         }
@@ -504,7 +504,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         return numberOfSections
     }
     
-    override func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
+    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         if (showActivityIndicator) {
             return 1
         }
@@ -538,7 +538,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     // Row
     //
     
-    override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
+    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         if (showActivityIndicator) {
             let cell = tableView.dequeueReusableCell(withIdentifier: "ActivityCell", for: indexPath)
             let activityIndicator = cell.contentView.viewWithTag(100) as! UIActivityIndicatorView
@@ -549,7 +549,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
         var termHeight = termHeightCache[searchTerm.sortTerm]
         if (termHeight == nil) {
-            _ = self.tableView(tableView, heightForRowAtIndexPath: indexPath)
+            _ = self.tableView(tableView, heightForRowAt: indexPath)
             termHeight = termHeightCache[searchTerm.sortTerm]
         }
 
@@ -645,7 +645,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
      * This method should make dynamically sizing table view cells work with iOS 7.  I have not been able
      * to test this because Xcode 7 does not support the iOS 7 simulator.
      */
-    func tableView(_ tableView: UITableView, heightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if (showActivityIndicator) {
             return UITableViewAutomaticDimension
         }
@@ -688,9 +688,9 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     
     var estimatedHeight: CGFloat?
 
-    func tableView(_ tableView: UITableView, estimatedHeightForRowAtIndexPath indexPath: IndexPath) -> CGFloat {
+    func tableView(_ tableView: UITableView, estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
         if (showActivityIndicator) {
-            return self.tableView(tableView, heightForRowAtIndexPath: indexPath)
+            return self.tableView(tableView, heightForRowAt: indexPath)
         }
 
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
@@ -804,7 +804,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     //
     
     // returns the indexed titles that appear in the index list on the right side of the table view. For example, you can return an array of strings containing “A” to “Z”.
-    func sectionIndexTitlesForTableView(_ tableView: UITableView) -> [String]? {
+    func sectionIndexTitles(for tableView: UITableView) -> [String]? {
         var titles: [String]?
         
         switch (currentSortSelection()) {
@@ -820,7 +820,7 @@ class SearchViewController: TableContainerController, UISearchBarDelegate {
     }
     
     // returns the section index that the table view should jump to when user taps a particular index.
-    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, atIndex index: Int) -> Int {
+    func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
         return index
     }
 }
