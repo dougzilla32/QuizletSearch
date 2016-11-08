@@ -11,6 +11,10 @@ import UIKit
 let IsTraceEnabled = false
 
 func trace(_ items: Any?..., separator: String = " ", terminator: String = "\n") {
+    traceItems(items: items, separator: separator, terminator: terminator)
+}
+
+func traceItems(items: [Any?], separator: String = " ", terminator: String = "\n") {
     if (!IsTraceEnabled) {
         return
     }
@@ -28,6 +32,61 @@ func trace(_ items: Any?..., separator: String = " ", terminator: String = "\n")
         }
     }
     print(s, terminator: terminator)
+}
+
+var traceIndentMap: [ObjectIdentifier: Int] = [:]
+
+func traceIn(_ items: Any?..., object: AnyObject) -> Int {
+    let id = ObjectIdentifier(object)
+
+    var indentLevel = traceIndentMap[id]
+    if (indentLevel == nil) {
+        indentLevel = 0
+    }
+    traceIndentMap[id] = indentLevel! + 1
+    
+    var newItems: [Any?] = []
+    newItems.append(indentSpacing(indentLevel: indentLevel!))
+    newItems.append("->")
+    newItems += items
+    traceItems(items: newItems)
+    
+    return indentLevel!
+}
+
+func trace(_ items: Any?..., indent: Int) {
+    var newItems: [Any?] = []
+    newItems.append(indentSpacing(indentLevel: indent))
+    newItems.append(" +")
+    newItems += items
+    traceItems(items: newItems)
+}
+
+func traceOut(_ items: Any?..., object: AnyObject) {
+    let id = ObjectIdentifier(object)
+    
+    var indentLevel = traceIndentMap[id]
+    if (indentLevel == nil) {
+        indentLevel = 0
+    }
+    else {
+        indentLevel! -= 1
+        traceIndentMap[id] = indentLevel!
+    }
+
+    var newItems: [Any?] = []
+    newItems.append(indentSpacing(indentLevel: indentLevel!))
+    newItems.append("<-")
+    newItems += items
+    traceItems(items: newItems)
+}
+
+func indentSpacing(indentLevel: Int) -> String {
+    var s = ""
+    for _ in 0..<indentLevel {
+        s += "  "
+    }
+    return s
 }
 
 /*
