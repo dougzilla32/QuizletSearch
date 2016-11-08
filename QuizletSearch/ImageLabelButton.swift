@@ -61,13 +61,14 @@ class ImageLabelButton: UIButton
     }
     
     override func titleRect(forContentRect contentRect: CGRect) -> CGRect {
-        let indent = traceIn("titleRect contentRect:", contentRect, object: self)
+        let indent = traceIn("titleRect title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+                             "contentRect:", contentRect, object: self)
         
         var titleRect = CGRect.zero
         if (cachedLabel != nil) {
             var imageSize = adjustedImageRect(forContentRect: contentRect).size
             var titleSize = calculateTitleSize(forContentRect: contentRect, imageSize: imageSize)
-            trace("titleRect titleSize before:", titleSize, indent: indent)
+            trace("titleRect title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"", "titleSize before:", titleSize, indent: indent)
 
             titleSize = addInsets(size: titleSize, insets: titleEdgeInsets)
             imageSize = addInsets(size: imageSize, insets: imageEdgeInsets)
@@ -85,20 +86,24 @@ class ImageLabelButton: UIButton
             
             titleRect = removeInsets(rect: titleRect, insets: titleEdgeInsets)
             
-            trace("titleRect titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
+            trace("titleRect title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+                  "titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
         }
         
-        traceOut("titleRect contentRect:", contentRect, "titleRect:", titleRect, object: self)
+        traceOut("titleRect title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+                 "contentRect:", contentRect, "titleRect:", titleRect, object: self)
         return titleRect
     }
     
     override func imageRect(forContentRect contentRect: CGRect) -> CGRect {
-        let indent = traceIn("imageRect contentRect:", contentRect, object: self)
+        let indent = traceIn("imageRect title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string,
+                             "\"", "contentRect:", contentRect, object: self)
 
         var imageRect = adjustedImageRect(forContentRect: contentRect)
-        trace("imageRect imageRect before:", imageRect, indent: indent)
+        trace("imageRect title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+              "imageRect before:", imageRect, indent: indent)
         
-        if (currentTitle != nil) {
+        if (currentTitle != nil || currentAttributedTitle != nil) {
             var titleSize = calculateTitleSize(forContentRect: contentRect, imageSize: imageRect.size)
 
             let imageSize = addInsets(size: imageRect.size, insets: imageEdgeInsets)
@@ -117,10 +122,12 @@ class ImageLabelButton: UIButton
             
             imageRect = removeInsets(rect: imageRect, insets: imageEdgeInsets)
 
-            trace("imageRect titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
+            trace("imageRect title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+                  "titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
         }
         
-        traceOut("imageRect contentRect:", contentRect, "imageRect:", imageRect, object: self)
+        traceOut("imageRect title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+                 "contentRect:", contentRect, "imageRect:", imageRect, object: self)
         return imageRect
     }
     
@@ -373,14 +380,11 @@ class ImageLabelButton: UIButton
     }
 
     override var intrinsicContentSize: CGSize {
-        let indent = traceIn("intrinsicContentSize", object: self)
+        let indent = traceIn("intrinsicContentSize title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+                             object: self)
         var intrinsicSize: CGSize
         
-        if (currentTitle != nil && currentImage != nil) {
-            if (currentTitle == "The quick brown fox jumped over the lazy dog") {
-                print("Woo hoo!")
-            }
-
+        if ((currentTitle != nil || currentAttributedTitle != nil) && currentImage != nil) {
             let imageSize = (self.imageSize != CGSize.zero)
                 ? self.imageSize :
                 super.imageRect(forContentRect: CGRect(x: 0, y: 0, width: MaxDimension, height: MaxDimension)).size
@@ -396,7 +400,7 @@ class ImageLabelButton: UIButton
                     }
                 }
             }
-
+            
             let contentWidth: CGFloat
             switch (lineBreakMode) {
             case .byWordWrapping, // Wrap at word boundaries, default
@@ -415,9 +419,10 @@ class ImageLabelButton: UIButton
                 width: contentWidth,
                 height: MaxDimension))
             
+            trace("intrinsicContentSize title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+                  "titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
             switch (titlePositionEnum) {
             case .top, .bottom:
-                trace("intrinsicContentSize titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
                 intrinsicSize = CGSize(width:
                     contentEdgeInsets.left + contentEdgeInsets.right +
                         max(titleSize.width + titleEdgeInsets.left + titleEdgeInsets.right,
@@ -428,7 +433,6 @@ class ImageLabelButton: UIButton
                         + imageSize.height + imageEdgeInsets.top + imageEdgeInsets.bottom
                         + padding)
             case .left, .right:
-                trace("intrinsicContentSize titleSize:", titleSize, "imageSize:", imageSize, indent: indent)
                 intrinsicSize = CGSize(width:
                     contentEdgeInsets.left + contentEdgeInsets.right
                         + titleSize.width + titleEdgeInsets.left + titleEdgeInsets.right
@@ -440,7 +444,7 @@ class ImageLabelButton: UIButton
                               imageSize.height + imageEdgeInsets.top + imageEdgeInsets.bottom))
             }
         }
-        else if (currentTitle != nil) {
+        else if (currentTitle != nil || currentAttributedTitle != nil) {
             intrinsicSize = super.intrinsicContentSize
             intrinsicSize.width += titleEdgeInsets.left + titleEdgeInsets.right
             intrinsicSize.height += titleEdgeInsets.top + titleEdgeInsets.bottom
@@ -454,7 +458,8 @@ class ImageLabelButton: UIButton
             intrinsicSize = super.intrinsicContentSize
         }
 
-        traceOut("intrinsicContentSize intrinsicSize:", intrinsicSize, object: self)
+        traceOut("intrinsicContentSize title: \"", currentTitle != nil ? currentTitle : currentAttributedTitle?.string, "\"",
+                 "intrinsicSize:", intrinsicSize, object: self)
         return intrinsicSize
     }
 }
