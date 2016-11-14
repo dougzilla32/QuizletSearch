@@ -9,7 +9,13 @@
 /* Begin PBXBuildFile section */
 		910722F61B35FE200066DC87 /* QSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910722F51B35FE200066DC87 /* QSet.swift */; };
 		910722FA1B360DC20066DC87 /* Boyer-Moore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910722F91B360DC20066DC87 /* Boyer-Moore.swift */; };
-		910AAEB11BAB612000655131 /* TableContainerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910AAEB01BAB612000655131 /* TableContainerController.swift */; };
+		9107D56D1DD8F93900DF9F30 /* Pager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9107D56C1DD8F93900DF9F30 /* Pager.swift */; };
+		9107D56F1DD8FCF900DF9F30 /* ClassPager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9107D56E1DD8FCF900DF9F30 /* ClassPager.swift */; };
+		9107D5711DD8FD7600DF9F30 /* QClass.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9107D5701DD8FD7600DF9F30 /* QClass.swift */; };
+		9107D5731DD98A0100DF9F30 /* QUser.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9107D5721DD98A0100DF9F30 /* QUser.swift */; };
+		9107D5751DD98DD100DF9F30 /* QItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9107D5741DD98DD100DF9F30 /* QItem.swift */; };
+		9107D5771DD99C1B00DF9F30 /* UserPager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9107D5761DD99C1B00DF9F30 /* UserPager.swift */; };
+		910AAEB11BAB612000655131 /* TableViewControllerBase.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910AAEB01BAB612000655131 /* TableViewControllerBase.swift */; };
 		910AAEB31BAB67E100655131 /* QueriesViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910AAEB21BAB67E100655131 /* QueriesViewController.swift */; };
 		910BC27B1BC8DD28007F1A9E /* LabelTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910BC27A1BC8DD28007F1A9E /* LabelTableViewCell.swift */; };
 		910BC27D1BCA19B9007F1A9E /* AddQueryModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 910BC27C1BCA19B9007F1A9E /* AddQueryModel.swift */; };
@@ -31,16 +37,20 @@
 		912DFCF71BBAD106002D67FA /* SetPager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912DFCF61BBAD106002D67FA /* SetPager.swift */; };
 		912DFCF91BBAD3BD002D67FA /* QueryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912DFCF81BBAD3BD002D67FA /* QueryResult.swift */; };
 		912DFCFB1BBAD5F4002D67FA /* UnexpectedResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */; };
+		913527FA1DC9B2B0004AD7C3 /* SearchUserClassSetController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 913527F91DC9B2B0004AD7C3 /* SearchUserClassSetController.swift */; };
 		914D0AE01B6AA4ED0025C585 /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADB1B6AA4ED0025C585 /* Query.swift */; };
 		914D0AE11B6AA4ED0025C585 /* QuizletSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */; };
 		914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADD1B6AA4ED0025C585 /* Root.swift */; };
 		914D0AE31B6AA4ED0025C585 /* Term.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADE1B6AA4ED0025C585 /* Term.swift */; };
 		914D0AE41B6AA4ED0025C585 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADF1B6AA4ED0025C585 /* User.swift */; };
+		914D0EB71DD1576500FC5985 /* DebugTextView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0EB61DD1576500FC5985 /* DebugTextView.swift */; };
 		915BFF011DBAA56500BA0B6A /* SearchIndex.swift in Sources */ = {isa = PBXBuildFile; fileRef = 915BFF001DBAA56500BA0B6A /* SearchIndex.swift */; };
 		916BBEE21BD176F2008A0FB8 /* QueryPagers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */; };
+		916BEEAE1DD2607F00EAA96F /* TwicketSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = 916BEEAD1DD2607F00EAA96F /* TwicketSegmentedControl.swift */; };
 		9170E7C21BCC949500C70847 /* InsetTextField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9170E7C11BCC949500C70847 /* InsetTextField.swift */; };
 		9187F47B1B68AD1500FA528F /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9187F47A1B68AD1500FA528F /* Common.swift */; };
 		9187F4801B69FECC00FA528F /* SampleQuizletData.json in Resources */ = {isa = PBXBuildFile; fileRef = 9187F47F1B69FECC00FA528F /* SampleQuizletData.json */; };
+		918A73E11DCBD371002C0D25 /* ImageLabelButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918A73E01DCBD371002C0D25 /* ImageLabelButton.swift */; };
 		918C96AE1C1D2FE100AA80DE /* EAAnimationFuture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A71C1D2FE100AA80DE /* EAAnimationFuture.swift */; };
 		918C96AF1C1D2FE100AA80DE /* EasyAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */; };
 		918C96B01C1D2FE100AA80DE /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 918C96AA1C1D2FE100AA80DE /* LICENSE */; };
@@ -72,7 +82,13 @@
 /* Begin PBXFileReference section */
 		910722F51B35FE200066DC87 /* QSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QSet.swift; sourceTree = "<group>"; };
 		910722F91B360DC20066DC87 /* Boyer-Moore.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = "Boyer-Moore.swift"; sourceTree = "<group>"; };
-		910AAEB01BAB612000655131 /* TableContainerController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableContainerController.swift; sourceTree = "<group>"; };
+		9107D56C1DD8F93900DF9F30 /* Pager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Pager.swift; sourceTree = "<group>"; };
+		9107D56E1DD8FCF900DF9F30 /* ClassPager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ClassPager.swift; sourceTree = "<group>"; };
+		9107D5701DD8FD7600DF9F30 /* QClass.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QClass.swift; sourceTree = "<group>"; };
+		9107D5721DD98A0100DF9F30 /* QUser.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QUser.swift; sourceTree = "<group>"; };
+		9107D5741DD98DD100DF9F30 /* QItem.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QItem.swift; sourceTree = "<group>"; };
+		9107D5761DD99C1B00DF9F30 /* UserPager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UserPager.swift; sourceTree = "<group>"; };
+		910AAEB01BAB612000655131 /* TableViewControllerBase.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TableViewControllerBase.swift; sourceTree = "<group>"; };
 		910AAEB21BAB67E100655131 /* QueriesViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueriesViewController.swift; sourceTree = "<group>"; };
 		910BC27A1BC8DD28007F1A9E /* LabelTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LabelTableViewCell.swift; sourceTree = "<group>"; };
 		910BC27C1BCA19B9007F1A9E /* AddQueryModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = AddQueryModel.swift; sourceTree = "<group>"; };
@@ -98,16 +114,20 @@
 		912DFCF61BBAD106002D67FA /* SetPager.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetPager.swift; sourceTree = "<group>"; };
 		912DFCF81BBAD3BD002D67FA /* QueryResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryResult.swift; sourceTree = "<group>"; };
 		912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnexpectedResponse.swift; sourceTree = "<group>"; };
+		913527F91DC9B2B0004AD7C3 /* SearchUserClassSetController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchUserClassSetController.swift; sourceTree = "<group>"; };
 		914D0ADB1B6AA4ED0025C585 /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Query.swift; path = Model/Query.swift; sourceTree = "<group>"; };
 		914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QuizletSet.swift; path = Model/QuizletSet.swift; sourceTree = "<group>"; };
 		914D0ADD1B6AA4ED0025C585 /* Root.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Root.swift; path = Model/Root.swift; sourceTree = "<group>"; };
 		914D0ADE1B6AA4ED0025C585 /* Term.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Term.swift; path = Model/Term.swift; sourceTree = "<group>"; };
 		914D0ADF1B6AA4ED0025C585 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = User.swift; path = Model/User.swift; sourceTree = "<group>"; };
+		914D0EB61DD1576500FC5985 /* DebugTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DebugTextView.swift; sourceTree = "<group>"; };
 		915BFF001DBAA56500BA0B6A /* SearchIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SearchIndex.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryPagers.swift; sourceTree = "<group>"; };
+		916BEEAD1DD2607F00EAA96F /* TwicketSegmentedControl.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TwicketSegmentedControl.swift; sourceTree = "<group>"; };
 		9170E7C11BCC949500C70847 /* InsetTextField.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = InsetTextField.swift; sourceTree = "<group>"; };
 		9187F47A1B68AD1500FA528F /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Common.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		9187F47F1B69FECC00FA528F /* SampleQuizletData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SampleQuizletData.json; sourceTree = "<group>"; };
+		918A73E01DCBD371002C0D25 /* ImageLabelButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageLabelButton.swift; sourceTree = "<group>"; };
 		918C96A71C1D2FE100AA80DE /* EAAnimationFuture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EAAnimationFuture.swift; sourceTree = "<group>"; };
 		918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EasyAnimation.swift; sourceTree = "<group>"; };
 		918C96AA1C1D2FE100AA80DE /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
@@ -149,13 +169,19 @@
 			children = (
 				9187F47A1B68AD1500FA528F /* Common.swift */,
 				918C96B41C1D401300AA80DE /* CommonAnimation.swift */,
+				918A73E01DCBD371002C0D25 /* ImageLabelButton.swift */,
+				916BEEAD1DD2607F00EAA96F /* TwicketSegmentedControl.swift */,
 				9170E7C11BCC949500C70847 /* InsetTextField.swift */,
 				911C41061B9FB64F007E0AEE /* DynamicLabel.swift */,
 				910BC27A1BC8DD28007F1A9E /* LabelTableViewCell.swift */,
 				91EF24231BCC4C8300CABA3C /* TextInputTableViewCell.swift */,
-				910AAEB01BAB612000655131 /* TableContainerController.swift */,
+				910AAEB01BAB612000655131 /* TableViewControllerBase.swift */,
 				916BBEE11BD176F2008A0FB8 /* QueryPagers.swift */,
+				9107D56C1DD8F93900DF9F30 /* Pager.swift */,
 				912DFCF61BBAD106002D67FA /* SetPager.swift */,
+				9107D56E1DD8FCF900DF9F30 /* ClassPager.swift */,
+				9107D5761DD99C1B00DF9F30 /* UserPager.swift */,
+				914D0EB61DD1576500FC5985 /* DebugTextView.swift */,
 			);
 			name = Common;
 			sourceTree = "<group>";
@@ -166,7 +192,10 @@
 				91EDA1491B3161D300E1152D /* DropboxSession.swift */,
 				91EDA1451B3161A600E1152D /* QuizletSession.swift */,
 				91EDA17E1B334CDF00E1152D /* UserAccount.swift */,
+				9107D5741DD98DD100DF9F30 /* QItem.swift */,
 				910722F51B35FE200066DC87 /* QSet.swift */,
+				9107D5701DD8FD7600DF9F30 /* QClass.swift */,
+				9107D5721DD98A0100DF9F30 /* QUser.swift */,
 				912DFCF81BBAD3BD002D67FA /* QueryResult.swift */,
 				912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */,
 				9187F47E1B69FECC00FA528F /* Resources */,
@@ -224,6 +253,7 @@
 				915BFF001DBAA56500BA0B6A /* SearchIndex.swift */,
 				91EA7CFD1BB0BD3C00273996 /* AddQueryViewController.swift */,
 				910BC27C1BCA19B9007F1A9E /* AddQueryModel.swift */,
+				913527F91DC9B2B0004AD7C3 /* SearchUserClassSetController.swift */,
 				91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */,
 				91B4AB501B683CF40043675A /* Algorithms */,
 				9118D8A21BF4602000C5897C /* Common */,
@@ -354,6 +384,7 @@
 						CreatedOnToolsVersion = 6.3.1;
 						DevelopmentTeam = FYX55SR9QC;
 						LastSwiftMigration = 0800;
+						ProvisioningStyle = Automatic;
 					};
 					9126FDCA1B1D0E1100642E56 = {
 						CreatedOnToolsVersion = 6.3.1;
@@ -428,7 +459,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				918C96B51C1D401300AA80DE /* CommonAnimation.swift in Sources */,
-				910AAEB11BAB612000655131 /* TableContainerController.swift in Sources */,
+				910AAEB11BAB612000655131 /* TableViewControllerBase.swift in Sources */,
 				912DFCF91BBAD3BD002D67FA /* QueryResult.swift in Sources */,
 				911A0D511B41772C00B219D7 /* SearchViewController.swift in Sources */,
 				914D0AE01B6AA4ED0025C585 /* Query.swift in Sources */,
@@ -437,19 +468,25 @@
 				911C41071B9FB64F007E0AEE /* DynamicLabel.swift in Sources */,
 				911A0D551B41EEF500B219D7 /* UsersTableViewController.swift in Sources */,
 				916BBEE21BD176F2008A0FB8 /* QueryPagers.swift in Sources */,
+				9107D56D1DD8F93900DF9F30 /* Pager.swift in Sources */,
 				9187F47B1B68AD1500FA528F /* Common.swift in Sources */,
 				91B4AB581B6845EB0043675A /* StringScore.swift in Sources */,
 				91EA7CFE1BB0BD3C00273996 /* AddQueryViewController.swift in Sources */,
 				912DFCF71BBAD106002D67FA /* SetPager.swift in Sources */,
 				915BFF011DBAA56500BA0B6A /* SearchIndex.swift in Sources */,
+				9107D56F1DD8FCF900DF9F30 /* ClassPager.swift in Sources */,
 				912DFCFB1BBAD5F4002D67FA /* UnexpectedResponse.swift in Sources */,
+				9107D5731DD98A0100DF9F30 /* QUser.swift in Sources */,
 				91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */,
 				918C96B21C1D2FE100AA80DE /* RBBLinearInterpolation.swift in Sources */,
 				91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */,
+				914D0EB71DD1576500FC5985 /* DebugTextView.swift in Sources */,
 				911C41091BA10A21007E0AEE /* SearchOperation.swift in Sources */,
 				918C96AE1C1D2FE100AA80DE /* EAAnimationFuture.swift in Sources */,
 				91EF24241BCC4C8300CABA3C /* TextInputTableViewCell.swift in Sources */,
 				911A0D4B1B3F2AE900B219D7 /* DataModel.swift in Sources */,
+				913527FA1DC9B2B0004AD7C3 /* SearchUserClassSetController.swift in Sources */,
+				9107D5751DD98DD100DF9F30 /* QItem.swift in Sources */,
 				911C41051B9F7A7C007E0AEE /* SearchTableViewCell.swift in Sources */,
 				914D0AE11B6AA4ED0025C585 /* QuizletSet.swift in Sources */,
 				911A0D4D1B41264200B219D7 /* LoginViewController.swift in Sources */,
@@ -459,13 +496,17 @@
 				911A0D021B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld in Sources */,
 				914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */,
 				918C96B11C1D2FE100AA80DE /* RBBBlockBasedArray.swift in Sources */,
+				9107D5711DD8FD7600DF9F30 /* QClass.swift in Sources */,
 				9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */,
 				910AAEB31BAB67E100655131 /* QueriesViewController.swift in Sources */,
+				918A73E11DCBD371002C0D25 /* ImageLabelButton.swift in Sources */,
 				911C410B1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift in Sources */,
 				91EDA14A1B3161D300E1152D /* DropboxSession.swift in Sources */,
 				91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */,
 				914D0AE41B6AA4ED0025C585 /* User.swift in Sources */,
+				916BEEAE1DD2607F00EAA96F /* TwicketSegmentedControl.swift in Sources */,
 				918C96B31C1D2FE100AA80DE /* RBBSpringAnimation.swift in Sources */,
+				9107D5771DD99C1B00DF9F30 /* UserPager.swift in Sources */,
 				910722F61B35FE200066DC87 /* QSet.swift in Sources */,
 				910BC27D1BCA19B9007F1A9E /* AddQueryModel.swift in Sources */,
 				914D0AE31B6AA4ED0025C585 /* Term.swift in Sources */,

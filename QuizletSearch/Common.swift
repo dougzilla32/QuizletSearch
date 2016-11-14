@@ -8,6 +8,8 @@
 
 import UIKit
 
+let IsFaultTolerant = false
+
 let IsTraceEnabled = false
 
 func trace(_ items: Any?..., separator: String = " ", terminator: String = "\n") {

@@ -8,7 +8,8 @@
 
 import UIKit
 
-public protocol TwicketSegmentedControlDelegate: class {
+// Add @objc to workaround bug: 'IBOutlet' property cannot have non-'@objc' protocol type 'TwicketSegmentedControlDelegate'
+@objc public protocol TwicketSegmentedControlDelegate: class {
     func didSelect(_ segmentIndex: Int)
 }
 
@@ -97,8 +98,8 @@ open class TwicketSegmentedControl: UIControl {
             return defaultImage != nil || highlightImage != nil
         }
     }
-    
-    open weak var delegate: TwicketSegmentedControlDelegate?
+
+    @IBOutlet open weak var delegate: TwicketSegmentedControlDelegate!
     
     @IBInspectable open var defaultColor: UIColor = TwicketSegmentedControl.colorFromRGB(red: 9, green: 26, blue: 51, alpha: 0.4) {
         didSet {

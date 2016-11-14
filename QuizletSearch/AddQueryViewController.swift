@@ -176,10 +176,17 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
 
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        trace("prepareForSegue AddQueryViewController segue:", segue.identifier, "sender:", (sender as! UIBarButtonItem).title)
+        trace("prepareForSegue AddQueryViewController segue:", segue.identifier)
         
         // Cancel current queries
         quizletSession.cancelQueryTasks()
+    }
+    
+    @IBAction func unwindFromUserClassSet(_ segue: UIStoryboardSegue) {
+        if (segue.identifier == "UserClassSetDone") {
+        }
+        else if (segue.identifier == "UserClassSetCancel") {
+        }
     }
     
     @discardableResult
