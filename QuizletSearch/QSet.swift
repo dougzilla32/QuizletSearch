@@ -8,7 +8,7 @@
 
 import Foundation
 
-class QSet {
+class QSet: QItem {
     let id: Int64
     let url: String
     let title: String
@@ -24,6 +24,8 @@ class QSet {
     var normalizedTitle: StringWithBoundaries?
     var normalizedDescription: StringWithBoundaries?
     var normalizedCreatedBy: StringWithBoundaries?
+    
+    var type: QTypeId { get { return QTypeId.qSet } }
     
     init(id: Int64, url: String, title: String, description: String, createdBy: String, creatorId: Int64, createdDate: Int64, modifiedDate: Int64, classIds: String) {
         self.id = id
@@ -81,7 +83,10 @@ class QSet {
             let qset = QSet.setFromJSON(jsonSet)
             if (qset == nil) {
                 NSLog("Invalid Quizlet Set in setsFromJSON: \(jsonSet)")
-                return nil
+                if (!IsFaultTolerant) {
+                    return nil
+                }
+                continue
             }
             qsets.append(qset!)
         }

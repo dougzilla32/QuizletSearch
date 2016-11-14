@@ -318,7 +318,7 @@ class QuizletSession {
         return queryItems
     }
     
-    func searchSetsWithQuery(_ query: String?, creator: String?, autocomplete: Bool?, imagesOnly: Bool?, modifiedSince: Int64?, page: Int?, perPage: Int?, allowCellularAccess: Bool, completionHandler: @escaping (QueryResult?, _ response: URLResponse?, _ error: Error?) -> Void) {
+    func searchSetsWithQuery(_ query: String?, creator: String?, autocomplete: Bool?, imagesOnly: Bool?, modifiedSince: Int64?, page: Int?, perPage: Int?, allowCellularAccess: Bool, completionHandler: @escaping (QueryResult<QSet>?, _ response: URLResponse?, _ error: Error?) -> Void) {
         // perPage: between 1 and 50
         if (perPage < 1 || perPage > 50) {
             NSLog("Invalid perPage parameter")
@@ -347,8 +347,7 @@ class QuizletSession {
         if (perPage != nil) {
             params.append(URLQueryItem(name: "perPage", value: String(perPage!)))
         }
-        // params.append(NSURLQueryitem(name: "whitespace", value: "1"))
-        // params.append(NSURLQueryItem(name: "sort", value: "title"))
+        // params.append(URLQueryItem(name: "whitespace", value: "1"))
         
         self.invokeQuery("/2.0/search/sets", queryItems: params,
             allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
@@ -358,7 +357,7 @@ class QuizletSession {
                 }
 
                 do {
-                    let result = try QueryResult(jsonAny: jsonAny!)
+                    let result = try QueryResult<QSet>(jsonAny: jsonAny!, itemsFromJSON: self.setsFromJSON)
                     completionHandler(result, response, error)
                 }
                 catch {
@@ -366,6 +365,160 @@ class QuizletSession {
                     completionHandler(nil, response, error)
                 }
         })
+    }
+    
+    func setsFromJSON(_ json: NSDictionary) -> Array<QSet>? {
+        if let jsonSets = json["sets"] as? Array<NSDictionary> {
+            return QSet.setsFromJSON(jsonSets)
+        }
+        else {
+            NSLog("Invalid Quizlet Sets in setsFromJSON: \(json)")
+            return nil
+        }
+    }
+    
+    func searchClassesWithQuery(_ query: String?, page: Int?, perPage: Int?, allowCellularAccess: Bool, completionHandler: @escaping (QueryResult<QClass>?, _ response: URLResponse?, _ error: Error?) -> Void) {
+        // perPage: between 1 and 50
+        if (perPage < 1 || perPage > 50) {
+            NSLog("Invalid perPage parameter")
+            abort()
+        }
+        
+        var params = [URLQueryItem]()
+        if (query != nil) {
+            params.append(URLQueryItem(name: "q", value: query!))
+        }
+        if (page != nil) {
+            params.append(URLQueryItem(name: "page", value: String(page!)))
+        }
+        if (perPage != nil) {
+            params.append(URLQueryItem(name: "perPage", value: String(perPage!)))
+        }
+        // params.append(URLQueryItem(name: "whitespace", value: "1"))
+
+        self.invokeQuery("/2.0/search/classes", queryItems: params,
+            allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
+                if (jsonAny == nil) {
+                    completionHandler(nil, response, error)
+                    return
+                }
+                
+                do {
+                    let result = try QueryResult<QClass>(jsonAny: jsonAny!, itemsFromJSON: self.classesFromJSON)
+                    completionHandler(result, response, error)
+                }
+                catch {
+                    NSLog("Unexpected response in searchClassesWithQuery: \(jsonAny)")
+                    completionHandler(nil, response, error)
+                }
+        })
+    }
+    
+    func classesFromJSON(_ json: NSDictionary) -> Array<QClass>? {
+        if let jsonClasses = json["classes"] as? Array<NSDictionary> {
+            return QClass.classesFromJSON(jsonClasses)
+        }
+        else {
+            NSLog("Invalid Quizlet Classes in classesFromJSON: \(json)")
+            return nil
+        }
+    }
+    
+    func searchUniversalWithQuery(_ query: String?, page: Int?, perPage: Int?, allowCellularAccess: Bool, completionHandler: @escaping (QueryResult<QItem>?, _ response: URLResponse?, _ error: Error?) -> Void) {
+        // perPage: between 1 and 50
+        if (perPage < 1 || perPage > 50) {
+            NSLog("Invalid perPage parameter")
+            abort()
+        }
+        
+        var params = [URLQueryItem]()
+        if (query != nil) {
+            params.append(URLQueryItem(name: "q", value: query!))
+        }
+        if (page != nil) {
+            params.append(URLQueryItem(name: "page", value: String(page!)))
+        }
+        if (perPage != nil) {
+            params.append(URLQueryItem(name: "perPage", value: String(perPage!)))
+        }
+        // params.append(URLQueryItem(name: "whitespace", value: "1"))
+        
+        self.invokeQuery("/2.0/search/universal", queryItems: params,
+            allowCellularAccess: allowCellularAccess, jsonCallback: { (jsonAny: Any?, response: URLResponse?, error: Error?) in
+                if (jsonAny == nil) {
+                    completionHandler(nil, response, error)
+                    return
+                }
+                
+                do {
+                    let result = try QueryResult<QItem>(jsonAny: jsonAny!, itemsFromJSON: self.universalFromJSON)
+                    completionHandler(result, response, error)
+                }
+                catch {
+                    NSLog("Unexpected response in searchUniversalWithQuery: \(jsonAny)")
+                    completionHandler(nil, response, error)
+                }
+        })
+    }
+    
+    func universalFromJSON(_ json: NSDictionary) -> Array<QItem>? {
+        if let jsonItems = json["items"] as? Array<NSDictionary> {
+            var qitems = [QItem]()
+            for jsonItem in jsonItems {
+                if let type = jsonItem["type"] as? String {
+                    switch (type) {
+                    case "class":
+                        let qclass = QClass.classFromJSON(jsonItem)
+                        if (qclass == nil) {
+                            NSLog("Invalid Quizlet Class in universalFromJSON: \(jsonItem)")
+                            if (!IsFaultTolerant) {
+                                return nil
+                            }
+                            continue
+                        }
+                        qitems.append(qclass!)
+                    case "set":
+                        let qset = QSet.setFromJSON(jsonItem)
+                        if (qset == nil) {
+                            NSLog("Invalid Quizlet Set in universalFromJSON: \(jsonItem)")
+                            if (!IsFaultTolerant) {
+                                return nil
+                            }
+                            continue
+                        }
+                        qitems.append(qset!)
+                    case "user":
+                        let quser = QUser.userFromJSON(jsonItem)
+                        if (quser == nil) {
+                            NSLog("Invalid Quizlet User in universalFromJSON: \(jsonItem)")
+                            if (!IsFaultTolerant) {
+                                return nil
+                            }
+                            continue
+                        }
+                        qitems.append(quser!)
+                    default:
+                        NSLog("Invalid Quizlet Item in universalFromJSON: \(jsonItem)")
+                        if (!IsFaultTolerant) {
+                            return nil
+                        }
+                        continue
+                    }
+                }
+                else {
+                    NSLog("Invalid Quizlet Item in universalFromJSON: \(jsonItem)")
+                    if (!IsFaultTolerant) {
+                        return nil
+                    }
+                    continue
+                }
+            }
+            return qitems
+        }
+        else {
+            NSLog("Invalid Quizlet Items in universalFromJSON: \(json)")
+            return nil
+        }
     }
     
     func getSetsForIds(_ setIds: [Int64], modifiedSince: Int64?, allowCellularAccess: Bool, completionHandler: @escaping ([QSet]?, _ response: URLResponse?, _ error: Error?) -> Void) {

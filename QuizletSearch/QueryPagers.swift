@@ -220,8 +220,8 @@ class QueryPagers: Sequence {
                 return
             }
             
-            let newQSets = currentPager.qsets?[currentPageNumber-1]
-            currentPager.qsets?[currentPageNumber-1] = nil
+            let newQSets = currentPager.items?[currentPageNumber-1]
+            currentPager.items?[currentPageNumber-1] = nil
             
             if (newQSets != nil) {
                 for s in newQSets! {
@@ -411,7 +411,7 @@ class QueryPagers: Sequence {
     
     func loadFirstPages(completionHandler: @escaping (_ affectedRows: CountableRange<Int>, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         for pager in self {
-            pager.pagerPause = SetPager.DefaultPagerPause
+            pager.pagerPause = PagerConstants.DefaultPagerPause
             
             pager.loadPage(1, completionHandler: { (affectedRows: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
                 self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)
@@ -444,7 +444,7 @@ class QueryPagers: Sequence {
         for pager in self {
             if let t = pager.totalResults {
                 if case index..<index+t = row {
-                    return pager.peekQSetForRow(row-index)
+                    return pager.peekItemForRow(row-index)
                 }
                 else {
                     index += t
@@ -463,7 +463,7 @@ class QueryPagers: Sequence {
         for pager in self {
             if let t = pager.totalResults {
                 if case index..<index+t = row {
-                    return pager.getQSetForRow(row-index, completionHandler: { (affectedRows: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+                    return pager.getItemForRow(row-index, completionHandler: { (affectedRows: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
                         self.loadComplete(pager, affectedRows: affectedRows, totalResults: totalResults, response: response, completionHandler: completionHandler)
                     })
                 }
