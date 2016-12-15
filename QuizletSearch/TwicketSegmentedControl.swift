@@ -8,11 +8,6 @@
 
 import UIKit
 
-// Add @objc to workaround bug: 'IBOutlet' property cannot have non-'@objc' protocol type 'TwicketSegmentedControlDelegate'
-@objc public protocol TwicketSegmentedControlDelegate: class {
-    func didSelect(_ segmentIndex: Int)
-}
-
 @IBDesignable
 
 open class TwicketSegmentedControl: UIControl {
@@ -99,8 +94,6 @@ open class TwicketSegmentedControl: UIControl {
         }
     }
 
-    @IBOutlet open weak var delegate: TwicketSegmentedControlDelegate!
-    
     @IBInspectable open var defaultColor: UIColor = TwicketSegmentedControl.colorFromRGB(red: 9, green: 26, blue: 51, alpha: 0.4) {
         didSet {
             updateTextColor(with: defaultColor, selected: false)
@@ -542,7 +535,8 @@ open class TwicketSegmentedControl: UIControl {
         }
         let index = segmentIndex(for: location)
         move(to: index)
-        delegate?.didSelect(index)
+        
+        sendActions(for: .valueChanged)
     }
     
     open func move(to index: Int) {

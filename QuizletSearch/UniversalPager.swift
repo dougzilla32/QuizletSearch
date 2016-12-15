@@ -8,7 +8,7 @@
 
 import Foundation
 
-class UserPager: Pager<QUser> {
+class UniversalPager: Pager<QItem> {
     override func invokeQuery(page: Int, resetToken: Int, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         paginationSize = PagerConstants.DefaultPaginationSize
         
@@ -25,12 +25,11 @@ class UserPager: Pager<QUser> {
                 return
             }
             
-// TODO: fix me!
-//            self.loadPageResult(queryResult!, response: .partial, page: page, resetToken: resetToken, completionHandler: completionHandler)
+            self.loadPageResult(queryResult!, response: .partial, page: page, resetToken: resetToken, completionHandler: completionHandler)
         })
     }
     
-    override func emptyItem() -> QUser {
+    override func emptyItem() -> QItem {
         return QUser(userName: "", accountType: .free, profileImage: URL(string: "http:")!, signUpDate: 0)
     }
 }

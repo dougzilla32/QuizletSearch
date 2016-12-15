@@ -20,6 +20,7 @@ class QSet: QItem {
     let classIds: String
     
     var terms: [QTerm]
+    let termCount: Int64?
     
     var normalizedTitle: StringWithBoundaries?
     var normalizedDescription: StringWithBoundaries?
@@ -27,7 +28,7 @@ class QSet: QItem {
     
     var type: QTypeId { get { return QTypeId.qSet } }
     
-    init(id: Int64, url: String, title: String, description: String, createdBy: String, creatorId: Int64, createdDate: Int64, modifiedDate: Int64, classIds: String) {
+    init(id: Int64, url: String, title: String, description: String, createdBy: String, creatorId: Int64, createdDate: Int64, modifiedDate: Int64, classIds: String, termCount: Int64? = nil) {
         self.id = id
         self.url = url
         self.title = title
@@ -38,6 +39,7 @@ class QSet: QItem {
         self.modifiedDate = modifiedDate
         self.classIds = classIds
         self.terms = []
+        self.termCount = termCount
     }
     
     class func setFromJSON(_ jsonSet: NSDictionary) -> QSet? {
@@ -61,7 +63,10 @@ class QSet: QItem {
                         }
                     }
                 }
-                qset = QSet(id: id, url: url, title: title, description: description, createdBy: createdBy, creatorId: creatorId, createdDate: createdDate, modifiedDate: modifiedDate, classIds: classIds)
+                let termCount = (jsonSet["term_count"] as? NSNumber)?.int64Value
+            
+                qset = QSet(id: id, url: url, title: title, description: description, createdBy: createdBy, creatorId: creatorId, createdDate: createdDate, modifiedDate: modifiedDate, classIds: classIds, termCount: termCount)
+            
                 if let terms = jsonSet["terms"] as? NSArray {
                     for termObject in terms {
                         if let termObjectDictionary = termObject as? NSDictionary {

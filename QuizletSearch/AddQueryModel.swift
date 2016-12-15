@@ -83,7 +83,7 @@ class AddQueryModel {
     var type: String = ""
     var title: String = ""
     
-    var pagers = QueryPagers()
+    var pagers = SetSearch()
     var includedSets = [String]()
     var excludedSets = [String]()
     
@@ -92,7 +92,7 @@ class AddQueryModel {
     
     // MARK: - Search
     
-    func indexPathToPagerIndex(_ indexPath: IndexPath!) -> PagerIndex? {
+    func indexPathToPagerIndex(_ indexPath: IndexPath!) -> SetSearchIndex? {
         if (indexPath == nil) {
             return nil
         }
@@ -103,13 +103,13 @@ class AddQueryModel {
         else {
             switch (rowTypes[indexPath.section][indexPath.row]) {
             case .queryCell:
-                return PagerIndex(type: .query, index: 0)
+                return SetSearchIndex(type: .query, index: 0)
             case .userCell:
-                return PagerIndex(type: .username, index: indexPath.row - UsernameOffset)
+                return SetSearchIndex(type: .username, index: indexPath.row - UsernameOffset)
             case .classCell:
-                return PagerIndex(type: .class, index: indexPath.row - ClassOffset())
+                return SetSearchIndex(type: .class, index: indexPath.row - ClassOffset())
             case .includeCell:
-                return PagerIndex(type: .includedSets, index: 0)
+                return SetSearchIndex(type: .includedSets, index: 0)
             case .excludeCell:
                 abort()
             default:

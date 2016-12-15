@@ -8,19 +8,69 @@
 
 import UIKit
 
-class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate, UIScrollViewDelegate, UITableViewDataSource, TwicketSegmentedControlDelegate {
+class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate, UIScrollViewDelegate, UITableViewDataSource {
 
-    @IBOutlet weak var textView: UITextView!
+    let quizletSession = (UIApplication.shared.delegate as! AppDelegate).dataModel.quizletSession
+    
+    let universalSearch = UniversalSearch()
+    
+    @IBOutlet weak var segmentedControl: TwicketSegmentedControl!
+
+    @IBOutlet weak var searchBar: UISearchBar!
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Uncomment the following line to preserve selection between presentations
-        // self.clearsSelectionOnViewWillAppear = false
+        // Allow the user to dismiss the keyboard by touch-dragging down to the bottom of the screen
+        tableView.keyboardDismissMode = .interactive
+
+        // Respond to dynamic type font changes
+        NotificationCenter.default.addObserver(self,
+                                               selector: #selector(SearchUserClassSetController.preferredContentSizeChanged(_:)),
+                                               name: NSNotification.Name.UIContentSizeCategoryDidChange,
+                                               object: nil)
+        resetFonts()
     }
 
-    func didSelect(_ segmentIndex: Int) {
-        print("didSelect \(segmentIndex)")
+    deinit {
+        // Remove all 'self' observers
+        NotificationCenter.default.removeObserver(self)
+    }
+    
+    var preferredFont: UIFont!
+    var preferredBoldFont: UIFont!
+    var italicFont: UIFont!
+    var smallerFont: UIFont!
+    var estimatedHeightForUserCell: CGFloat?
+    
+    func preferredContentSizeChanged(_ notification: Notification) {
+        resetFonts()
+        self.view.setNeedsLayout()
+    }
+    
+    func resetFonts() {
+        preferredFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+        preferredBoldFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+        
+        let fontDescriptor = preferredFont.fontDescriptor.withSymbolicTraits(UIFontDescriptorSymbolicTraits.traitItalic)
+        italicFont = UIFont(descriptor: fontDescriptor!, size: preferredFont.pointSize)
+        
+        smallerFont = UIFont(descriptor: preferredFont.fontDescriptor, size: preferredFont.pointSize - 4.0)
+        
+        estimatedHeightForUserCell = nil
+        
+        if (searchBar != nil) {
+            let searchTextField = Common.findTextField(searchBar)!
+            searchTextField.font = preferredFont
+        }
+    }
+
+    override var shouldAutorotate : Bool {
+        return true
+    }
+    
+    override var supportedInterfaceOrientations : UIInterfaceOrientationMask {
+        return .all
     }
     
     override func didReceiveMemoryWarning() {
@@ -28,69 +78,218 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
        // Dispose of any resources that can be recreated.
     }
 
+    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
+        trace("prepareForSegue SearchUserClassSetController segue:", segue.identifier)
+        
+        // Cancel current queries
+        quizletSession.cancelQueryTasks()
+    }
+    
+    // MARK: - TwicketSegmentedControlDelegate
+
+    @IBAction func segmentedControlValueChanged(_ sender: Any) {
+    }
+    
+
+    // MARK: - Search Bar
+    
+    // called when text starts editing
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+    }
+    
+    // called when text ends editing
+    func searchBarTextDidEndEditing(_ searchBar: UISearchBar) {
+    }
+    
+    // called when text changes (including clear)
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String) {
+        executeSearchForQuery(searchBar.text)
+    }
+    
+    // Have the keyboard close when 'Return' is pressed
+    func searchBar(_ searchBar: UISearchBar, shouldChangeTextIn range: NSRange, replacementText text: String) -> Bool // called before text changes
+    {
+        if (text == "\n") {
+            // The user pressed 'Search'
+            searchBar.resignFirstResponder()
+        }
+        return true
+    }
+    
+    // MARK: - Search
+    func executeSearchForQuery(_ query: String!) {
+        let query = (query != nil) ? query.trimmingCharacters(in: CharacterSet.whitespaces) : nil
+        universalSearch.updateQuery(query)
+        executeSearch(0)
+    }
+    
+    func executeSearch(indexPath: IndexPath) {
+        executeSearch(indexPath.row)
+    }
+    
+    func executeSearch() {
+        executeSearch(0)
+    }
+    
+    func executeSearch(_ pagerIndex: Int) {
+        universalSearch.executeSearch(pagerIndex, completionHandler: { [unowned self] (affectedResults: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+            
+            self.tableView.reloadData()
+            // self.safelyReloadData(affectedResults: affectedResults, totalResults: totalResults)
+        })
+        
+        // Start the activity indicator
+        let path = IndexPath(row: 0, section: 0)
+        let cell = tableView.cellForRow(at: path as IndexPath)
+        if (cell != nil) {
+            configureCell(cell!, atIndexPath: path as IndexPath)
+        }
+    }
+    
     // MARK: - Table view data source
 
+    // Called after the user changes the selection.
+    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+    }
+    
     func numberOfSections(in tableView: UITableView) -> Int {
-        // #warning Incomplete implementation, return the number of sections
-       return 0
+        // Return the number of sections.
+        return 1
     }
-
+    
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        // #warning Incomplete implementation, return the number of rows
         return 0
+       // return universalSearch.totalResults ?? 1
     }
-
+    
+    func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
+        return false
+    }
+    
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == UITableViewCellEditingStyle.insert) {
+        }
+    }
+ 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        let cell = tableView.dequeueReusableCell(withIdentifier: "reuseIdentifier", for: indexPath)
-
-        // Configure the cell...
-
+        let cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifierForPath(indexPath), for: indexPath)
+        configureCell(cell, atIndexPath: indexPath)
         return cell
     }
+    
+    func cellIdentifierForPath(_ indexPath: IndexPath) -> String {
+        guard let qitem = universalSearch.peekQItemForRow(indexPath.row) else {
+            return "Activity Cell"
+        }
 
-    /*
-    // Override to support conditional editing of the table view.
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the specified item to be editable.
-        return true
+        let id: String
+        switch (qitem.type) {
+        case .qUser:
+            id = "User Cell"
+        case .qClass:
+            id = "Class Cell"
+        case .qSet:
+            id = "Study Set Cell"
+        }
+        return id
     }
-    */
 
-    /*
-    // Override to support editing the table view.
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if editingStyle == .delete {
-            // Delete the row from the data source
-            tableView.deleteRows(at: [indexPath], with: .fade)
-        } else if editingStyle == .insert {
-            // Create a new instance of the appropriate class, insert it into the array, and add a new row to the table view
-        }    
+    func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath) {
+        let qitem = universalSearch.getQItemForRow(indexPath.row, completionHandler: { [unowned self] (affectedResults: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
+                DispatchQueue.main.async(execute: {
+                    self.tableView.reloadData()
+                })
+            })
+    
+        configureCell(cell, atIndexPath: indexPath, qitem: qitem)
     }
-    */
-
-    /*
-    // Override to support rearranging the table view.
-    override func tableView(_ tableView: UITableView, moveRowAt fromIndexPath: IndexPath, to: IndexPath) {
-
+    
+    func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath, qitem: QItem!) {
+        if (qitem == nil) {
+            let activityCell = cell as! ActivityCell
+            activityCell.activityIndicator.startAnimating()
+        }
+        else {
+            switch (qitem.type) {
+            case .qUser:
+                let qUser = qitem as! QUser
+                let userCell = cell as! UserCell
+                userCell.usernameLabel.text = qUser.userName
+                userCell.usernameLabel.font = preferredBoldFont
+            case .qClass:
+                let qClass = qitem as! QClass
+                let classCell = cell as! ClassCell
+                classCell.classLabel.text = qClass.name
+                classCell.classLabel.font = preferredBoldFont
+                classCell.usernameLabel.text = qClass.description
+                classCell.usernameLabel.font = smallerFont
+            case .qSet:
+                let qSet = qitem as! QSet
+                let studySetCell = cell as! StudySetCell
+                if let termCount = qSet.termCount {
+                    studySetCell.termsLabel.text = "\(termCount) terms"
+                    studySetCell.termsLabel.font = smallerFont
+                }
+                studySetCell.usernameLabel.text = qSet.createdBy
+                studySetCell.usernameLabel.font = smallerFont
+                studySetCell.studySetLabel.text = qSet.title
+                studySetCell.studySetLabel.font = preferredBoldFont
+            }
+        }
     }
-    */
-
-    /*
-    // Override to support conditional rearranging of the table view.
-    override func tableView(_ tableView: UITableView, canMoveRowAt indexPath: IndexPath) -> Bool {
-        // Return false if you do not want the item to be re-orderable.
-        return true
+    
+    var sizingCells: [String: UITableViewCell] = [:]
+    
+    /**
+     * This method should make dynamically sizing table view cells work with iOS 7.  I have not
+     * been able to test this because Xcode 7 does not support the iOS 7 simulator.
+     */
+    func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
+        let cellIdentifier = cellIdentifierForPath(indexPath)
+        var cell = sizingCells[cellIdentifier]
+        if (cell == nil) {
+            cell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier)
+            sizingCells[cellIdentifier] = cell!
+        }
+        
+        let qitem = universalSearch.peekQItemForRow(indexPath.row)
+        configureCell(cell!, atIndexPath: indexPath, qitem: qitem)
+        return calculateHeight(cell!)
     }
-    */
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
+ 
+    func calculateHeight(_ cell: UITableViewCell) -> CGFloat {
+        cell.bounds = CGRect(x: 0.0, y: 0.0, width: self.tableView.frame.width, height: cell.bounds.height)
+        
+        // Workaround: setting the bounds for multi-line DynamicLabel instances will cause the preferredMaxLayoutWidth to be set corretly when layoutIfNeeded() is called
+        if let reset = cell as? ResettableBounds {
+            reset.resetBounds()
+        }
+     
+        cell.setNeedsLayout()
+        cell.layoutIfNeeded()
+        
+        let height = cell.contentView.systemLayoutSizeFitting(UILayoutFittingCompressedSize).height
+        return height + 1.0 // Add 1.0 for the cell separator height
     }
-    */
-
+    
+    func tableView(_ tableView: UITableView,
+                   estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+        let height: CGFloat
+        
+        if (estimatedHeightForUserCell == nil) {
+            let cellIdentifier = "User Cell"
+            var sizingCell = sizingCells[cellIdentifier]
+            if (sizingCell == nil) {
+                sizingCell = tableView.dequeueReusableCell(withIdentifier: cellIdentifier)
+                sizingCells[cellIdentifier] = sizingCell!
+            }
+            
+            let qitem = QUser(userName: "User", accountType: .free, profileImage: URL(string: "https://quizlet.com/a/i/animals/1.X54Z.jpg")!, signUpDate: 0)
+            configureCell(sizingCell!, atIndexPath: indexPath, qitem: qitem)
+            estimatedHeightForUserCell = calculateHeight(sizingCell!)
+        }
+        height = estimatedHeightForUserCell!
+        
+        return height
+    }
 }

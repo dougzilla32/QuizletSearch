@@ -1,5 +1,5 @@
 //
-//  LabelTableViewCell.swift
+//  SetTableViewCell.swift
 //  QuizletSearch
 //
 //  Created by Doug Stein on 10/2/15.
@@ -8,7 +8,7 @@
 
 import UIKit
 
-class SetTableViewCell: UITableViewCell {
+class SetTableViewCell: UITableViewCell, ResettableBounds {
     
     @IBOutlet weak var label: DynamicLabel!
     @IBOutlet weak var termsActivityIndicator: UIActivityIndicatorView!

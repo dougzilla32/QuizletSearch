@@ -467,7 +467,7 @@ class QuizletSession {
             for jsonItem in jsonItems {
                 if let type = jsonItem["type"] as? String {
                     switch (type) {
-                    case "class":
+                    case "class", "group":
                         let qclass = QClass.classFromJSON(jsonItem)
                         if (qclass == nil) {
                             NSLog("Invalid Quizlet Class in universalFromJSON: \(jsonItem)")

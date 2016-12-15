@@ -200,7 +200,7 @@ class DataModel: NSObject {
             return
         }
         
-        let pagers = QueryPagers(query: q)
+        let pagers = SetSearch(query: q)
 
         pagers.executeFullSearch(completionHandler: { (qsets: [QSet]?, termCount: Int) in
             self.updateTermsForQuery(q, qsets: qsets)

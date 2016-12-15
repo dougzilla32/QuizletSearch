@@ -1,5 +1,5 @@
 //
-//  QueryPagers.swift
+//  SetSearch.swift
 //  QuizletSearch
 //
 //  Created by Doug Stein on 10/16/15.
@@ -28,7 +28,7 @@ fileprivate func >= <T : Comparable>(lhs: T?, rhs: T?) -> Bool {
 }
 
 
-class PagerIndex {
+class SetSearchIndex {
     enum PagerType {
         case query, username, `class`, includedSets, end
     }
@@ -60,7 +60,10 @@ class PagerIndex {
     }
 }
 
-class QueryPagers: Sequence {
+class SetSearch: Sequence {
+    let MaxTermCount = 5000
+    let MaxCharacters = 1000000
+    
     let sep = ","
     let MinTotalResultsHighWaterMark = 10
     let MaxTotalResults = 300
@@ -172,10 +175,6 @@ class QueryPagers: Sequence {
     
     // MARK: - Query
     
-    let MaxTermCount = 5000
-    
-    let MaxCharacters = 1000000
-    
     func executeFullSearch(completionHandler: @escaping ([QSet]?, Int) -> Void) {
         trace("executeFullSearch START")
         
@@ -247,7 +246,7 @@ class QueryPagers: Sequence {
         })
     }
     
-    func executeSearch(_ pagerIndex: PagerIndex?, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
+    func executeSearch(_ pagerIndex: SetSearchIndex?, completionHandler: @escaping (_ affectedResults: CountableRange<Int>?, _ totalResults: Int?, _ response: PagerResponse) -> Void) {
         
         // Cancel previous queries
         quizletSession.cancelQueryTasks()
@@ -295,7 +294,7 @@ class QueryPagers: Sequence {
         return (queryPager == nil && usernamePagers.count == 0 && classPagers.count == 0 && includedSetsPager == nil)
     }
     
-    func updateDuplicates(pagerIndex: PagerIndex?) {
+    func updateDuplicates(pagerIndex: SetSearchIndex?) {
         do {
             var duplicates = Set<String>()
             for p in usernamePagers {
@@ -343,7 +342,7 @@ class QueryPagers: Sequence {
     */
 
     func makeIterator() -> AnyIterator<SetPager> {
-        let index = PagerIndex()
+        let index = SetSearchIndex()
         return AnyIterator {
             Restart:
                 while (true) {
@@ -391,7 +390,7 @@ class QueryPagers: Sequence {
             if (p === pager) {
                 break
             }
-            t += (p.totalResults != nil) ? p.totalResults! : 0
+            t += p.totalResults ?? 0
         }
         if (t >= MaxTotalResults) {
             return

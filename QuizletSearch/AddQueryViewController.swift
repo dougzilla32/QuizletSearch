@@ -224,7 +224,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     // MARK: - Search
     
     func executeSearchForQuery(_ queryOpt: String?, scrollTarget: ScrollTarget) {
-        var query = (queryOpt != nil) ? queryOpt! : ""
+        var query = queryOpt ?? ""
         query = query.trimmingCharacters(in: CharacterSet.whitespaces)
         
         if (model.pagers.queryPager == nil && !query.isEmpty) {
@@ -234,7 +234,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             model.pagers.queryPager?.reset(query: query)
         }
         
-        executeSearch(PagerIndex(type: .query, index: 0), scrollTarget: scrollTarget)
+        executeSearch(SetSearchIndex(type: .query, index: 0), scrollTarget: scrollTarget)
     }
     
     func executeSearch(indexPath: IndexPath?, scrollTarget: ScrollTarget) {
@@ -242,10 +242,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     func executeSearch() {
-        executeSearch(PagerIndex(type: .query, index: 0), scrollTarget: nil)
+        executeSearch(SetSearchIndex(type: .query, index: 0), scrollTarget: nil)
     }
     
-    func executeSearch(_ pagerIndex: PagerIndex?, scrollTarget: ScrollTarget?) {
+    func executeSearch(_ pagerIndex: SetSearchIndex?, scrollTarget: ScrollTarget?) {
         var firstLoaded = true
         
         model.pagers.executeSearch(pagerIndex, completionHandler: { (affectedResults: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
@@ -274,10 +274,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
 
         let offset = model.rowTypes[ResultsSection].count
         
-        let affectedResults = (affected != nil) ? affected! : 0..<0
-        let totalResults = (total != nil) ? total! : 0
+        let affectedResults = affected ?? 0..<0
+        let totalResults = total ?? 0
 
-        let totalResultsHighWaterMark = (model.pagers.totalResultsHighWaterMark != nil) ? model.pagers.totalResultsHighWaterMark! : 0
+        let totalResultsHighWaterMark = model.pagers.totalResultsHighWaterMark ?? 0
         
         trace("affectedResults", affectedResults)
         for i in affectedResults {
