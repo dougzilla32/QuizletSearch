@@ -60,15 +60,15 @@ class QClass: QItem {
             
             var school: School?
             if let jsonSchool = jsonClass["school"] as? NSDictionary {
-                if  let id = (jsonSchool["id"] as? NSNumber)?.int64Value,
-                    let name = jsonSchool["name"] as? String,
+                if  let schoolId = (jsonSchool["id"] as? NSNumber)?.int64Value,
+                    let schoolName = jsonSchool["name"] as? String,
                     let city = jsonSchool["city"] as? String,
                     let state = jsonSchool["state"] as? String,
                     let country = jsonSchool["country"] as? String,
                     let latitude = (jsonSchool["latitude"] as? NSNumber)?.int64Value,
                     let longitude = (jsonSchool["longitude"] as? NSNumber)?.int64Value {
                     
-                    school = School(name: name, id: id, city: city, state: state, country: country, latitude: latitude, longitude: longitude)
+                    school = School(name: schoolName, id: schoolId, city: city, state: state, country: country, latitude: latitude, longitude: longitude)
                 }
             }
 

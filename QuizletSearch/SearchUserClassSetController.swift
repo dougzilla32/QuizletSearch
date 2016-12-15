@@ -89,7 +89,6 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
 
     @IBAction func segmentedControlValueChanged(_ sender: Any) {
     }
-    
 
     // MARK: - Search Bar
     
@@ -134,16 +133,13 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
     func executeSearch(_ pagerIndex: Int) {
         universalSearch.executeSearch(pagerIndex, completionHandler: { [unowned self] (affectedResults: CountableRange<Int>?, totalResults: Int?, response: PagerResponse) -> Void in
             
-            self.tableView.reloadData()
-            // self.safelyReloadData(affectedResults: affectedResults, totalResults: totalResults)
+            DispatchQueue.main.async(execute: {
+                self.tableView.reloadData()
+            })
         })
         
         // Start the activity indicator
-        let path = IndexPath(row: 0, section: 0)
-        let cell = tableView.cellForRow(at: path as IndexPath)
-        if (cell != nil) {
-            configureCell(cell!, atIndexPath: path as IndexPath)
-        }
+        tableView.reloadData()
     }
     
     // MARK: - Table view data source
@@ -158,8 +154,7 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
     }
     
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return 0
-       // return universalSearch.totalResults ?? 1
+        return universalSearch.totalResults ?? (universalSearch.isLoading() ? 1 : 0)
     }
     
     func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
@@ -207,7 +202,7 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
     func configureCell(_ cell: UITableViewCell, atIndexPath indexPath: IndexPath, qitem: QItem!) {
         if (qitem == nil) {
             let activityCell = cell as! ActivityCell
-            activityCell.activityIndicator.startAnimating()
+            universalSearch.isLoading() ? activityCell.activityIndicator.startAnimating() : activityCell.activityIndicator.stopAnimating()
         }
         else {
             switch (qitem.type) {
@@ -215,13 +210,31 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
                 let qUser = qitem as! QUser
                 let userCell = cell as! UserCell
                 userCell.usernameLabel.text = qUser.userName
-                userCell.usernameLabel.font = preferredBoldFont
+                userCell.usernameLabel.font = preferredFont
             case .qClass:
                 let qClass = qitem as! QClass
                 let classCell = cell as! ClassCell
                 classCell.classLabel.text = qClass.name
-                classCell.classLabel.font = preferredBoldFont
-                classCell.usernameLabel.text = qClass.description
+                classCell.classLabel.font = preferredFont
+                if let school = qClass.school {
+                    var text = ""
+                    var sep = ""
+                    if (!school.name.isEmpty) {
+                        text += school.name
+                        sep = " · "
+                    }
+                    if (!school.city.isEmpty && !school.state.isEmpty) {
+                        text += "\(sep)\(school.city), \(school.state)"
+                    }
+                    else if (!school.city.isEmpty) {
+                        text += "\(sep)\(school.city)"
+                    }
+                    else if (!school.state.isEmpty) {
+                        text += "\(sep)\(school.state)"
+                    }
+                    
+                    classCell.usernameLabel.text = text
+                }
                 classCell.usernameLabel.font = smallerFont
             case .qSet:
                 let qSet = qitem as! QSet
@@ -233,7 +246,7 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
                 studySetCell.usernameLabel.text = qSet.createdBy
                 studySetCell.usernameLabel.font = smallerFont
                 studySetCell.studySetLabel.text = qSet.title
-                studySetCell.studySetLabel.font = preferredBoldFont
+                studySetCell.studySetLabel.font = preferredFont
             }
         }
     }
@@ -253,6 +266,11 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
         }
         
         let qitem = universalSearch.peekQItemForRow(indexPath.row)
+        if (qitem?.type == .qUser && (qitem as! QUser).userName.isEmpty) {
+            // Empty item
+            return 0.0
+        }
+        
         configureCell(cell!, atIndexPath: indexPath, qitem: qitem)
         return calculateHeight(cell!)
     }
