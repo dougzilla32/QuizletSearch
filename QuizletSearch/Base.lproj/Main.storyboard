@@ -6,6 +6,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="11524"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
         <capability name="Constraints with non-1.0 multipliers" minToolsVersion="5.1"/>
         <capability name="Navigation items with more than one left or right bar item" minToolsVersion="7.0"/>
@@ -87,7 +88,7 @@
                                 </constraints>
                             </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" usesAttributedText="YES" lineBreakMode="tailTruncation" numberOfLines="2" baselineAdjustment="alignBaselines" highlighted="YES" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="feO-Uq-pIN">
-                                <rect key="frame" x="73" y="393" width="268" height="58"/>
+                                <rect key="frame" x="73" y="393" width="268" height="57.666666666666686"/>
                                 <constraints>
                                     <constraint firstAttribute="width" constant="268" id="JB3-Ce-nmv"/>
                                 </constraints>
@@ -297,7 +298,7 @@
                                         <rect key="frame" x="0.0" y="72" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="cXC-hg-AgD" id="akR-UF-auK">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Header label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="QgE-TR-TzA">
@@ -321,7 +322,7 @@
                                         <rect key="frame" x="0.0" y="116" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Cbj-eg-505" id="TNr-yV-nom">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Label" lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="e5n-0l-AeS" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -358,7 +359,7 @@
                                         <rect key="frame" x="0.0" y="160" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ylq-Ma-brs" id="X41-Zc-ccI">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <textField opaque="NO" clipsSubviews="YES" tag="100" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="TextField" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="cNa-oC-NGt">
@@ -383,7 +384,7 @@
                                         <rect key="frame" x="0.0" y="204" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" multipleTouchEnabled="YES" contentMode="center" tableViewCell="WLM-p4-wnd" id="VjT-zF-Ga7">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <button opaque="NO" tag="100" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="mfQ-99-f26">
@@ -411,7 +412,7 @@
                                         <rect key="frame" x="0.0" y="248" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="tJe-lU-5In" id="Yeh-jy-Ico">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -476,7 +477,7 @@
                                 <rect key="frame" x="0.0" y="72" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="heY-p1-zCA" id="xPj-pv-t7O">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="matching these words:" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="bPh-1D-fZE" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -493,7 +494,7 @@
                                         <constraint firstAttribute="trailing" secondItem="bPh-1D-fZE" secondAttribute="trailing" constant="15" id="nj7-hD-1fO"/>
                                     </constraints>
                                 </tableViewCellContentView>
-                                <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="backgroundColor" red="0.84705882352941175" green="0.90846258401870728" blue="0.99582749605178833" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <connections>
                                     <outlet property="label" destination="bPh-1D-fZE" id="fuq-Zt-F6e"/>
                                 </connections>
@@ -502,7 +503,7 @@
                                 <rect key="frame" x="0.0" y="116" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ZpI-Ef-A62" id="4gF-Y9-Dfs">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <searchBar tag="100" contentMode="redraw" text="" placeholder="Search by title and description" translatesAutoresizingMaskIntoConstraints="NO" id="IE2-Ms-6aY">
@@ -525,7 +526,7 @@
                                 <rect key="frame" x="0.0" y="160" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="o8v-eV-LsH" id="LJJ-B9-KkL">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="created by any of these users:" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="aKX-zd-KqK" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -556,7 +557,7 @@
                                         <constraint firstItem="aKX-zd-KqK" firstAttribute="top" secondItem="LJJ-B9-KkL" secondAttribute="top" constant="10" id="uWY-Lh-orR" userLabel="created by these users:.top = top"/>
                                     </constraints>
                                 </tableViewCellContentView>
-                                <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="backgroundColor" red="0.84705882349999995" green="0.90846258400000002" blue="0.99582749609999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <gestureRecognizers/>
                                 <connections>
                                     <outlet property="label" destination="aKX-zd-KqK" id="WZl-wa-fhg"/>
@@ -566,7 +567,7 @@
                                 <rect key="frame" x="0.0" y="204" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="gtB-TX-ZA3" id="XwP-MW-p45">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="in any of these classes:" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="3gE-zA-6em" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -597,7 +598,7 @@
                                         <constraint firstAttribute="bottom" secondItem="3gE-zA-6em" secondAttribute="bottom" constant="10" id="pxH-Un-qbJ"/>
                                     </constraints>
                                 </tableViewCellContentView>
-                                <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="backgroundColor" red="0.84705882349999995" green="0.90846258400000002" blue="0.99582749609999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <connections>
                                     <outlet property="label" destination="3gE-zA-6em" id="XSd-2c-5NB"/>
                                 </connections>
@@ -606,7 +607,7 @@
                                 <rect key="frame" x="0.0" y="248" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="yLH-JL-bGy" id="Bw3-6p-hGY">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" text="Text field" textAlignment="natural" minimumFontSize="17" translatesAutoresizingMaskIntoConstraints="NO" id="S9o-2t-WXo" customClass="InsetTextField" customModule="QuizletSearch" customModuleProvider="target">
@@ -634,7 +635,7 @@
                                 <rect key="frame" x="0.0" y="292" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ksc-8A-1c9" id="jma-yS-N1b">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="specifically including these sets:" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="nkO-y9-kRX" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -665,7 +666,7 @@
                                         <constraint firstAttribute="trailing" secondItem="eKZ-dH-fx1" secondAttribute="trailing" constant="15" id="wy6-Sa-zBJ"/>
                                     </constraints>
                                 </tableViewCellContentView>
-                                <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="backgroundColor" red="0.84705882349999995" green="0.90846258400000002" blue="0.99582749609999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <connections>
                                     <outlet property="label" destination="nkO-y9-kRX" id="DCK-IQ-4MG"/>
                                 </connections>
@@ -674,7 +675,7 @@
                                 <rect key="frame" x="0.0" y="336" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Nch-nL-dxt" id="5Xy-bm-Bde">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="specifically excluding these sets:" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="VzN-SL-SfS" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -705,7 +706,7 @@
                                         <constraint firstItem="VzN-SL-SfS" firstAttribute="top" secondItem="5Xy-bm-Bde" secondAttribute="top" constant="10" id="vvl-2x-vAl" userLabel="created by these users:.top = top"/>
                                     </constraints>
                                 </tableViewCellContentView>
-                                <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="backgroundColor" red="0.84705882349999995" green="0.90846258400000002" blue="0.99582749609999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                                 <connections>
                                     <outlet property="label" destination="VzN-SL-SfS" id="PKc-eP-WA1"/>
                                 </connections>
@@ -714,11 +715,11 @@
                                 <rect key="frame" x="0.0" y="380" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="3FU-hG-TVo" id="zH3-4e-Opj">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="K10-2 Week 12 Grammar" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="WW9-fs-huu">
-                                            <rect key="frame" x="15" y="0.0" width="384" height="43"/>
+                                            <rect key="frame" x="15" y="0.0" width="384" height="43.666666666666664"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <fontDescription key="fontDescription" type="system" pointSize="16"/>
                                             <color key="textColor" red="0.0" green="0.0" blue="0.0" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
@@ -731,7 +732,7 @@
                                 <rect key="frame" x="0.0" y="424" width="414" height="44"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="v8e-Y2-qoU" id="hLo-0b-t8A">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" tag="100" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Search results:" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="khl-N4-5SI">
@@ -752,13 +753,13 @@
                                         <constraint firstAttribute="bottom" secondItem="khl-N4-5SI" secondAttribute="bottom" constant="10" id="sCe-s7-ywm"/>
                                     </constraints>
                                 </tableViewCellContentView>
-                                <color key="backgroundColor" red="0.93725490199999995" green="0.93725490199999995" blue="0.95686274510000002" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                <color key="backgroundColor" red="0.84705882349999995" green="0.90846258400000002" blue="0.99582749609999999" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                             </tableViewCell>
                             <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Result Cell" rowHeight="119" id="Vho-Fc-cHR" customClass="SetTableViewCell" customModule="QuizletSearch" customModuleProvider="target">
                                 <rect key="frame" x="0.0" y="468" width="414" height="119"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Vho-Fc-cHR" id="MIn-IR-17E">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="118"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="118.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Title, Owner and Description" textAlignment="natural" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="YUd-hh-DbE" userLabel="Title, Owner, Description" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -854,7 +855,7 @@
                                 <rect key="frame" x="0.0" y="587" width="414" height="0.0"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ChA-QJ-k4S" id="PDZ-l0-3eG">
-                                    <rect key="frame" x="0.0" y="-1" width="414" height="1"/>
+                                    <rect key="frame" x="0.0" y="-0.5" width="414" height="0.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
                             </tableViewCell>
@@ -1015,6 +1016,166 @@
                                     <outlet property="delegate" destination="WTg-qO-6k2" id="rcx-4n-THd"/>
                                 </connections>
                             </view>
+                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="44" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="VYj-Or-gZ0">
+                                <rect key="frame" x="0.0" y="130" width="414" height="606"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <prototypes>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Activity Cell" rowHeight="44" id="AKd-eP-1hL" customClass="ActivityCell" customModule="QuizletSearch" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="28" width="414" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="AKd-eP-1hL" id="xzo-hy-UCU">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <activityIndicatorView opaque="NO" tag="100" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="DEb-ju-qYq">
+                                                    <rect key="frame" x="197" y="12" width="20" height="20"/>
+                                                </activityIndicatorView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="DEb-ju-qYq" firstAttribute="centerX" secondItem="xzo-hy-UCU" secondAttribute="centerX" id="Hmt-DZ-VnO"/>
+                                                <constraint firstItem="DEb-ju-qYq" firstAttribute="centerY" secondItem="xzo-hy-UCU" secondAttribute="centerY" id="IHc-JS-cia"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="User Cell" id="cJw-0f-A07" userLabel="User Cell" customClass="UserCell" customModule="QuizletSearch" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="72" width="414" height="44"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="cJw-0f-A07" id="N9t-wc-25q">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="Vc1-SN-IMj">
+                                                    <rect key="frame" x="8" y="4" width="35.666666666666664" height="35.666666666666664"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" secondItem="Vc1-SN-IMj" secondAttribute="height" multiplier="1:1" id="MHz-GE-jwB"/>
+                                                    </constraints>
+                                                </imageView>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Username" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="rQN-Dr-kze">
+                                                    <rect key="frame" x="51" y="0.0" width="354.33333333333331" height="44"/>
+                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="rQN-Dr-kze" firstAttribute="top" secondItem="N9t-wc-25q" secondAttribute="top" id="9rz-v3-Nbc"/>
+                                                <constraint firstAttribute="bottom" secondItem="Vc1-SN-IMj" secondAttribute="bottom" constant="4" id="Bdz-Q7-pDH"/>
+                                                <constraint firstItem="Vc1-SN-IMj" firstAttribute="top" secondItem="N9t-wc-25q" secondAttribute="top" constant="4" id="CGs-PA-M7a"/>
+                                                <constraint firstAttribute="bottom" secondItem="rQN-Dr-kze" secondAttribute="bottom" id="FAa-Sj-iaI"/>
+                                                <constraint firstItem="Vc1-SN-IMj" firstAttribute="leading" secondItem="N9t-wc-25q" secondAttribute="leading" constant="8" id="Gvp-pb-fEv"/>
+                                                <constraint firstItem="rQN-Dr-kze" firstAttribute="leading" secondItem="Vc1-SN-IMj" secondAttribute="trailing" constant="8" id="V0q-ic-Urz"/>
+                                                <constraint firstAttribute="trailing" secondItem="rQN-Dr-kze" secondAttribute="trailing" constant="8" id="dpb-Bf-Tir"/>
+                                                <constraint firstItem="rQN-Dr-kze" firstAttribute="leading" secondItem="Vc1-SN-IMj" secondAttribute="trailing" constant="8" id="zdh-pd-iYe"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="userImage" destination="Vc1-SN-IMj" id="BKp-dF-xQF"/>
+                                            <outlet property="usernameLabel" destination="rQN-Dr-kze" id="NYj-Ej-hsA"/>
+                                        </connections>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="Class Cell" rowHeight="74" id="zxZ-6D-Zyc" userLabel="Class Cell" customClass="ClassCell" customModule="QuizletSearch" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="116" width="414" height="74"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="zxZ-6D-Zyc" id="suM-id-ZRk">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="73.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Class name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="99v-Fb-cA7">
+                                                    <rect key="frame" x="8" y="29" width="398" height="40.666666666666671"/>
+                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Username" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="p5t-BI-W9u">
+                                                    <rect key="frame" x="8" y="12" width="398" height="17"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="p5t-BI-W9u" firstAttribute="trailing" secondItem="suM-id-ZRk" secondAttribute="trailingMargin" id="9xc-4w-Sn1"/>
+                                                <constraint firstItem="99v-Fb-cA7" firstAttribute="bottom" secondItem="suM-id-ZRk" secondAttribute="bottomMargin" constant="4" id="FBi-AQ-z8V"/>
+                                                <constraint firstItem="99v-Fb-cA7" firstAttribute="leading" secondItem="suM-id-ZRk" secondAttribute="leadingMargin" id="FPp-zm-mfN"/>
+                                                <constraint firstItem="99v-Fb-cA7" firstAttribute="top" secondItem="p5t-BI-W9u" secondAttribute="bottom" id="ZZl-OV-4zh"/>
+                                                <constraint firstItem="99v-Fb-cA7" firstAttribute="trailing" secondItem="suM-id-ZRk" secondAttribute="trailingMargin" id="oJW-8l-Cj4"/>
+                                                <constraint firstItem="p5t-BI-W9u" firstAttribute="top" secondItem="suM-id-ZRk" secondAttribute="topMargin" constant="4" id="qnj-gd-vPr"/>
+                                                <constraint firstItem="p5t-BI-W9u" firstAttribute="leading" secondItem="suM-id-ZRk" secondAttribute="leadingMargin" id="rpl-on-sqe"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="classLabel" destination="99v-Fb-cA7" id="tbR-LB-Mu9"/>
+                                            <outlet property="usernameLabel" destination="p5t-BI-W9u" id="9Aa-LQ-Yg6"/>
+                                        </connections>
+                                    </tableViewCell>
+                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" reuseIdentifier="Study Set Cell" rowHeight="80" id="DPB-GG-ncf" userLabel="Study Set Cell" customClass="StudySetCell" customModule="QuizletSearch" customModuleProvider="target">
+                                        <rect key="frame" x="0.0" y="190" width="414" height="80"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="DPB-GG-ncf" id="aSI-ze-BFc">
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="79.5"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" text="Set name" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="46Y-4R-qh7">
+                                                    <rect key="frame" x="8" y="33" width="398" height="38"/>
+                                                    <fontDescription key="fontDescription" type="boldSystem" pointSize="18"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="# Terms" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="NCZ-d6-8yr">
+                                                    <rect key="frame" x="7.9999999999999964" y="8" width="52.666666666666657" height="23"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="|" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="j2p-5k-3ar">
+                                                    <rect key="frame" x="68.666666666666671" y="8" width="5" height="21"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <label opaque="NO" userInteractionEnabled="NO" contentMode="left" verticalHuggingPriority="251" text="Username" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ifR-hw-iUZ">
+                                                    <rect key="frame" x="117.66666666666666" y="8" width="288.33333333333337" height="23"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <nil key="textColor"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="2lm-qh-lCX">
+                                                    <rect key="frame" x="81.666666666666671" y="3" width="28" height="28"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" secondItem="2lm-qh-lCX" secondAttribute="height" multiplier="1:1" id="IU6-NG-mn7"/>
+                                                    </constraints>
+                                                </imageView>
+                                            </subviews>
+                                            <constraints>
+                                                <constraint firstItem="46Y-4R-qh7" firstAttribute="top" secondItem="j2p-5k-3ar" secondAttribute="bottom" constant="4" id="3Oq-ps-EAJ"/>
+                                                <constraint firstItem="2lm-qh-lCX" firstAttribute="top" secondItem="aSI-ze-BFc" secondAttribute="top" constant="3" id="6AI-7z-PVu"/>
+                                                <constraint firstItem="46Y-4R-qh7" firstAttribute="top" secondItem="ifR-hw-iUZ" secondAttribute="bottom" constant="2" id="Ao4-ce-cT2"/>
+                                                <constraint firstItem="46Y-4R-qh7" firstAttribute="trailing" secondItem="aSI-ze-BFc" secondAttribute="trailingMargin" id="CDD-DN-NDE"/>
+                                                <constraint firstItem="ifR-hw-iUZ" firstAttribute="trailing" secondItem="aSI-ze-BFc" secondAttribute="trailingMargin" id="D8r-7j-7Qt"/>
+                                                <constraint firstItem="46Y-4R-qh7" firstAttribute="leading" secondItem="aSI-ze-BFc" secondAttribute="leadingMargin" id="Fc8-VK-NuP"/>
+                                                <constraint firstItem="NCZ-d6-8yr" firstAttribute="top" secondItem="aSI-ze-BFc" secondAttribute="topMargin" id="KdI-q0-HGq"/>
+                                                <constraint firstItem="NCZ-d6-8yr" firstAttribute="leading" secondItem="aSI-ze-BFc" secondAttribute="leadingMargin" id="Li5-AV-HCa"/>
+                                                <constraint firstItem="j2p-5k-3ar" firstAttribute="top" secondItem="aSI-ze-BFc" secondAttribute="topMargin" id="QDT-Ng-p70"/>
+                                                <constraint firstItem="46Y-4R-qh7" firstAttribute="top" secondItem="NCZ-d6-8yr" secondAttribute="bottom" constant="2" id="U27-LQ-JTw"/>
+                                                <constraint firstItem="ifR-hw-iUZ" firstAttribute="top" secondItem="aSI-ze-BFc" secondAttribute="topMargin" id="WKQ-E0-6SM"/>
+                                                <constraint firstItem="j2p-5k-3ar" firstAttribute="leading" secondItem="NCZ-d6-8yr" secondAttribute="trailing" constant="8" id="Wph-y9-N0W"/>
+                                                <constraint firstItem="2lm-qh-lCX" firstAttribute="leading" secondItem="j2p-5k-3ar" secondAttribute="trailing" constant="8" id="Y7u-ne-r6y"/>
+                                                <constraint firstItem="2lm-qh-lCX" firstAttribute="leading" secondItem="j2p-5k-3ar" secondAttribute="trailing" constant="8" id="vOy-Vg-M1Y"/>
+                                                <constraint firstItem="46Y-4R-qh7" firstAttribute="top" secondItem="2lm-qh-lCX" secondAttribute="bottom" constant="2" id="xQt-Zq-eSy"/>
+                                                <constraint firstItem="j2p-5k-3ar" firstAttribute="leading" secondItem="NCZ-d6-8yr" secondAttribute="trailing" constant="8" id="zEY-j7-pzF"/>
+                                                <constraint firstItem="46Y-4R-qh7" firstAttribute="bottom" secondItem="aSI-ze-BFc" secondAttribute="bottomMargin" id="zdb-VU-fkc"/>
+                                                <constraint firstItem="ifR-hw-iUZ" firstAttribute="leading" secondItem="2lm-qh-lCX" secondAttribute="trailing" constant="8" id="zzb-h1-ohE"/>
+                                            </constraints>
+                                        </tableViewCellContentView>
+                                        <connections>
+                                            <outlet property="studySetLabel" destination="46Y-4R-qh7" id="o4O-xI-6LG"/>
+                                            <outlet property="termsLabel" destination="NCZ-d6-8yr" id="qTH-K4-wwc"/>
+                                            <outlet property="userImage" destination="2lm-qh-lCX" id="2hs-5e-D1L"/>
+                                            <outlet property="usernameLabel" destination="ifR-hw-iUZ" id="ooN-QH-PH0"/>
+                                        </connections>
+                                    </tableViewCell>
+                                </prototypes>
+                            </tableView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
@@ -1025,20 +1186,29 @@
                             <constraint firstItem="N8S-zG-LRw" firstAttribute="height" secondItem="onA-pj-oPK" secondAttribute="height" id="9wu-IL-Dsz"/>
                             <constraint firstItem="N8S-zG-LRw" firstAttribute="leading" secondItem="WTg-qO-6k2" secondAttribute="leading" id="D42-SZ-Q8Z"/>
                             <constraint firstItem="N8S-zG-LRw" firstAttribute="top" secondItem="leT-eX-Vgc" secondAttribute="bottom" id="Dcs-fp-7Hx"/>
+                            <constraint firstAttribute="trailing" secondItem="VYj-Or-gZ0" secondAttribute="trailing" id="JbQ-Ga-yNB"/>
                             <constraint firstAttribute="trailing" secondItem="fvh-Du-nrm" secondAttribute="trailing" id="RXV-Hc-v3J"/>
                             <constraint firstItem="fvh-Du-nrm" firstAttribute="leading" secondItem="onA-pj-oPK" secondAttribute="trailing" constant="-6" id="RYy-0q-UdA"/>
                             <constraint firstItem="Gmm-4l-1RG" firstAttribute="top" secondItem="tlE-qm-u1k" secondAttribute="bottom" id="TpF-8W-Ffy"/>
                             <constraint firstItem="fvh-Du-nrm" firstAttribute="top" secondItem="leT-eX-Vgc" secondAttribute="bottom" id="YPC-OF-kUG"/>
                             <constraint firstItem="onA-pj-oPK" firstAttribute="leading" secondItem="N8S-zG-LRw" secondAttribute="trailing" constant="-6" id="ZfM-rM-5k6"/>
+                            <constraint firstItem="vec-Nq-Bbr" firstAttribute="top" secondItem="VYj-Or-gZ0" secondAttribute="bottom" id="cCi-6W-azv"/>
                             <constraint firstItem="onA-pj-oPK" firstAttribute="top" secondItem="leT-eX-Vgc" secondAttribute="bottom" id="dRQ-7u-eE1"/>
+                            <constraint firstItem="VYj-Or-gZ0" firstAttribute="top" secondItem="Gmm-4l-1RG" secondAttribute="bottom" id="fmV-gZ-UBt"/>
                             <constraint firstItem="fvh-Du-nrm" firstAttribute="height" secondItem="onA-pj-oPK" secondAttribute="height" id="ftM-Fk-Pka"/>
                             <constraint firstAttribute="trailing" secondItem="tlE-qm-u1k" secondAttribute="trailing" id="kdV-bB-h9a"/>
                             <constraint firstItem="Gmm-4l-1RG" firstAttribute="leading" secondItem="WTg-qO-6k2" secondAttribute="leading" id="mxR-s4-sFO"/>
+                            <constraint firstItem="VYj-Or-gZ0" firstAttribute="leading" secondItem="WTg-qO-6k2" secondAttribute="leading" id="tki-no-k5c"/>
                             <constraint firstAttribute="trailing" secondItem="Khj-Zg-OUo" secondAttribute="trailing" id="uiZ-AL-8zs"/>
                             <constraint firstAttribute="trailing" secondItem="Gmm-4l-1RG" secondAttribute="trailing" id="v32-wo-bGm"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="qii-L3-9WD"/>
+                    <connections>
+                        <outlet property="searchBar" destination="onA-pj-oPK" id="dnu-DC-oqW"/>
+                        <outlet property="segmentedControl" destination="Gmm-4l-1RG" id="tZO-fH-noh"/>
+                        <outlet property="tableView" destination="VYj-Or-gZ0" id="aCw-WP-CpF"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="OWL-PX-yQc" userLabel="First Responder" sceneMemberID="firstResponder"/>
                 <exit id="VC4-Jf-ks9" userLabel="Exit" sceneMemberID="exit"/>
@@ -1074,7 +1244,7 @@
                                 <rect key="frame" x="0.0" y="22" width="414" height="54"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="6I3-lt-dOy" id="8XU-HQ-Xmf">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="53"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="53.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="8Tl-jX-3ct">
@@ -1105,7 +1275,7 @@
                                 <rect key="frame" x="0.0" y="76" width="414" height="54"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="8QV-rL-eFQ" id="lAF-Pw-pNB">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="53"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="53.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                     <subviews>
                                         <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="AJW-hy-3Yh">
@@ -1132,7 +1302,7 @@
                                 <rect key="frame" x="0.0" y="130" width="414" height="54"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="aHT-dD-ANZ" id="YEN-Bc-LXG">
-                                    <rect key="frame" x="0.0" y="0.0" width="414" height="53"/>
+                                    <rect key="frame" x="0.0" y="0.0" width="414" height="53.5"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </tableViewCellContentView>
                             </tableViewCell>
@@ -1222,7 +1392,7 @@
                                         <rect key="frame" x="0.0" y="22" width="414" height="45"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="kjR-Ii-w4B" id="abg-qX-cnM">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="44"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="44.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="Header" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="O75-vu-YZp" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -1248,7 +1418,7 @@
                                         <rect key="frame" x="0.0" y="67" width="414" height="63"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="ksu-rj-X9C" id="B4l-oP-f26">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="62"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="62.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="Term" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="kZu-n5-S8N" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -1284,7 +1454,7 @@
                                         <rect key="frame" x="0.0" y="130" width="414" height="63"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="6Cd-Uk-BQw" id="JJl-ad-gf3">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="62"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="62.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="Term" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="7Od-W1-V7w" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -1319,7 +1489,7 @@
                                         <rect key="frame" x="0.0" y="193" width="414" height="63"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="g6O-kA-Gt4" id="2pm-pq-EBl">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="62"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="62.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="751" verticalHuggingPriority="751" horizontalCompressionResistancePriority="751" verticalCompressionResistancePriority="751" text="Term" lineBreakMode="wordWrap" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" preferredMaxLayoutWidth="570" translatesAutoresizingMaskIntoConstraints="NO" id="KMB-Sr-OhP" customClass="DynamicLabel" customModule="QuizletSearch" customModuleProvider="target">
@@ -1354,7 +1524,7 @@
                                         <rect key="frame" x="0.0" y="256" width="414" height="44"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="T5c-cE-UmO" id="n4p-e7-FET">
-                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="414" height="43.5"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <activityIndicatorView opaque="NO" tag="100" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="6AQ-u8-xxM">
@@ -1381,7 +1551,7 @@
                                     <barButtonItem style="plain" systemItem="flexibleSpace" id="9ex-aI-eo8"/>
                                     <barButtonItem title="Item" style="plain" id="x0a-m4-lVn">
                                         <segmentedControl key="customView" opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="top" segmentControlStyle="bar" selectedSegmentIndex="0" id="PYH-n9-IH5">
-                                            <rect key="frame" x="82" y="8" width="250" height="29"/>
+                                            <rect key="frame" x="82" y="7.6666666666666679" width="250" height="29.000000000000004"/>
                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                             <segments>
                                                 <segment title="Set"/>
