@@ -88,6 +88,7 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
     // MARK: - TwicketSegmentedControlDelegate
 
     @IBAction func segmentedControlValueChanged(_ sender: Any) {
+        tableView.reloadData()
     }
 
     // MARK: - Search Bar
@@ -211,6 +212,13 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
                 let userCell = cell as! UserCell
                 userCell.usernameLabel.text = qUser.userName
                 userCell.usernameLabel.font = preferredFont
+                if (qitem?.type == .qUser && (qitem as! QUser).userName.isEmpty) {
+                    // Empty item
+                    cell.isHidden = true
+                }
+                else {
+                    cell.isHidden = (segmentedControl.selectedSegmentIndex != 0)
+                }
             case .qClass:
                 let qClass = qitem as! QClass
                 let classCell = cell as! ClassCell
@@ -236,6 +244,8 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
                     classCell.usernameLabel.text = text
                 }
                 classCell.usernameLabel.font = smallerFont
+
+                cell.isHidden = (segmentedControl.selectedSegmentIndex != 1)
             case .qSet:
                 let qSet = qitem as! QSet
                 let studySetCell = cell as! StudySetCell
@@ -247,6 +257,8 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
                 studySetCell.usernameLabel.font = smallerFont
                 studySetCell.studySetLabel.text = qSet.title
                 studySetCell.studySetLabel.font = preferredFont
+
+                cell.isHidden = (segmentedControl.selectedSegmentIndex != 2)
             }
         }
     }
@@ -268,6 +280,12 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
         let qitem = universalSearch.peekQItemForRow(indexPath.row)
         if (qitem?.type == .qUser && (qitem as! QUser).userName.isEmpty) {
             // Empty item
+            return 0.0
+        }
+        
+        if (qitem?.type == .qUser && segmentedControl.selectedSegmentIndex != 0
+            || qitem?.type == .qClass && segmentedControl.selectedSegmentIndex != 1
+            || qitem?.type == .qSet && segmentedControl.selectedSegmentIndex != 2) {
             return 0.0
         }
         
