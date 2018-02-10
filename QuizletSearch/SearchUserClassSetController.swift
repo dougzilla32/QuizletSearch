@@ -263,6 +263,58 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
         }
     }
     
+    /*
+    func loadImage() {
+        if let img: UIImage = UIImage(data: previewImg[indexPath.row]) {
+            cell.cardPreview.image = img
+        } else {
+            // The image isn't cached, download the img data
+            // We should perform this in a background thread
+            let imgURL = NSURL(string: "webLink URL")
+            let request: NSURLRequest = NSURLRequest(URL: imgURL!)
+            let session = NSURLSession.sharedSession()
+            let task = session.dataTask(withRequest: request, completionHandler: { (data: Data?, response: URLResponse?, error: Error?) -> Void in
+                let error = error
+                let data = data
+                if error == nil {
+                    // Convert the downloaded data in to a UIImage object
+                    let image = UIImage(data: data!)
+                    // Store the image in to our cache
+                    self.previewImg[indexPath.row] = data!
+                    // Update the cell
+                    dispatch_async(dispatch_get_main_queue(), {
+                        if let cell: YourTableViewCell = tableView.cellForRowAtIndexPath(indexPath) as? YourTableViewCell {
+                            cell.cardPreview.image = image
+                        }
+                    })
+                } else {
+                    cell.cardPreview.image = UIImage(named: "defaultImage")
+                }
+            })
+            task.resume()
+        }
+        
+        
+        let urlString = "http://www.foo.com/myImage.jpg"
+        guard let url = URL(string: urlString) else { return }
+        URLSession.shared.dataTask(with: url) { (data, response, error) in
+            if error != nil {
+                print("Failed fetching image:", error)
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse, response.statusCode == 200 else {
+                print("Not a proper HTTPURLResponse or statusCode")
+                return
+            }
+            
+            DispatchQueue.main.async {
+                self.myImageView.image = UIImage(data: data!)
+            }
+            }.resume()
+    }
+    */
+
     var sizingCells: [String: UITableViewCell] = [:]
     
     /**
@@ -310,6 +362,9 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
     
     func tableView(_ tableView: UITableView,
                    estimatedHeightForRowAt indexPath: IndexPath) -> CGFloat {
+//        if (true) {
+//            return 44.0
+//        }
         let height: CGFloat
         
         if (estimatedHeightForUserCell == nil) {
