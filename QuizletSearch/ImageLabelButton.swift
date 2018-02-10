@@ -17,13 +17,7 @@ class ImageLabelButton: UIButton
     @IBInspectable var padding: CGFloat = 2
     
     enum TitlePosition: Int {
-        case bottom
-        
-        case top
-        
-        case left
-        
-        case right
+        case bottom, top, left, right
     }
     
     var titlePositionEnum: TitlePosition = .bottom
@@ -364,7 +358,15 @@ class ImageLabelButton: UIButton
                 else if (alignRight) {
                     x += extraWidth
                 }
-            }
+            case .leading:
+                if (!alignRight) {
+                    x += extraWidth / 2.0
+                }
+
+            case .trailing:
+                x += extraWidth
+
+}
         }
         else {
             x += extraWidth / 2.0
@@ -464,7 +466,7 @@ class ImageLabelButton: UIButton
         var lineBreakMode = cachedLabel!.lineBreakMode
         let attributedText: NSAttributedString? = cachedLabel!.attributedText
         if (attributedText != nil) {
-            attributedText!.enumerateAttribute(NSParagraphStyleAttributeName, in: NSMakeRange(0, attributedText!.length), options: []) {
+            attributedText!.enumerateAttribute(NSAttributedStringKey.paragraphStyle, in: NSMakeRange(0, attributedText!.length), options: []) {
                 value, range, stop in
                 let lbm = (value as? NSParagraphStyle)?.lineBreakMode
                 if (lbm != nil) {

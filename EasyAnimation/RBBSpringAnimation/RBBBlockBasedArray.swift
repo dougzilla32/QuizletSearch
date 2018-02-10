@@ -5,14 +5,12 @@
 //  Created by Robert Böhnke on 10/14/13.
 //  Copyright (c) 2013 Robert Böhnke. All rights reserved.
 //
-
 //
 //  RBBBlockBasedArray.swift
 //
 //  Swift intepretation of the Objective-C original by Marin Todorov
 //  Copyright (c) 2015-2016 Underplot ltd. All rights reserved.
 //
-
 import Foundation
 
 typealias RBBBlockBasedArrayBlock = (Int) -> Any
@@ -35,7 +33,6 @@ class RBBBlockBasedArray: NSArray {
     }
     
     //will crash if block is not set
-    
     override func object(at index: Int) -> Any {
         return block!(index)
     }

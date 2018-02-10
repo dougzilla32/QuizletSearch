@@ -97,7 +97,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
         quizletSession.cancelQueryTasks()
     }
     
-    func refresh() {
+    @objc func refresh() {
         let query = dataModel.currentQuery
 
         UIApplication.shared.isNetworkActivityIndicatorVisible = true
@@ -206,7 +206,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate, UIAlertViewDelegate {
             coordinator = nil
             NSLog("Initialization error \(error), \(error.userInfo)")
             
-            (UIApplication.shared.delegate as! AppDelegate).initRootViewControllerWithIdentifier(ErrorViewController)
+            (UIApplication.shared.delegate as! AppDelegate).initRootViewControllerWithIdentifier(AppDelegate.ErrorViewController)
             
             var reason = String(format: NSLocalizedString("Model load error", comment: ""),
                 (error.userInfo["reason"] as! String))

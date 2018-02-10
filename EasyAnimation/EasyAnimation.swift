@@ -22,14 +22,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
-
 import UIKit
 import ObjectiveC
 
 let isEasyAnimationEnabled = false
 
 // MARK: EA private structures
-
 private struct PendingAnimation {
     let layer: CALayer
     let keyPath: String
@@ -82,33 +80,23 @@ private class CompletionBlock {
     static fileprivate var activeAnimationContexts = [AnimationContext]()
     
     @discardableResult
-    override init() {}
+    override init() { }
     
-    @objc override public class func initialize() {
-        if (isEasyAnimationEnabled) {
-            #if !EANoSwizzling
-                UIView.replaceAnimationMethods()
-                CALayer.replaceAnimationMethods()
-            #endif
-        }
+    public static func enable() {
+        _ = swizzle
     }
     
-    static private let _disableSwizzling: Void = {
+    static private let swizzle: Void = {
         if (isEasyAnimationEnabled) {
             #if !EANoSwizzling
-                UIView.replaceAnimationMethods()
-                CALayer.replaceAnimationMethods()
+        UIView.replaceAnimationMethods()
+        CALayer.replaceAnimationMethods()
             #endif
         }
     }()
-    
-    public class func disableSwizzling() {
-        _disableSwizzling
-    }
 }
 
 // MARK: EA animatable properties
-
 private let vanillaLayerKeys = [
     "anchorPoint", "backgroundColor", "borderColor", "borderWidth", "bounds",
     "contentsRect", "cornerRadius",
@@ -119,10 +107,8 @@ private let vanillaLayerKeys = [
 
 private let specializedLayerKeys: [String: [String]] = [
     CAEmitterLayer.self.description(): ["emitterPosition", "emitterZPosition", "emitterSize", "spin", "velocity", "birthRate", "lifetime"],
-    //TO DO: test animating arrays, eg colors & locations
     CAGradientLayer.self.description(): ["colors", "locations", "endPoint", "startPoint"],
     CAReplicatorLayer.self.description(): ["instanceDelay", "instanceTransform", "instanceColor", "instanceRedOffset", "instanceGreenOffset", "instanceBlueOffset", "instanceAlphaOffset"],
-    //TO DO: test animating paths
     CAShapeLayer.self.description(): ["path", "fillColor", "lineDashPhase", "lineWidth", "miterLimit", "strokeColor", "strokeStart", "strokeEnd"],
     CATextLayer.self.description(): ["fontSize", "foregroundColor"]
 ]
@@ -133,6 +119,10 @@ public extension UIViewAnimationOptions {
     static let fillModeForwards = UIViewAnimationOptions(rawValue: 1024)
     static let fillModeBackwards = UIViewAnimationOptions(rawValue: 2048)
     static let fillModeBoth = UIViewAnimationOptions(rawValue: 1024 + 2048)
+    
+    //CA Remove on completion
+    static let isRemovedOnCompletion = UIViewAnimationOptions(rawValue: 0)
+    static let isNotRemovedOnCompletion = UIViewAnimationOptions(rawValue: 16384)
 }
 
 /**
@@ -142,38 +132,43 @@ public extension UIViewAnimationOptions {
 
 extension UIView {
     
-    //TO DO: experiment more with path animations
-    //public var animationPath: CGPath? { set {} get {return nil}}
-    
     // MARK: UIView animation & action methods
-    
-    override open class func initialize() {
-        super.initialize()
-        EasyAnimation()
-    }
-    
     fileprivate static func replaceAnimationMethods() {
         //replace actionForLayer...
-        method_exchangeImplementations(
-            class_getInstanceMethod(self, #selector(UIView.action(for:forKey:))),
-            class_getInstanceMethod(self, #selector(UIView.EA_actionForLayer(_:forKey:))))
+        if
+            let origMethod = class_getInstanceMethod(self, #selector(UIView.action(for:forKey:))),
+            let eaMethod = class_getInstanceMethod(self, #selector(UIView.EA_actionForLayer(_:forKey:))) {
+            method_exchangeImplementations(origMethod, eaMethod)
+        }
         
         //replace animateWithDuration...
-        method_exchangeImplementations(
-            class_getClassMethod(self, #selector(UIView.animate(withDuration:animations:))),
-            class_getClassMethod(self, #selector(UIView.EA_animate(withDuration:animations:))))
-        method_exchangeImplementations(
-            class_getClassMethod(self, #selector(UIView.animate(withDuration:animations:completion:))),
-            class_getClassMethod(self, #selector(UIView.EA_animate(withDuration:animations:completion:))))
-        method_exchangeImplementations(
-            class_getClassMethod(self, #selector(UIView.animate(withDuration:delay:options:animations:completion:))),
-            class_getClassMethod(self, #selector(UIView.EA_animate(withDuration:delay:options:animations:completion:))))
-        method_exchangeImplementations(
-            class_getClassMethod(self, #selector(UIView.animate(withDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:))),
-            class_getClassMethod(self, #selector(UIView.EA_animate(withDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:))))
+        if
+            let origMethod = class_getClassMethod(self, #selector(UIView.animate(withDuration:animations:))),
+            let eaMethod = class_getClassMethod(self, #selector(UIView.EA_animate(withDuration:animations:))) {
+            method_exchangeImplementations(origMethod, eaMethod)
+        }
+        
+        if
+            let origMethod = class_getClassMethod(self, #selector(UIView.animate(withDuration:animations:completion:))),
+            let eaMethod = class_getClassMethod(self, #selector(UIView.EA_animate(withDuration:animations:completion:))) {
+            method_exchangeImplementations(origMethod, eaMethod)
+        }
+        
+        if
+            let origMethod = class_getClassMethod(self, #selector(UIView.animate(withDuration:delay:options:animations:completion:))),
+            let eaMethod = class_getClassMethod(self, #selector(UIView.EA_animate(withDuration:delay:options:animations:completion:))) {
+            method_exchangeImplementations(origMethod, eaMethod)
+        }
+        
+        if
+            let origMethod = class_getClassMethod(self, #selector(UIView.animate(withDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:))),
+            let eaMethod = class_getClassMethod(self, #selector(UIView.EA_animate(withDuration:delay:usingSpringWithDamping:initialSpringVelocity:options:animations:completion:))) {
+            method_exchangeImplementations(origMethod, eaMethod)
+        }
         
     }
     
+    @objc
     func EA_actionForLayer(_ layer: CALayer!, forKey key: String!) -> CAAction! {
         
         let result = EA_actionForLayer(layer, forKey: key)
@@ -206,6 +201,7 @@ extension UIView {
         return result
     }
     
+    @objc
     class func EA_animate(withDuration duration: TimeInterval, delay: TimeInterval, usingSpringWithDamping dampingRatio: CGFloat, initialSpringVelocity velocity: CGFloat, options: UIViewAnimationOptions, animations: () -> Void, completion: ((Bool) -> Void)?) {
         //create context
         let context = AnimationContext()
@@ -245,6 +241,7 @@ extension UIView {
         CATransaction.commit()
     }
     
+    @objc
     class func EA_animate(withDuration duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions, animations: () -> Void, completion: ((Bool) -> Void)?) {
         
         //create context
@@ -277,7 +274,7 @@ extension UIView {
         
         //run pending animations
         for anim in context.pendingAnimations {
-            print("pending: \(anim.keyPath) from \(anim.fromValue) to \(anim.layer.value(forKeyPath: anim.keyPath))")
+            //print("pending: \(anim.keyPath) from \(anim.fromValue) to \(anim.layer.value(forKeyPath: anim.keyPath))")
             anim.layer.add(EA_animation(anim, context: context), forKey: nil)
         }
         
@@ -289,14 +286,17 @@ extension UIView {
         CATransaction.commit()
     }
     
+    @objc
     class func EA_animate(withDuration duration: TimeInterval, animations: @escaping () -> Void, completion: ((Bool) -> Void)?) {
         animate(withDuration: duration, delay: 0.0, options: [], animations: animations, completion: completion)
     }
     
+    @objc
     class func EA_animate(withDuration duration: TimeInterval, animations: @escaping () -> Void) {
         animate(withDuration: duration, animations: animations, completion: nil)
     }
     
+    @objc
     class func EA_wrappedCompletionHandler(_ timer: Timer) {
         if let completionBlock = timer.userInfo as? CompletionBlock {
             completionBlock.wrapCompletion(true)
@@ -311,7 +311,6 @@ extension UIView {
         
         if (context.springDamping > 0.0) {
             //create a layer spring animation
-            
             if #available(iOS 9, *) { // iOS9!
                 anim = CASpringAnimation(keyPath: pending.keyPath)
                 if let anim = anim as? CASpringAnimation {
@@ -330,7 +329,7 @@ extension UIView {
                     anim.from = pending.fromValue
                     anim.to = pending.layer.value(forKey: pending.keyPath)
                     
-                    //TO DO: refine the spring animation setup
+                    //TODO: refine the spring animation setup
                     //lotta magic numbers to mimic UIKit springs
                     let epsilon = 0.001
                     anim.damping = -2.0 * log(epsilon) / context.duration
@@ -385,6 +384,13 @@ extension UIView {
             } else if options & UIViewAnimationOptions.fillModeBackwards.rawValue == UIViewAnimationOptions.fillModeBackwards.rawValue {
                 //backwards
                 anim.fillMode = kCAFillModeBackwards
+            }
+            
+            //is removed on completion
+            if options & UIViewAnimationOptions.isNotRemovedOnCompletion.rawValue == UIViewAnimationOptions.isNotRemovedOnCompletion.rawValue {
+                anim.isRemovedOnCompletion = false
+            } else {
+                anim.isRemovedOnCompletion = true
             }
         }
         
@@ -458,14 +464,16 @@ extension UIView {
 
 extension CALayer {
     // MARK: CALayer animations
-    
     fileprivate static func replaceAnimationMethods() {
         //replace actionForKey
-        method_exchangeImplementations(
-            class_getInstanceMethod(self, #selector(CALayer.action(forKey:))),
-            class_getInstanceMethod(self, #selector(CALayer.EA_action(forKey:))))
+        if
+            let origMethod = class_getInstanceMethod(self, #selector(CALayer.action(forKey:))),
+            let eaMethod = class_getInstanceMethod(self, #selector(CALayer.EA_action(forKey:))) {
+            method_exchangeImplementations(origMethod, eaMethod)
+        }
     }
     
+    @objc
     public func EA_action(forKey key: String!) -> CAAction! {
         
         //check if the layer has a view-delegate

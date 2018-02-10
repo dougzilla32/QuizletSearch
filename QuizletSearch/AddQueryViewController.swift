@@ -58,7 +58,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     override func viewWillAppear(_ animated: Bool) {
         addButton.setTitleTextAttributes(
-            [ NSFontAttributeName: UIFont.boldSystemFont(ofSize: 17.0) ],
+            [ NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 17.0) ],
             for: UIControlState())
 
 //        navigationController!.setNavigationBarHidden(false, animated: false)
@@ -116,7 +116,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     var estimatedHeightForSearchAssistCell: CGFloat?
     var estimatedHeightForResultCell: CGFloat?
     
-    func preferredContentSizeChanged(_ notification: Notification) {
+    @objc func preferredContentSizeChanged(_ notification: Notification) {
         resetFonts()
         self.view.setNeedsLayout()
     }
@@ -164,13 +164,13 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         // Dispose of any resources that can be recreated.
     }
     
-    func keyboardWillShow(_ notification: Notification) {
+    @objc func keyboardWillShow(_ notification: Notification) {
         if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             keyboardHeight = keyboardSize.height
         }
     }
     
-    func keyboardDidHide(_ notification: Notification) {
+    @objc func keyboardDidHide(_ notification: Notification) {
         keyboardHeight = 0
 //        ensureLastRowIsVisible()
     }
@@ -871,10 +871,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             }
             
             let attributedText = NSMutableAttributedString(string: labelText)
-            attributedText.addAttribute(NSFontAttributeName, value: preferredFont, range: NSMakeRange(titleIndex, titleLength))
-            attributedText.addAttribute(NSFontAttributeName, value: italicFont, range: NSMakeRange(ownerIndex, ownerLength))
+            attributedText.addAttribute(NSAttributedStringKey.font, value: preferredFont, range: NSMakeRange(titleIndex, titleLength))
+            attributedText.addAttribute(NSAttributedStringKey.font, value: italicFont, range: NSMakeRange(ownerIndex, ownerLength))
             if (hasDescription) {
-                attributedText.addAttribute(NSFontAttributeName, value: smallerFont, range: NSMakeRange(descriptionIndex, descriptionLength))
+                attributedText.addAttribute(NSAttributedStringKey.font, value: smallerFont, range: NSMakeRange(descriptionIndex, descriptionLength))
             }
             
             let paragraphStyle = NSMutableParagraphStyle()
@@ -897,10 +897,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             var end: Int = 0
 
             (title as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, for: NSMakeRange(titleLength, 0))
-            attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(titleIndex + start, end - start))
+            attributedText.addAttribute(NSAttributedStringKey.paragraphStyle, value: paragraphStyle, range: NSMakeRange(titleIndex + start, end - start))
 
             (owner as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, for: NSMakeRange(ownerLength, 0))
-            attributedText.addAttribute(NSParagraphStyleAttributeName, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
+            attributedText.addAttribute(NSAttributedStringKey.paragraphStyle, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
             
             if let searchAssistCell = cell as? LabelTableViewCell {
                 searchAssistCell.label.attributedText = attributedText

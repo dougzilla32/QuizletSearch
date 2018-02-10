@@ -43,7 +43,7 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
     var smallerFont: UIFont!
     var estimatedHeightForUserCell: CGFloat?
     
-    func preferredContentSizeChanged(_ notification: Notification) {
+    @objc func preferredContentSizeChanged(_ notification: Notification) {
         resetFonts()
         self.view.setNeedsLayout()
     }

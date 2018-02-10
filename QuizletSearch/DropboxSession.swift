@@ -102,7 +102,7 @@ class DropboxSession {
         }
         let tokenType = responseParams["token_type"]
         if (tokenType != "bearer") {
-            NSLog("Unexpected token type \"\(tokenType)\" in authorize response: \(url)")
+            NSLog("Unexpected token type \"\(String(describing: tokenType))\" in authorize response: \(url)")
             return
         }
         

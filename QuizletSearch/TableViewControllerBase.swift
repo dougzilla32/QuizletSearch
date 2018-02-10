@@ -41,9 +41,9 @@ class TableViewControllerBase: UIViewController {
     }
     
     // Implemented by subclasses
-    func refreshTable() { }
+    @objc func refreshTable() { }
     
-    func keyboardWillShow(_ notification: Notification) {
+    @objc func keyboardWillShow(_ notification: Notification) {
         if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             
             var contentInsets: UIEdgeInsets
@@ -58,7 +58,7 @@ class TableViewControllerBase: UIViewController {
         }
     }
     
-    func keyboardWillHide(_ notification: Notification) {
+    @objc func keyboardWillHide(_ notification: Notification) {
         self.tableView.contentInset = UIEdgeInsets.zero
         self.tableView.scrollIndicatorInsets = UIEdgeInsets.zero
     }

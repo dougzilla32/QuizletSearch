@@ -95,7 +95,7 @@ class CommonAnimation {
         CATransaction.begin()
 
         let spinAnimation = CABasicAnimation(keyPath: "transform.rotation")
-        spinAnimation.toValue = 3 * 2 * M_PI
+        spinAnimation.toValue = 3.0 * 2.0 * .pi
         spinAnimation.duration = 3.0
         label.layer.add(spinAnimation, forKey: "spinAnimation")
 /*
@@ -111,7 +111,7 @@ class CommonAnimation {
         
         if (true) {
         UIView.animate(withDuration: 1.5, animations: {
-            label.layer.transform = CATransform3DMakeRotation(CGFloat(M_PI), -1, 0, 1)
+            label.layer.transform = CATransform3DMakeRotation(CGFloat(Double.pi), -1, 0, 1)
             }, completion: { _ in label.removeFromSuperview() })
         }
         
@@ -121,7 +121,7 @@ class CommonAnimation {
             let translate = CGAffineTransform(translationX: endPosition.x - startPosition.x, y: endPosition.y - startPosition.y)
             // let scale = CGAffineTransformMakeScale(0.6, 0.6)
             // let transform =  CGAffineTransformConcat(translate, scale)
-             let transform = translate.rotated(by: CGFloat(M_PI + 0.01))
+             let transform = translate.rotated(by: CGFloat(Double.pi + 0.01))
 
             label.transform = transform
             
@@ -161,7 +161,7 @@ class CommonAnimation {
         let animRotateZ = CABasicAnimation(keyPath: "transform.rotation.z")
         animRotateZ.duration = 1.5
         animRotateZ.toValue = -0.2 // NSNumber(double: -0.2)
-        animRotateZ.byValue = NSNumber(value: 2.0 * M_PI as Double)
+        animRotateZ.byValue = NSNumber(value: 2.0 * .pi)
         // animRotateZ.delegate = self
         animRotateZ.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
         // animRotateZ.setValue(self.diaplayLayer, forKey: "animationLayer")
@@ -235,13 +235,13 @@ class CommonAnimation {
             
             let attrText = NSMutableAttributedString(string: text as String)
             if (index != 0) {
-                attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: 0, length: index))
+                attrText.addAttribute(NSAttributedStringKey.foregroundColor, value: clearColor, range: NSRange(location: 0, length: index))
             }
             
             if (index != text.length) {
                 index += 1
                 if (index != text.length) {
-                    attrText.addAttribute(NSForegroundColorAttributeName, value: clearColor, range: NSRange(location: index, length: text.length - index))
+                    attrText.addAttribute(NSAttributedStringKey.foregroundColor, value: clearColor, range: NSRange(location: index, length: text.length - index))
                 }
             }
             

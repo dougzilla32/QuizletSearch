@@ -206,14 +206,14 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
 
         // Set the title text to clearColor
         let attributedPlaceholder = NSMutableAttributedString(attributedString: searchTextField.attributedPlaceholder!)
-        attributedPlaceholder.addAttribute(NSForegroundColorAttributeName, value: UIColor.clear, range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
+        attributedPlaceholder.addAttribute(NSAttributedStringKey.foregroundColor, value: UIColor.clear, range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
         searchTextField.attributedPlaceholder = attributedPlaceholder
 
         // Calculate the frame for the title text
         let absoluteOrigin = searchTextField.superview!.convert(searchTextField.frame.origin, to: UIApplication.shared.keyWindow!)
         let placeholderBounds = searchTextField.placeholderRect(forBounds: searchTextField.bounds)
-        let fontAttributes = [NSFontAttributeName: searchTextField.font!]
-        let prefixSize = SearchBarPlaceholderPrefix.size(attributes: fontAttributes)
+        let fontAttributes = [NSAttributedStringKey.font: searchTextField.font!]
+        let prefixSize = SearchBarPlaceholderPrefix.size(withAttributes: fontAttributes)
         
         return CGPoint(x: absoluteOrigin.x + placeholderBounds.origin.x + prefixSize.width + 1, y: absoluteOrigin.y + placeholderBounds.origin.y)
     }
@@ -236,7 +236,7 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
     var preferredSearchFont: UIFont?
     var preferredBoldSearchFont: UIFont?
     
-    func preferredContentSizeChanged(_ notification: Notification) {
+    @objc func preferredContentSizeChanged(_ notification: Notification) {
         resetFonts()
         self.view.setNeedsLayout()
     }
@@ -253,7 +253,7 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         estimatedHeaderHeight = nil
         estimatedHeight = nil
        
-        sortStyle.setTitleTextAttributes([NSFontAttributeName: preferredSearchFont!], for: UIControlState())
+        sortStyle.setTitleTextAttributes([NSAttributedStringKey.font: preferredSearchFont!], for: UIControlState())
         
         // Update the appearance of the search bar's textfield
         let searchTextField = Common.findTextField(self.searchBar)!
@@ -335,7 +335,7 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
     }
     
     // call back function by saveContext, support multi-thread
-    func contextDidSaveNotification(_ notification: Notification) {
+    @objc func contextDidSaveNotification(_ notification: Notification) {
         let info = notification.userInfo! as [AnyHashable: Any]
 
         let termsChanged = SearchViewController.containsTerms(info[NSInsertedObjectsKey] as? NSSet)
@@ -586,9 +586,9 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         let termText = NSMutableAttributedString(string: termForDisplay)
         if (useTerm) {
             for range in searchTerm.termRanges {
-                termText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
-                termText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
-                termText.addAttribute(NSBackgroundColorAttributeName, value: highlightBackgroundColor, range: range)
+                termText.addAttribute(NSAttributedStringKey.font, value: preferredBoldSearchFont!, range: range)
+                termText.addAttribute(NSAttributedStringKey.foregroundColor, value: highlightForegroundColor, range: range)
+                termText.addAttribute(NSAttributedStringKey.backgroundColor, value: highlightBackgroundColor, range: range)
             }
         }
         cell.termLabel.font = preferredSearchFont
@@ -598,9 +598,9 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         let definitionText = NSMutableAttributedString(string: definitionForDisplay)
         if (useDefinition) {
             for range in searchTerm.definitionRanges {
-                definitionText.addAttribute(NSFontAttributeName, value: preferredBoldSearchFont!, range: range)
-                definitionText.addAttribute(NSForegroundColorAttributeName, value: highlightForegroundColor, range: range)
-                definitionText.addAttribute(NSBackgroundColorAttributeName, value: highlightBackgroundColor, range: range)
+                definitionText.addAttribute(NSAttributedStringKey.font, value: preferredBoldSearchFont!, range: range)
+                definitionText.addAttribute(NSAttributedStringKey.foregroundColor, value: highlightForegroundColor, range: range)
+                definitionText.addAttribute(NSAttributedStringKey.backgroundColor, value: highlightBackgroundColor, range: range)
             }
         }
         cell.definitionLabel.font = preferredSearchFont

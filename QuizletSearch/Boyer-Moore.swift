@@ -18,7 +18,7 @@ class BoyerMoorePattern {
 
         // Cache the length of the search pattern because we're going to
         // use it a few times and it's expensive to calculate.
-        self.patternLength = pattern.characters.count
+        self.patternLength = pattern.count
         if self.patternLength == 0 {
             NSLog("Pattern length is zero: \(pattern)")
         }
@@ -26,7 +26,7 @@ class BoyerMoorePattern {
         // Make the skip table. This table determines how many times successor()
         // needs to be called when a character from the pattern is found.
         self.skipTable = [Character: Int]()
-        for (i, c) in pattern.characters.enumerated() {
+        for (i, c) in pattern.enumerated() {
             skipTable[c] = patternLength - i - 1
         }
     }
@@ -35,12 +35,12 @@ class BoyerMoorePattern {
 extension String {
     func findIndexOf(pattern bmp: BoyerMoorePattern) -> String.Index? {
         // This points at the last character in the pattern.
-        let p = bmp.pattern.characters.index(before: bmp.pattern.endIndex)
+        let p = bmp.pattern.index(before: bmp.pattern.endIndex)
         
         // The pattern is scanned right-to-left, so skip ahead in the string by
         // the length of the pattern. (Minus 1 because startIndex already points
         // at the first character in the source string.)
-        var i = self.characters.index(self.startIndex, offsetBy: bmp.patternLength - 1, limitedBy: self.endIndex)!
+        var i = self.index(self.startIndex, offsetBy: bmp.patternLength - 1, limitedBy: self.endIndex)!
         
         // Keep going until the end of the string is reached.
         while i < self.endIndex {
@@ -53,8 +53,8 @@ extension String {
                 var q = p
                 var found = true
                 while q != bmp.pattern.startIndex {
-                    j = self.characters.index(before: j)
-                    q = bmp.pattern.characters.index(before: q)
+                    j = self.index(before: j)
+                    q = bmp.pattern.index(before: q)
                     if self[j] != bmp.pattern[q] {
                         found = false
                         break
@@ -66,7 +66,7 @@ extension String {
                 if found {
                     return j
                 } else {
-                    i = self.characters.index(after: i)
+                    i = self.index(after: i)
                 }
             } else {
                 // The characters are not equal, so skip ahead. The amount to skip is
@@ -74,7 +74,7 @@ extension String {
                 // pattern, we can skip ahead by the full pattern length. But if the 
                 // character *is* present in the pattern, there may be a match up ahead 
                 // and we can't skip as far.
-                i = self.characters.index(i, offsetBy: bmp.skipTable[self[i]] ?? bmp.patternLength, limitedBy: self.endIndex)!
+                i = self.index(i, offsetBy: bmp.skipTable[self[i]] ?? bmp.patternLength, limitedBy: self.endIndex)!
             }
         }
         return nil

@@ -8,14 +8,14 @@
 import Foundation
 
 func computeLevenshteinScore(_ source: String, target: String) -> Double {
-    let sourceCharacters = Array(source.characters)
-    let targetCharacters = Array(target.characters)
+    let sourceCharacters = Array(source)
+    let targetCharacters = Array(target)
     let levenshteinDistance = computeLevenshteinDistance(sourceCharacters, target: targetCharacters)
     return 1.0 - (Double(levenshteinDistance)/Double(Swift.max(sourceCharacters.count, targetCharacters.count)))
 }
 
 func computeLevenshteinDistance(_ source: String, target: String) -> Int {
-    return computeLevenshteinDistance(Array(source.characters), target: Array(target.characters))
+    return computeLevenshteinDistance(Array(source), target: Array(target))
 }
 
 private func computeLevenshteinDistance(_ source: [Character], target: [Character]) -> Int {

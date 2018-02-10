@@ -211,7 +211,7 @@ class SearchIndex {
             
             // Use '9' as the index view title for all numbers greater than 9
             if "0"..."9" ~= firstCharacter {
-                let next = text.characters.index(after: text.startIndex)
+                let next = text.index(after: text.startIndex)
                 if (next != text.endIndex) {
                     let secondCharacter = text[next]
                     if ("0"..."9" ~= secondCharacter) {

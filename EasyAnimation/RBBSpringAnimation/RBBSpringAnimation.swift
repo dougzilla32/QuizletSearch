@@ -5,14 +5,12 @@
 //  Created by Robert Böhnke on 10/14/13.
 //  Copyright (c) 2013 Robert Böhnke. All rights reserved.
 //
-
 //
 //  RBBSpringAnimation.swift
 //
 //  Swift intepretation of the Objective-C original by Marin Todorov
 //  Copyright (c) 2015-2016 Underplot ltd. All rights reserved.
 //
-
 import UIKit
 
 class RBBSpringAnimation: CAKeyframeAnimation {

@@ -118,7 +118,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
     
     var preferredFont: UIFont?
     
-    func preferredContentSizeChanged(_ notification: Notification) {
+    @objc func preferredContentSizeChanged(_ notification: Notification) {
         resetFonts()        
         self.view.setNeedsLayout()
         tableView.reloadData()

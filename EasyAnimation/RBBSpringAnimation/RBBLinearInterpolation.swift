@@ -5,14 +5,12 @@
 //  Created by Robert Böhnke on 10/25/13.
 //  Copyright (c) 2013 Robert Böhnke. All rights reserved.
 //
-
 //
 //  RBBLinearInterpolation.swift
 //
 //  Swift intepretation of the Objective-C original by Marin Todorov
 //  Copyright (c) 2015-2016 Underplot ltd. All rights reserved.
 //
-
 import UIKit
 
 typealias RBBLinearInterpolation = (_ fraction: CGFloat) -> Any
@@ -47,7 +45,6 @@ class RBBInterpolator
         //NSValue
         if let from = from as? NSValue, let to = to as? NSValue {
             let type = String(cString: from.objCType) //should check to's type too?
-            
             //CGPoint
             if type.hasPrefix("{CGPoint") {
                 return self.RBBInterpolateCGPoint(from.cgPointValue, to: to.cgPointValue)

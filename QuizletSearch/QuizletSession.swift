@@ -222,7 +222,7 @@ class QuizletSession {
                             return self.currentUser!
                         }
                 } else {
-                    NSLog("Unexpected JSON response: \(jsonAny)")
+                    NSLog("Unexpected JSON response: \(String(describing: jsonAny))")
                     return
                 }
         })
@@ -233,7 +233,7 @@ class QuizletSession {
     
     class func checkJSONResponseFromUrl(_ url: URL, data: Data?, response: URLResponse? , error: Error?) -> Any? {
         if (error != nil) {
-            if let nsError = error as? NSError {
+            if let nsError = error as NSError? {
                 if (nsError.domain == "NSURLErrorDomain" && nsError.code == NSURLErrorCancelled) {
                     // The task was cancelled -- no need to log a message
                     return nil
@@ -274,7 +274,7 @@ class QuizletSession {
         if (data != nil) {
             let str = NSString(data: data!, encoding: String.Encoding.utf8.rawValue)
             if (str != nil) {
-                NSLog(str as! String)
+                NSLog(str! as String)
             }
         }
     }
@@ -296,7 +296,7 @@ class QuizletSession {
             }
             completionHandler(qsets, response, error)
         } else {
-            NSLog("Unexpected response in \(functionName): \(jsonAny)")
+            NSLog("Unexpected response in \(functionName): \(String(describing: jsonAny))")
             completionHandler(nil, response, error)
         }
     }
@@ -361,7 +361,7 @@ class QuizletSession {
                     completionHandler(result, response, error)
                 }
                 catch {
-                    NSLog("Unexpected response in searchSetsWithQuery: \(jsonAny)")
+                    NSLog("Unexpected response in searchSetsWithQuery: \(String(describing: jsonAny))")
                     completionHandler(nil, response, error)
                 }
         })
@@ -408,7 +408,7 @@ class QuizletSession {
                     completionHandler(result, response, error)
                 }
                 catch {
-                    NSLog("Unexpected response in searchClassesWithQuery: \(jsonAny)")
+                    NSLog("Unexpected response in searchClassesWithQuery: \(String(describing: jsonAny))")
                     completionHandler(nil, response, error)
                 }
         })
@@ -455,7 +455,7 @@ class QuizletSession {
                     completionHandler(result, response, error)
                 }
                 catch {
-                    NSLog("Unexpected response in searchUniversalWithQuery: \(jsonAny)")
+                    NSLog("Unexpected response in searchUniversalWithQuery: \(String(describing: jsonAny))")
                     completionHandler(nil, response, error)
                 }
         })
@@ -599,7 +599,7 @@ class QuizletSession {
             }
             completionHandler(qsets, nil, nil)
         } else {
-            NSLog("Unexpected response in getAllSampleSetsForUser: \(data)")
+            NSLog("Unexpected response in getAllSampleSetsForUser: \(String(describing: data))")
             completionHandler(nil, nil, nil)
         }
     }
