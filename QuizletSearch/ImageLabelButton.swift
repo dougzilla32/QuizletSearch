@@ -269,6 +269,9 @@ class ImageLabelButton: UIButton
                 else if (alignBottom) {
                     y += extraHeight
                 }
+            @unknown default:
+                // noop
+                _ = 1
             }
         }
         else {
@@ -366,7 +369,10 @@ class ImageLabelButton: UIButton
             case .trailing:
                 x += extraWidth
 
-}
+            @unknown default:
+                // noop
+                _ = 1
+            }
         }
         else {
             x += extraWidth / 2.0
@@ -466,7 +472,7 @@ class ImageLabelButton: UIButton
         var lineBreakMode = cachedLabel!.lineBreakMode
         let attributedText: NSAttributedString? = cachedLabel!.attributedText
         if (attributedText != nil) {
-            attributedText!.enumerateAttribute(NSAttributedStringKey.paragraphStyle, in: NSMakeRange(0, attributedText!.length), options: []) {
+            attributedText!.enumerateAttribute(NSAttributedString.Key.paragraphStyle, in: NSMakeRange(0, attributedText!.length), options: []) {
                 value, range, stop in
                 let lbm = (value as? NSParagraphStyle)?.lineBreakMode
                 if (lbm != nil) {
@@ -485,6 +491,8 @@ class ImageLabelButton: UIButton
         .byTruncatingTail, // Truncate at tail of line: "abcd..."
         .byTruncatingMiddle: // Truncate middle of line:  "ab...yz"
             contentWidth = MaxDimension
+        @unknown default:
+            contentWidth = self.frame.size.width - (contentEdgeInsets.left + contentEdgeInsets.right)
         }
         
         return titleRect(forContentRect: CGRect(

@@ -90,7 +90,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
         // Respond to dynamic type font changes
         NotificationCenter.default.addObserver(self,
             selector: #selector(QueriesViewController.preferredContentSizeChanged(_:)),
-            name: NSNotification.Name.UIContentSizeCategoryDidChange,
+            name: UIContentSizeCategory.didChangeNotification,
             object: nil)
         resetFonts()
 
@@ -125,7 +125,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
     }
     
     func resetFonts() {
-        preferredFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
+        preferredFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)
     }
     
     // Workaround for search bar visibility -- there is a bug with UITableView where sometimes the search bar cannot be properly hidden when the user scrolls the table or when programmatically scrolling the table.  By quickly inserting and deleting an empty row in the table the incorrect behavior is alleviated.
@@ -141,10 +141,10 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
         }
 
         self.extraRows += 1
-        self.tableView.insertRows(at: [indexPath], with: UITableViewRowAnimation.none)
+        self.tableView.insertRows(at: [indexPath], with: UITableView.RowAnimation.none)
         if (options == .insertAndDelete) {
             self.extraRows -= 1
-            self.tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.none)
+            self.tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.none)
         }
     }
     
@@ -190,7 +190,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
         trace("prepareForSegue", segue.destination, sender)
         
         if (segue.identifier == "AddQuery") {
-            (segue.destination.childViewControllers[0] as! AddQueryViewController).configureForAdd()
+            (segue.destination.children[0] as! AddQueryViewController).configureForAdd()
         }
         else if (segue.identifier == "Search") {
             let searchViewController = segue.destination as! SearchViewController
@@ -341,14 +341,14 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
         
         let indexPath = IndexPath(row: currentUser.queries.count-1, section: 0)
         editingRow = indexPath.row
-        tableView.insertRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
+        tableView.insertRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
         addingRow = indexPath.row
     }
     
     @IBAction func edit(_ sender: AnyObject) {
         tableView.isEditing = !tableView.isEditing
         inEditMode = tableView.isEditing
-        editButton.setTitle(tableView.isEditing ? "Done" : "Edit", for: UIControlState())
+        editButton.setTitle(tableView.isEditing ? "Done" : "Edit", for: UIControl.State())
 
         recursiveReloadCounter += 1
         extraRows = 0
@@ -372,7 +372,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
         UIView.setAnimationsEnabled(enabled)
         
         if (deferReloadRow != nil) {
-            tableView.reloadRows(at: [deferReloadRow!], with: UITableViewRowAnimation.automatic)
+            tableView.reloadRows(at: [deferReloadRow!], with: UITableView.RowAnimation.automatic)
             deferReloadRow = nil
         }
     }
@@ -422,7 +422,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
         if (recursiveReloadCounter == 0) {
             if (deleteRow != nil) {
                 trace("deleteRow row:", indexPath.row)
-                tableView.deleteRows(at: [deleteRow!], with: UITableViewRowAnimation.automatic)
+                tableView.deleteRows(at: [deleteRow!], with: UITableView.RowAnimation.automatic)
             }
             if (reloadRow != nil) {
                 trace("reloadRow row:", indexPath.row, "updatingText:", updatingText)
@@ -430,7 +430,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
                     deferReloadRow = reloadRow
                 }
                 else {
-                    tableView.reloadRows(at: [reloadRow!], with: UITableViewRowAnimation.automatic)
+                    tableView.reloadRows(at: [reloadRow!], with: UITableView.RowAnimation.automatic)
                 }
             }
         }
@@ -476,8 +476,8 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
         dataModel.saveChanges()
     }
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == UITableViewCellEditingStyle.delete) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == UITableViewCell.EditingStyle.delete) {
             if (currentFirstResponder != nil) {
                 currentContentOffsetY = tableView.contentOffset.y
                 
@@ -489,7 +489,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
 
             currentUser.removeQueryAtIndex(indexPath.row)
             dataModel.saveChanges()
-            tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
+            tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
             
             // Call reloadData to workaround a bug where the footer jumps to the bottom of
             // the table after deleting a row.
@@ -580,7 +580,7 @@ class QueriesViewController: TableViewControllerBase, UITableViewDelegate, UIScr
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         
-        let size = cell.contentView.systemLayoutSizeFitting(UILayoutFittingCompressedSize)
+        let size = cell.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize)
         return size.height + 1.0 // Add 1.0 for the cell separator height
     }
     

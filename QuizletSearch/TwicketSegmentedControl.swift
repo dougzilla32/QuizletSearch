@@ -412,10 +412,10 @@ open class TwicketSegmentedControl: UIControl {
     fileprivate func createImageLabel(with item: SegmentItem, at index: Int, selected: Bool) -> ImageLabelButton {
         let rect = CGRect(x: CGFloat(index) * segmentWidth, y: 0, width: segmentWidth, height: backgroundView.frame.height)
         let label = ImageLabelButton(frame: rect)
-        label.setTitle(item.text, for: UIControlState.normal)
-        label.setImage(selected ? (item.highlightImage ?? item.defaultImage) : item.defaultImage, for: UIControlState.normal)
+        label.setTitle(item.text, for: UIControl.State.normal)
+        label.setImage(selected ? (item.highlightImage ?? item.defaultImage) : item.defaultImage, for: UIControl.State.normal)
         label.imageSize = item.imageSize
-        label.setTitleColor(selected ? highlightColor : defaultColor, for: UIControlState.normal)
+        label.setTitleColor(selected ? highlightColor : defaultColor, for: UIControl.State.normal)
         label.titleLabel?.font = font
         label.titleLabel?.lineBreakMode = lineBreakMode
         label.contentEdgeInsets = UIEdgeInsets(top: contentInsets.origin.y, left: contentInsets.origin.x,
@@ -522,6 +522,9 @@ open class TwicketSegmentedControl: UIControl {
             let location = panGesture.location(in: self)
             sliderView.center.x = location.x - correction
         case .possible: ()
+        @unknown default:
+            // noop
+            _ = 1
         }
     }
     

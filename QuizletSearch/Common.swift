@@ -124,12 +124,12 @@ class Common {
         return s == nil || s!.trimWhitespace().isEmpty
     }
     
-    class func preferredFontForTextStyle(_ textStyle: UIFontTextStyle) -> UIFont? {
+    class func preferredFontForTextStyle(_ textStyle: UIFont.TextStyle) -> UIFont? {
         // choose the font size
         let fontSize: CGFloat = preferredFontSize()
 
         // choose the font weight
-        if (textStyle == UIFontTextStyle.headline || textStyle == UIFontTextStyle.subheadline) {
+        if (textStyle == UIFont.TextStyle.headline || textStyle == UIFont.TextStyle.subheadline) {
             return UIFont.boldSystemFont(ofSize: fontSize)
         } else {
             return UIFont.systemFont(ofSize: fontSize)
@@ -266,7 +266,7 @@ class Common {
         let url = URL(string: "http://quizlet.com/\(id)")
         
         if #available(iOS 10.0, *) {
-            UIApplication.shared.open(url!, options: [:], completionHandler: {(b) in
+            UIApplication.shared.open(url!, options: convertToUIApplicationOpenExternalURLOptionsKeyDictionary([:]), completionHandler: {(b) in
                 DispatchQueue.main.asyncAfter(deadline: deadline, execute: work)
             })
         } else {
@@ -832,4 +832,9 @@ extension String {
         6F2528	3163	E385A3	ㅣ	Korean hangul		
         */
     ]
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToUIApplicationOpenExternalURLOptionsKeyDictionary(_ input: [String: Any]) -> [UIApplication.OpenExternalURLOptionsKey: Any] {
+	return Dictionary(uniqueKeysWithValues: input.map { key, value in (UIApplication.OpenExternalURLOptionsKey(rawValue: key), value)})
 }

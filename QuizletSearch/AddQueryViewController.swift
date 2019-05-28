@@ -58,8 +58,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     override func viewWillAppear(_ animated: Bool) {
         addButton.setTitleTextAttributes(
-            [ NSAttributedStringKey.font: UIFont.boldSystemFont(ofSize: 17.0) ],
-            for: UIControlState())
+            [ NSAttributedString.Key.font: UIFont.boldSystemFont(ofSize: 17.0) ],
+            for: UIControl.State())
 
 //        navigationController!.setNavigationBarHidden(false, animated: false)
     }
@@ -76,13 +76,13 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         // Respond to dynamic type font changes
         NotificationCenter.default.addObserver(self,
             selector: #selector(AddQueryViewController.preferredContentSizeChanged(_:)),
-            name: NSNotification.Name.UIContentSizeCategoryDidChange,
+            name: UIContentSizeCategory.didChangeNotification,
             object: nil)
         resetFonts()
         
         // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
-        NotificationCenter.default.addObserver(self, selector: #selector(AddQueryViewController.keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-        NotificationCenter.default.addObserver(self, selector: #selector(AddQueryViewController.keyboardDidHide(_:)), name: NSNotification.Name.UIKeyboardDidHide, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(AddQueryViewController.keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(AddQueryViewController.keyboardDidHide(_:)), name: UIResponder.keyboardDidHideNotification, object: nil)
 
         // Delay "touches began" so that swipe to delete for textfield cells works properly
         self.tableView.panGestureRecognizer.delaysTouchesBegan = true
@@ -122,10 +122,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     func resetFonts() {
-        preferredFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
-        preferredBoldFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+        preferredFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)
+        preferredBoldFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
         
-        let fontDescriptor = preferredFont.fontDescriptor.withSymbolicTraits(UIFontDescriptorSymbolicTraits.traitItalic)
+        let fontDescriptor = preferredFont.fontDescriptor.withSymbolicTraits(UIFontDescriptor.SymbolicTraits.traitItalic)
         italicFont = UIFont(descriptor: fontDescriptor!, size: preferredFont.pointSize)
         
         smallerFont = UIFont(descriptor: preferredFont.fontDescriptor, size: preferredFont.pointSize - 3.0)
@@ -165,7 +165,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     }
     
     @objc func keyboardWillShow(_ notification: Notification) {
-        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             keyboardHeight = keyboardSize.height
         }
     }
@@ -303,7 +303,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             UIView.setAnimationsEnabled(false)
             trace("BEGIN numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
             trace("insertRows", totalResults-prevTotalResults)
-            tableView.insertRows(at: indexPaths, with: UITableViewRowAnimation.none)
+            tableView.insertRows(at: indexPaths, with: UITableView.RowAnimation.none)
             trace("END numRows=", model.numberOfRowsInSection(ResultsSection), separator: "")
             UIView.setAnimationsEnabled(true)
             didInsert = true
@@ -329,7 +329,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             // Trick the table into re-fetching the heights for the currently visible rows
             UIView.setAnimationsEnabled(false)
             let indexPath = IndexPath(row: 0, section: 0)
-            tableView.reloadRows(at: [indexPath], with: UITableViewRowAnimation.none)
+            tableView.reloadRows(at: [indexPath], with: UITableView.RowAnimation.none)
             UIView.setAnimationsEnabled(true)
         }
 
@@ -463,7 +463,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         desiredFirstResponder = PathAndRange(path: indexPath, range: nil)
         
         trace("Insert new empty user before")
-        tableView.insertRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
+        tableView.insertRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
         trace("Insert new empty user after")
 
         // Do not call executeSearch -- adding an empty user does not cause the results to change
@@ -472,7 +472,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     func deleteUserAtIndexPath(_ indexPath: IndexPath) {
         model.deleteAtIndexPath(indexPath)
-        self.tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
+        self.tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
 
         // Delete the pager after deleting the rows in the tableView so that the row heights are not disrupted
         model.deleteUsernamePagerAtIndexPath(indexPath)
@@ -495,7 +495,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         desiredFirstResponder = PathAndRange(path: indexPath, range: nil)
         
         trace("Insert new class before")
-        tableView.insertRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
+        tableView.insertRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
         trace("Insert new class after")
         
         executeSearch(indexPath: indexPath, scrollTarget: .classHeader)
@@ -503,7 +503,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
     
     func deleteClassAtIndexPath(_ indexPath: IndexPath) {
         model.deleteAtIndexPath(indexPath)
-        self.tableView.deleteRows(at: [indexPath], with: UITableViewRowAnimation.automatic)
+        self.tableView.deleteRows(at: [indexPath], with: UITableView.RowAnimation.automatic)
 
         // Delete the pager after deleting the rows in the tableView so that the row heights are not disrupted
         model.deleteClassPagerAtIndexPath(indexPath)
@@ -633,7 +633,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         })
     }
     
-    func safelyScrollToRowAtIndexPath(_ indexPath: IndexPath, atScrollPosition: UITableViewScrollPosition) {
+    func safelyScrollToRowAtIndexPath(_ indexPath: IndexPath, atScrollPosition: UITableView.ScrollPosition) {
         let originalOffset = self.tableView.contentOffset.y
         self.tableView.scrollToRow(at: indexPath, at: atScrollPosition, animated: false)
         let offset = self.tableView.contentOffset.y
@@ -691,8 +691,8 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         return model.canEditRowAtIndexPath(indexPath)
     }
     
-    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == UITableViewCellEditingStyle.delete) {
+    override func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == UITableViewCell.EditingStyle.delete) {
             let r = currentFirstResponder
             if (r != nil && r!.path == indexPath) {
                 if (r!.target.text == nil || r!.target.text!.isEmpty) {
@@ -871,10 +871,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             }
             
             let attributedText = NSMutableAttributedString(string: labelText)
-            attributedText.addAttribute(NSAttributedStringKey.font, value: preferredFont, range: NSMakeRange(titleIndex, titleLength))
-            attributedText.addAttribute(NSAttributedStringKey.font, value: italicFont, range: NSMakeRange(ownerIndex, ownerLength))
+            attributedText.addAttribute(NSAttributedString.Key.font, value: preferredFont!, range: NSMakeRange(titleIndex, titleLength))
+            attributedText.addAttribute(NSAttributedString.Key.font, value: italicFont!, range: NSMakeRange(ownerIndex, ownerLength))
             if (hasDescription) {
-                attributedText.addAttribute(NSAttributedStringKey.font, value: smallerFont, range: NSMakeRange(descriptionIndex, descriptionLength))
+                attributedText.addAttribute(NSAttributedString.Key.font, value: smallerFont!, range: NSMakeRange(descriptionIndex, descriptionLength))
             }
             
             let paragraphStyle = NSMutableParagraphStyle()
@@ -897,10 +897,10 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
             var end: Int = 0
 
             (title as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, for: NSMakeRange(titleLength, 0))
-            attributedText.addAttribute(NSAttributedStringKey.paragraphStyle, value: paragraphStyle, range: NSMakeRange(titleIndex + start, end - start))
+            attributedText.addAttribute(NSAttributedString.Key.paragraphStyle, value: paragraphStyle, range: NSMakeRange(titleIndex + start, end - start))
 
             (owner as NSString).getParagraphStart(&start, end: &end, contentsEnd: nil, for: NSMakeRange(ownerLength, 0))
-            attributedText.addAttribute(NSAttributedStringKey.paragraphStyle, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
+            attributedText.addAttribute(NSAttributedString.Key.paragraphStyle, value: paragraphStyle, range: NSMakeRange(ownerIndex + start, end - start))
             
             if let searchAssistCell = cell as? LabelTableViewCell {
                 searchAssistCell.label.attributedText = attributedText
@@ -1057,7 +1057,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         
-        let height = cell.contentView.systemLayoutSizeFitting(UILayoutFittingCompressedSize).height
+        let height = cell.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
         return height + 1.0 // Add 1.0 for the cell separator height
     }
 
@@ -1109,7 +1109,7 @@ class AddQueryViewController: UITableViewController, UISearchBarDelegate, UIText
         sizingSearchBar.setNeedsLayout()
         sizingSearchBar.layoutIfNeeded()
         
-        let height = sizingSearchBar.systemLayoutSizeFitting(UILayoutFittingCompressedSize).height
+        let height = sizingSearchBar.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
         return height + 1.0 // Add 1.0 for the cell separator height
     }
     

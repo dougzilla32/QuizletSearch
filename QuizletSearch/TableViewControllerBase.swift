@@ -23,15 +23,15 @@ class TableViewControllerBase: UIViewController {
         
         if (tableView != nil) {
             // Register for keyboard show and hide notifications, to adjust the table view when the keyboard is showing
-            NotificationCenter.default.addObserver(self, selector: #selector(TableViewControllerBase.keyboardWillShow(_:)), name: NSNotification.Name.UIKeyboardWillShow, object: nil)
-            NotificationCenter.default.addObserver(self, selector: #selector(TableViewControllerBase.keyboardWillHide(_:)), name: NSNotification.Name.UIKeyboardWillHide, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(TableViewControllerBase.keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+            NotificationCenter.default.addObserver(self, selector: #selector(TableViewControllerBase.keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         
             if (refreshing) {
                 // Initialize the refresh control -- this is necessary because we aren't using a UITableViewController.  Normally you would set "Refreshing" to "Enabled" on the table view controller.  So instead we are initializing it programatically.
                 refreshControl = UIRefreshControl()
-                refreshControl.addTarget(self, action: #selector(TableViewControllerBase.refreshTable), for: UIControlEvents.valueChanged)
+                refreshControl.addTarget(self, action: #selector(TableViewControllerBase.refreshTable), for: UIControl.Event.valueChanged)
                 tableView.addSubview(refreshControl)
-                tableView.sendSubview(toBack: refreshControl)
+                tableView.sendSubviewToBack(refreshControl)
             }
         }
         else {
@@ -44,13 +44,13 @@ class TableViewControllerBase: UIViewController {
     @objc func refreshTable() { }
     
     @objc func keyboardWillShow(_ notification: Notification) {
-        if let keyboardSize = (notification.userInfo?[UIKeyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
+        if let keyboardSize = (notification.userInfo?[UIResponder.keyboardFrameBeginUserInfoKey] as? NSValue)?.cgRectValue {
             
             var contentInsets: UIEdgeInsets
-            if (UIInterfaceOrientationIsPortrait(UIApplication.shared.statusBarOrientation)) {
-                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.height, 0.0);
+            if (UIApplication.shared.statusBarOrientation.isPortrait) {
+                contentInsets = UIEdgeInsets.init(top: 0.0, left: 0.0, bottom: keyboardSize.height, right: 0.0);
             } else {
-                contentInsets = UIEdgeInsetsMake(0.0, 0.0, keyboardSize.width, 0.0);
+                contentInsets = UIEdgeInsets.init(top: 0.0, left: 0.0, bottom: keyboardSize.width, right: 0.0);
             }
             
             self.tableView.contentInset = contentInsets;

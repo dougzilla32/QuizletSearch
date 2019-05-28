@@ -128,7 +128,7 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         // Respond to dynamic type font changes
         NotificationCenter.default.addObserver(self,
             selector: #selector(SearchViewController.preferredContentSizeChanged(_:)),
-            name: NSNotification.Name.UIContentSizeCategoryDidChange,
+            name: UIContentSizeCategory.didChangeNotification,
             object: nil)
         resetFonts()
         
@@ -206,13 +206,13 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
 
         // Set the title text to clearColor
         let attributedPlaceholder = NSMutableAttributedString(attributedString: searchTextField.attributedPlaceholder!)
-        attributedPlaceholder.addAttribute(NSAttributedStringKey.foregroundColor, value: UIColor.clear, range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
+        attributedPlaceholder.addAttribute(NSAttributedString.Key.foregroundColor, value: UIColor.clear, range: NSRange(location: (SearchBarPlaceholderPrefix as NSString).length, length: (title as NSString).length))
         searchTextField.attributedPlaceholder = attributedPlaceholder
 
         // Calculate the frame for the title text
         let absoluteOrigin = searchTextField.superview!.convert(searchTextField.frame.origin, to: UIApplication.shared.keyWindow!)
         let placeholderBounds = searchTextField.placeholderRect(forBounds: searchTextField.bounds)
-        let fontAttributes = [NSAttributedStringKey.font: searchTextField.font!]
+        let fontAttributes = [NSAttributedString.Key.font: searchTextField.font!]
         let prefixSize = SearchBarPlaceholderPrefix.size(withAttributes: fontAttributes)
         
         return CGPoint(x: absoluteOrigin.x + placeholderBounds.origin.x + prefixSize.width + 1, y: absoluteOrigin.y + placeholderBounds.origin.y)
@@ -242,8 +242,8 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
     }
     
     func resetFonts() {
-        preferredSearchFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
-        preferredBoldSearchFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+        preferredSearchFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)
+        preferredBoldSearchFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
         
         termSizingCell.termLabel.font = preferredSearchFont
         termSizingCell.definitionLabel.font = preferredSearchFont
@@ -253,7 +253,7 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         estimatedHeaderHeight = nil
         estimatedHeight = nil
        
-        sortStyle.setTitleTextAttributes([NSAttributedStringKey.font: preferredSearchFont!], for: UIControlState())
+        sortStyle.setTitleTextAttributes([NSAttributedString.Key.font: preferredSearchFont!], for: UIControl.State())
         
         // Update the appearance of the search bar's textfield
         let searchTextField = Common.findTextField(self.searchBar)!
@@ -268,7 +268,7 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         cancelRefresh()
         
         if (segue.identifier == "EditQuery") {
-            let addQueryViewController = segue.destination.childViewControllers[0] as! AddQueryViewController
+            let addQueryViewController = segue.destination.children[0] as! AddQueryViewController
             addQueryViewController.configureForSave(dataModel().currentQuery!)
         }
         else if (segue.identifier == "SearchUnwind" /* && Common.isEmpty(searchBar.text) */) {
@@ -586,9 +586,9 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         let termText = NSMutableAttributedString(string: termForDisplay)
         if (useTerm) {
             for range in searchTerm.termRanges {
-                termText.addAttribute(NSAttributedStringKey.font, value: preferredBoldSearchFont!, range: range)
-                termText.addAttribute(NSAttributedStringKey.foregroundColor, value: highlightForegroundColor, range: range)
-                termText.addAttribute(NSAttributedStringKey.backgroundColor, value: highlightBackgroundColor, range: range)
+                termText.addAttribute(NSAttributedString.Key.font, value: preferredBoldSearchFont!, range: range)
+                termText.addAttribute(NSAttributedString.Key.foregroundColor, value: highlightForegroundColor, range: range)
+                termText.addAttribute(NSAttributedString.Key.backgroundColor, value: highlightBackgroundColor, range: range)
             }
         }
         cell.termLabel.font = preferredSearchFont
@@ -598,9 +598,9 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         let definitionText = NSMutableAttributedString(string: definitionForDisplay)
         if (useDefinition) {
             for range in searchTerm.definitionRanges {
-                definitionText.addAttribute(NSAttributedStringKey.font, value: preferredBoldSearchFont!, range: range)
-                definitionText.addAttribute(NSAttributedStringKey.foregroundColor, value: highlightForegroundColor, range: range)
-                definitionText.addAttribute(NSAttributedStringKey.backgroundColor, value: highlightBackgroundColor, range: range)
+                definitionText.addAttribute(NSAttributedString.Key.font, value: preferredBoldSearchFont!, range: range)
+                definitionText.addAttribute(NSAttributedString.Key.foregroundColor, value: highlightForegroundColor, range: range)
+                definitionText.addAttribute(NSAttributedString.Key.backgroundColor, value: highlightBackgroundColor, range: range)
             }
         }
         cell.definitionLabel.font = preferredSearchFont
@@ -647,7 +647,7 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
      */
     func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         if (showActivityIndicator) {
-            return UITableViewAutomaticDimension
+            return UITableView.automaticDimension
         }
 
         let searchTerm = searchTerms.termForPath(indexPath, sortSelection: currentSortSelection())
@@ -682,7 +682,7 @@ class SearchViewController: TableViewControllerBase, UITableViewDelegate, UIScro
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         
-        let height = cell.contentView.systemLayoutSizeFitting(UILayoutFittingCompressedSize).height
+        let height = cell.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
         return height + 1.0 // Add 1.0 for the cell separator height
     }
     

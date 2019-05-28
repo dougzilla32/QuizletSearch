@@ -64,7 +64,7 @@ class RBBSpringAnimation: CAKeyframeAnimation {
         mass = 1
         stiffness = 100
         
-        calculationMode = kCAAnimationDiscrete
+        calculationMode = CAAnimationCalculationMode.discrete
     }
     
     required init(coder aDecoder: NSCoder) {

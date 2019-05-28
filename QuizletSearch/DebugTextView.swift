@@ -93,7 +93,7 @@ class DebugTextView: UITextView {
         trace("DebugTextView exerciseAmbiguityInLayout")
     }
 
-    override func constraintsAffectingLayout(for axis: UILayoutConstraintAxis) -> [NSLayoutConstraint] {
+    override func constraintsAffectingLayout(for axis: NSLayoutConstraint.Axis) -> [NSLayoutConstraint] {
         let c = super.constraintsAffectingLayout(for: axis)
         trace("DebugTextView constraintsAffectingLayout(for: ", axis, "):", c)
         return c

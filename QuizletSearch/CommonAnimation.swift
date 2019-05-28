@@ -163,7 +163,7 @@ class CommonAnimation {
         animRotateZ.toValue = -0.2 // NSNumber(double: -0.2)
         animRotateZ.byValue = NSNumber(value: 2.0 * .pi)
         // animRotateZ.delegate = self
-        animRotateZ.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+        animRotateZ.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
         // animRotateZ.setValue(self.diaplayLayer, forKey: "animationLayer")
         // self.animationSequence.append(animRotateZ)
         label.layer.add(animRotateZ, forKey: "transform.translation.z")
@@ -173,7 +173,7 @@ class CommonAnimation {
         animTranslateY.duration = 1.5
         animTranslateY.toValue = NSNumber(value: Double(mainWindow.bounds.midY) as Double)
         animTranslateY.byValue = NSNumber(value: Double(translateByValueY) as Double)
-        animTranslateY.timingFunction = CAMediaTimingFunction(name: kCAMediaTimingFunctionEaseOut)
+        animTranslateY.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeOut)
         // animTranslateY.setValue(self.diaplayLayer, forKey: "animationLayer")
         // self.animationSequence.append(animTranslateY)
         label.layer.add(animTranslateY, forKey: "transform.translation.y")
@@ -235,13 +235,13 @@ class CommonAnimation {
             
             let attrText = NSMutableAttributedString(string: text as String)
             if (index != 0) {
-                attrText.addAttribute(NSAttributedStringKey.foregroundColor, value: clearColor, range: NSRange(location: 0, length: index))
+                attrText.addAttribute(NSAttributedString.Key.foregroundColor, value: clearColor, range: NSRange(location: 0, length: index))
             }
             
             if (index != text.length) {
                 index += 1
                 if (index != text.length) {
-                    attrText.addAttribute(NSAttributedStringKey.foregroundColor, value: clearColor, range: NSRange(location: index, length: text.length - index))
+                    attrText.addAttribute(NSAttributedString.Key.foregroundColor, value: clearColor, range: NSRange(location: index, length: text.length - index))
                 }
             }
             
@@ -311,12 +311,12 @@ class CommonAnimation {
         return WhooshAnimationContext(animationLabels: animationLabels)
     }
     
-    class func createBasicAnimationWithDuration(_ duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions?,
+    class func createBasicAnimationWithDuration(_ duration: TimeInterval, delay: TimeInterval, options: UIView.AnimationOptions?,
         keyPath: String, fromValue: Any, toValue: Any) -> CAAnimation {
             return createSpringAnimationWithDuration(duration, delay: delay, options: options, springDamping: 0, springVelocity: 0, keyPath: keyPath, fromValue: fromValue, toValue: toValue)
     }
     
-    class func createSpringAnimationWithDuration(_ duration: TimeInterval, delay: TimeInterval, options: UIViewAnimationOptions?,
+    class func createSpringAnimationWithDuration(_ duration: TimeInterval, delay: TimeInterval, options: UIView.AnimationOptions?,
         //spring additions
         springDamping: CGFloat, springVelocity: CGFloat,
         keyPath: String, fromValue: Any, toValue: Any) -> CAAnimation {
@@ -371,44 +371,59 @@ class CommonAnimation {
         
         if delay > 0.0 {
             anim.beginTime = CACurrentMediaTime() + delay
-            anim.fillMode = kCAFillModeBackwards
+            anim.fillMode = CAMediaTimingFillMode.backwards
         }
         
         //options
         if let options = options?.rawValue {
             
-            if options & UIViewAnimationOptions.beginFromCurrentState.rawValue == 0 { //only repeat if not in a chain
-                anim.autoreverses = (options & UIViewAnimationOptions.autoreverse.rawValue == UIViewAnimationOptions.autoreverse.rawValue)
-                anim.repeatCount = (options & UIViewAnimationOptions.repeat.rawValue == UIViewAnimationOptions.repeat.rawValue) ? Float.infinity : 0
+            if options & UIView.AnimationOptions.beginFromCurrentState.rawValue == 0 { //only repeat if not in a chain
+                anim.autoreverses = (options & UIView.AnimationOptions.autoreverse.rawValue == UIView.AnimationOptions.autoreverse.rawValue)
+                anim.repeatCount = (options & UIView.AnimationOptions.repeat.rawValue == UIView.AnimationOptions.repeat.rawValue) ? Float.infinity : 0
             }
             
             //easing
-            var timingFunctionName = kCAMediaTimingFunctionEaseInEaseOut
+            var timingFunctionName = convertFromCAMediaTimingFunctionName(CAMediaTimingFunctionName.easeInEaseOut)
             
-            if options & UIViewAnimationOptions.curveLinear.rawValue == UIViewAnimationOptions.curveLinear.rawValue {
+            if options & UIView.AnimationOptions.curveLinear.rawValue == UIView.AnimationOptions.curveLinear.rawValue {
                 //first check for linear (it's this way to take up only 2 bits)
-                timingFunctionName = kCAMediaTimingFunctionLinear
-            } else if options & UIViewAnimationOptions.curveEaseIn.rawValue == UIViewAnimationOptions.curveEaseIn.rawValue {
-                timingFunctionName = kCAMediaTimingFunctionEaseIn
-            } else if options & UIViewAnimationOptions.curveEaseOut.rawValue == UIViewAnimationOptions.curveEaseOut.rawValue {
-                timingFunctionName = kCAMediaTimingFunctionEaseOut
+                timingFunctionName = convertFromCAMediaTimingFunctionName(CAMediaTimingFunctionName.linear)
+            } else if options & UIView.AnimationOptions.curveEaseIn.rawValue == UIView.AnimationOptions.curveEaseIn.rawValue {
+                timingFunctionName = convertFromCAMediaTimingFunctionName(CAMediaTimingFunctionName.easeIn)
+            } else if options & UIView.AnimationOptions.curveEaseOut.rawValue == UIView.AnimationOptions.curveEaseOut.rawValue {
+                timingFunctionName = convertFromCAMediaTimingFunctionName(CAMediaTimingFunctionName.easeOut)
             }
             
-            anim.timingFunction = CAMediaTimingFunction(name: timingFunctionName)
+            anim.timingFunction = CAMediaTimingFunction(name: convertToCAMediaTimingFunctionName(timingFunctionName))
             
             //fill mode
-            if options & UIViewAnimationOptions.fillModeBoth.rawValue == UIViewAnimationOptions.fillModeBoth.rawValue {
+            if options & UIView.AnimationOptions.fillModeBoth.rawValue == UIView.AnimationOptions.fillModeBoth.rawValue {
                 //both
-                anim.fillMode = kCAFillModeBoth
-            } else if options & UIViewAnimationOptions.fillModeForwards.rawValue == UIViewAnimationOptions.fillModeForwards.rawValue {
+                anim.fillMode = CAMediaTimingFillMode.both
+            } else if options & UIView.AnimationOptions.fillModeForwards.rawValue == UIView.AnimationOptions.fillModeForwards.rawValue {
                 //forward
-                anim.fillMode = (anim.fillMode == kCAFillModeBackwards) ? kCAFillModeBoth : kCAFillModeForwards
-            } else if options & UIViewAnimationOptions.fillModeBackwards.rawValue == UIViewAnimationOptions.fillModeBackwards.rawValue {
+                anim.fillMode = convertToCAMediaTimingFillMode((anim.fillMode == CAMediaTimingFillMode.backwards) ? CAMediaTimingFillMode.both.rawValue : CAMediaTimingFillMode.forwards.rawValue)
+            } else if options & UIView.AnimationOptions.fillModeBackwards.rawValue == UIView.AnimationOptions.fillModeBackwards.rawValue {
                 //backwards
-                anim.fillMode = kCAFillModeBackwards
+                anim.fillMode = CAMediaTimingFillMode.backwards
             }
         }
         
         return anim
     }
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertFromCAMediaTimingFunctionName(_ input: CAMediaTimingFunctionName) -> String {
+	return input.rawValue
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToCAMediaTimingFunctionName(_ input: String) -> CAMediaTimingFunctionName {
+	return CAMediaTimingFunctionName(rawValue: input)
+}
+
+// Helper function inserted by Swift 4.2 migrator.
+fileprivate func convertToCAMediaTimingFillMode(_ input: String) -> CAMediaTimingFillMode {
+	return CAMediaTimingFillMode(rawValue: input)
 }

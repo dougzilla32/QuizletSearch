@@ -27,7 +27,7 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
         // Respond to dynamic type font changes
         NotificationCenter.default.addObserver(self,
                                                selector: #selector(SearchUserClassSetController.preferredContentSizeChanged(_:)),
-                                               name: NSNotification.Name.UIContentSizeCategoryDidChange,
+                                               name: UIContentSizeCategory.didChangeNotification,
                                                object: nil)
         resetFonts()
     }
@@ -49,10 +49,10 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
     }
     
     func resetFonts() {
-        preferredFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.body)
-        preferredBoldFont = UIFont.preferredFont(forTextStyle: UIFontTextStyle.headline)
+        preferredFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.body)
+        preferredBoldFont = UIFont.preferredFont(forTextStyle: UIFont.TextStyle.headline)
         
-        let fontDescriptor = preferredFont.fontDescriptor.withSymbolicTraits(UIFontDescriptorSymbolicTraits.traitItalic)
+        let fontDescriptor = preferredFont.fontDescriptor.withSymbolicTraits(UIFontDescriptor.SymbolicTraits.traitItalic)
         italicFont = UIFont(descriptor: fontDescriptor!, size: preferredFont.pointSize)
         
         smallerFont = UIFont(descriptor: preferredFont.fontDescriptor, size: preferredFont.pointSize - 4.0)
@@ -162,8 +162,8 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
         return false
     }
     
-    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCellEditingStyle, forRowAt indexPath: IndexPath) {
-        if (editingStyle == UITableViewCellEditingStyle.insert) {
+    func tableView(_ tableView: UITableView, commit editingStyle: UITableViewCell.EditingStyle, forRowAt indexPath: IndexPath) {
+        if (editingStyle == UITableViewCell.EditingStyle.insert) {
         }
     }
  
@@ -356,7 +356,7 @@ class SearchUserClassSetController: TableViewControllerBase, UITableViewDelegate
         cell.setNeedsLayout()
         cell.layoutIfNeeded()
         
-        let height = cell.contentView.systemLayoutSizeFitting(UILayoutFittingCompressedSize).height
+        let height = cell.contentView.systemLayoutSizeFitting(UIView.layoutFittingCompressedSize).height
         return height + 1.0 // Add 1.0 for the cell separator height
     }
     

@@ -24,7 +24,7 @@ class LoginViewController: UIViewController {
         })
         
         let proceed = UIAlertAction(title: "Proceed",
-            style: UIAlertActionStyle.default,
+            style: UIAlertAction.Style.default,
             handler: {
                 (paramAction:UIAlertAction!) in
                 if let textFields = alertController?.textFields {
@@ -35,7 +35,7 @@ class LoginViewController: UIViewController {
         })
         
         let cancel = UIAlertAction(title: "Cancel",
-            style: UIAlertActionStyle.default,
+            style: UIAlertAction.Style.default,
             handler: {
                 (paramAction:UIAlertAction!) in
             })
