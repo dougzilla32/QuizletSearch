@@ -11,7 +11,7 @@ import UIKit
 @IBDesignable
 
 open class TwicketSegmentedControl: UIControl {
-    open static let height: CGFloat = Constants.height + Constants.topBottomMargin * 2
+    public static let height: CGFloat = Constants.height + Constants.topBottomMargin * 2
     
     static func colorFromRGB(red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat = 1.0) -> UIColor {
         func amount(_ amount: CGFloat, with alpha: CGFloat) -> CGFloat {

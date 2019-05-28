@@ -593,7 +593,7 @@ extension String {
     }
     
     func guessLanguage() -> String? {
-        return CFStringTokenizerCopyBestStringLanguage(self as CFString!, CFRangeMake(0, 0)) as String
+        return CFStringTokenizerCopyBestStringLanguage(self as CFString, CFRangeMake(0, 0)) as String
     }
     
     func spellCheckForLanguage(_ lang: String) -> [String]? {

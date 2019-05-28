@@ -260,8 +260,8 @@ class SortTerm: Equatable, Hashable {
         return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
     
-    var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    func hash(into hasher: inout Hasher) {
+        ObjectIdentifier(self).hash(into: &hasher)
     }
 }
 
@@ -297,8 +297,8 @@ class SortedQuizletSet<T>: Equatable, Hashable {
         return ObjectIdentifier(lhs) == ObjectIdentifier(rhs)
     }
     
-    var hashValue: Int {
-        return ObjectIdentifier(self).hashValue
+    func hash(into hasher: inout Hasher) {
+        ObjectIdentifier(self).hash(into: &hasher)
     }
 }
 

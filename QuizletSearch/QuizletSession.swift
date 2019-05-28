@@ -63,8 +63,9 @@ class QuizletSession {
             self.description = description
         }
         
-        var hashValue: Int {
-            return task.hashValue + description.hashValue
+        func hash(into hasher: inout Hasher) {
+            task.hash(into: &hasher)
+            description.hash(into: &hasher)
         }
     }
     
@@ -204,7 +205,7 @@ class QuizletSession {
         request.httpBody = parameters.percentEncodedQuery?.data(using: String.Encoding.utf8)
         
         if (currentTokenTask != nil) {
-            NSLog("Warning: task already running: \(currentTokenTask!.description)")
+            NSLog("Warning: task already running: \(currentTokenTask!.description ?? "")")
         }
         
         let task = session.dataTask(with: request,
