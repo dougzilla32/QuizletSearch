@@ -215,7 +215,7 @@
 				917BD9551DFF975100C0AB42 /* ResettableBounds.swift */,
 				9136A6B8229E567000E15F75 /* Algorithms */,
 				9136A6B9229E569A00E15F75 /* Common */,
-				9136A6BF229E57F100E15F75 /* Model2 */,
+				9136A6BF229E57F100E15F75 /* Model */,
 				9136A6AF229E55F500E15F75 /* RBBSpringAnimation */,
 				9136A6BC229E573C00E15F75 /* Session */,
 				9136A6BD229E578300E15F75 /* Supporting Files */,
@@ -311,7 +311,7 @@
 			path = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		9136A6BF229E57F100E15F75 /* Model2 */ = {
+		9136A6BF229E57F100E15F75 /* Model */ = {
 			isa = PBXGroup;
 			children = (
 				911A0D001B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld */,
@@ -323,7 +323,7 @@
 				914D0ADE1B6AA4ED0025C585 /* Term.swift */,
 				911A0D341B3CF69E00B219D7 /* QuizletSearchModel.strings */,
 			);
-			path = Model2;
+			path = Model;
 			sourceTree = "<group>";
 		};
 		9187F47E1B69FECC00FA528F /* Resources */ = {
