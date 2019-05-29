@@ -38,6 +38,10 @@
 		912DFCF91BBAD3BD002D67FA /* QueryResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912DFCF81BBAD3BD002D67FA /* QueryResult.swift */; };
 		912DFCFB1BBAD5F4002D67FA /* UnexpectedResponse.swift in Sources */ = {isa = PBXBuildFile; fileRef = 912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */; };
 		913527FA1DC9B2B0004AD7C3 /* SearchUserClassSetController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 913527F91DC9B2B0004AD7C3 /* SearchUserClassSetController.swift */; };
+		9136A6B4229E560C00E15F75 /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 9136A6B0229E560C00E15F75 /* LICENSE */; };
+		9136A6B5229E560C00E15F75 /* RBBBlockBasedArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9136A6B1229E560C00E15F75 /* RBBBlockBasedArray.swift */; };
+		9136A6B6229E560C00E15F75 /* RBBSpringAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9136A6B2229E560C00E15F75 /* RBBSpringAnimation.swift */; };
+		9136A6B7229E560C00E15F75 /* RBBLinearInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9136A6B3229E560C00E15F75 /* RBBLinearInterpolation.swift */; };
 		914D0AE01B6AA4ED0025C585 /* Query.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADB1B6AA4ED0025C585 /* Query.swift */; };
 		914D0AE11B6AA4ED0025C585 /* QuizletSet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */; };
 		914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */ = {isa = PBXBuildFile; fileRef = 914D0ADD1B6AA4ED0025C585 /* Root.swift */; };
@@ -56,12 +60,6 @@
 		9187F47B1B68AD1500FA528F /* Common.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9187F47A1B68AD1500FA528F /* Common.swift */; };
 		9187F4801B69FECC00FA528F /* SampleQuizletData.json in Resources */ = {isa = PBXBuildFile; fileRef = 9187F47F1B69FECC00FA528F /* SampleQuizletData.json */; };
 		918A73E11DCBD371002C0D25 /* ImageLabelButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918A73E01DCBD371002C0D25 /* ImageLabelButton.swift */; };
-		918C96AE1C1D2FE100AA80DE /* EAAnimationFuture.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A71C1D2FE100AA80DE /* EAAnimationFuture.swift */; };
-		918C96AF1C1D2FE100AA80DE /* EasyAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */; };
-		918C96B01C1D2FE100AA80DE /* LICENSE in Resources */ = {isa = PBXBuildFile; fileRef = 918C96AA1C1D2FE100AA80DE /* LICENSE */; };
-		918C96B11C1D2FE100AA80DE /* RBBBlockBasedArray.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */; };
-		918C96B21C1D2FE100AA80DE /* RBBLinearInterpolation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AC1C1D2FE100AA80DE /* RBBLinearInterpolation.swift */; };
-		918C96B31C1D2FE100AA80DE /* RBBSpringAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96AD1C1D2FE100AA80DE /* RBBSpringAnimation.swift */; };
 		918C96B51C1D401300AA80DE /* CommonAnimation.swift in Sources */ = {isa = PBXBuildFile; fileRef = 918C96B41C1D401300AA80DE /* CommonAnimation.swift */; };
 		91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */; };
 		91B03BFC1DEA3E7A00D9A4B5 /* UniversalSearch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 91B03BFB1DEA3E7A00D9A4B5 /* UniversalSearch.swift */; };
@@ -121,11 +119,15 @@
 		912DFCF81BBAD3BD002D67FA /* QueryResult.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QueryResult.swift; sourceTree = "<group>"; };
 		912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UnexpectedResponse.swift; sourceTree = "<group>"; };
 		913527F91DC9B2B0004AD7C3 /* SearchUserClassSetController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SearchUserClassSetController.swift; sourceTree = "<group>"; };
-		914D0ADB1B6AA4ED0025C585 /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Query.swift; path = Model/Query.swift; sourceTree = "<group>"; };
-		914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = QuizletSet.swift; path = Model/QuizletSet.swift; sourceTree = "<group>"; };
-		914D0ADD1B6AA4ED0025C585 /* Root.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Root.swift; path = Model/Root.swift; sourceTree = "<group>"; };
-		914D0ADE1B6AA4ED0025C585 /* Term.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = Term.swift; path = Model/Term.swift; sourceTree = "<group>"; };
-		914D0ADF1B6AA4ED0025C585 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = User.swift; path = Model/User.swift; sourceTree = "<group>"; };
+		9136A6B0229E560C00E15F75 /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
+		9136A6B1229E560C00E15F75 /* RBBBlockBasedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBBlockBasedArray.swift; sourceTree = "<group>"; };
+		9136A6B2229E560C00E15F75 /* RBBSpringAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBSpringAnimation.swift; sourceTree = "<group>"; };
+		9136A6B3229E560C00E15F75 /* RBBLinearInterpolation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBLinearInterpolation.swift; sourceTree = "<group>"; };
+		914D0ADB1B6AA4ED0025C585 /* Query.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Query.swift; sourceTree = "<group>"; };
+		914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = QuizletSet.swift; sourceTree = "<group>"; };
+		914D0ADD1B6AA4ED0025C585 /* Root.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Root.swift; sourceTree = "<group>"; };
+		914D0ADE1B6AA4ED0025C585 /* Term.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Term.swift; sourceTree = "<group>"; };
+		914D0ADF1B6AA4ED0025C585 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		914D0EB61DD1576500FC5985 /* DebugTextView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = DebugTextView.swift; sourceTree = "<group>"; };
 		915BFF001DBAA56500BA0B6A /* SearchIndex.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = SearchIndex.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		916BBEE11BD176F2008A0FB8 /* SetSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetSearch.swift; sourceTree = "<group>"; };
@@ -139,12 +141,6 @@
 		9187F47A1B68AD1500FA528F /* Common.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; lineEnding = 0; path = Common.swift; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.swift; };
 		9187F47F1B69FECC00FA528F /* SampleQuizletData.json */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.json; path = SampleQuizletData.json; sourceTree = "<group>"; };
 		918A73E01DCBD371002C0D25 /* ImageLabelButton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ImageLabelButton.swift; sourceTree = "<group>"; };
-		918C96A71C1D2FE100AA80DE /* EAAnimationFuture.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EAAnimationFuture.swift; sourceTree = "<group>"; };
-		918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EasyAnimation.swift; sourceTree = "<group>"; };
-		918C96AA1C1D2FE100AA80DE /* LICENSE */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = LICENSE; sourceTree = "<group>"; };
-		918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBBlockBasedArray.swift; sourceTree = "<group>"; };
-		918C96AC1C1D2FE100AA80DE /* RBBLinearInterpolation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBLinearInterpolation.swift; sourceTree = "<group>"; };
-		918C96AD1C1D2FE100AA80DE /* RBBSpringAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = RBBSpringAnimation.swift; sourceTree = "<group>"; };
 		918C96B41C1D401300AA80DE /* CommonAnimation.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CommonAnimation.swift; sourceTree = "<group>"; };
 		91AEE1411BBEFBDA00AC41D6 /* SetTableViewCell.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = SetTableViewCell.swift; sourceTree = "<group>"; };
 		91B03BFB1DEA3E7A00D9A4B5 /* UniversalSearch.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = UniversalSearch.swift; sourceTree = "<group>"; };
@@ -176,68 +172,12 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		9118D8A21BF4602000C5897C /* Common */ = {
-			isa = PBXGroup;
-			children = (
-				9187F47A1B68AD1500FA528F /* Common.swift */,
-				918C96B41C1D401300AA80DE /* CommonAnimation.swift */,
-				918A73E01DCBD371002C0D25 /* ImageLabelButton.swift */,
-				916BEEAD1DD2607F00EAA96F /* TwicketSegmentedControl.swift */,
-				9170E7C11BCC949500C70847 /* InsetTextField.swift */,
-				911C41061B9FB64F007E0AEE /* DynamicLabel.swift */,
-				910BC27A1BC8DD28007F1A9E /* LabelTableViewCell.swift */,
-				91EF24231BCC4C8300CABA3C /* TextInputTableViewCell.swift */,
-				910AAEB01BAB612000655131 /* TableViewControllerBase.swift */,
-				916BBEE11BD176F2008A0FB8 /* SetSearch.swift */,
-				91B03BFB1DEA3E7A00D9A4B5 /* UniversalSearch.swift */,
-				9107D56C1DD8F93900DF9F30 /* Pager.swift */,
-				912DFCF61BBAD106002D67FA /* SetPager.swift */,
-				9107D56E1DD8FCF900DF9F30 /* ClassPager.swift */,
-				9107D5761DD99C1B00DF9F30 /* UniversalPager.swift */,
-				914D0EB61DD1576500FC5985 /* DebugTextView.swift */,
-			);
-			name = Common;
-			sourceTree = "<group>";
-		};
-		911A0D4E1B4174EC00B219D7 /* Session */ = {
-			isa = PBXGroup;
-			children = (
-				91EDA1491B3161D300E1152D /* DropboxSession.swift */,
-				91EDA1451B3161A600E1152D /* QuizletSession.swift */,
-				91EDA17E1B334CDF00E1152D /* UserAccount.swift */,
-				9107D5741DD98DD100DF9F30 /* QItem.swift */,
-				910722F51B35FE200066DC87 /* QSet.swift */,
-				9107D5701DD8FD7600DF9F30 /* QClass.swift */,
-				9107D5721DD98A0100DF9F30 /* QUser.swift */,
-				912DFCF81BBAD3BD002D67FA /* QueryResult.swift */,
-				912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */,
-				9187F47E1B69FECC00FA528F /* Resources */,
-			);
-			name = Session;
-			sourceTree = "<group>";
-		};
-		911A0D4F1B41751E00B219D7 /* Model */ = {
-			isa = PBXGroup;
-			children = (
-				911A0D001B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld */,
-				911A0D4A1B3F2AE900B219D7 /* DataModel.swift */,
-				914D0ADD1B6AA4ED0025C585 /* Root.swift */,
-				914D0ADF1B6AA4ED0025C585 /* User.swift */,
-				914D0ADB1B6AA4ED0025C585 /* Query.swift */,
-				914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */,
-				914D0ADE1B6AA4ED0025C585 /* Term.swift */,
-				911A0D341B3CF69E00B219D7 /* QuizletSearchModel.strings */,
-			);
-			name = Model;
-			sourceTree = "<group>";
-		};
 		9126FDAD1B1D0E1000642E56 = {
 			isa = PBXGroup;
 			children = (
-				9126FDB81B1D0E1000642E56 /* QuizletSearch */,
-				9126FDCE1B1D0E1100642E56 /* QuizletSearchTests */,
+				9126FDB81B1D0E1000642E56 /* Source */,
+				9126FDCE1B1D0E1100642E56 /* Test */,
 				9126FDB71B1D0E1000642E56 /* Products */,
-				918C96A61C1D2FE100AA80DE /* EasyAnimation */,
 			);
 			sourceTree = "<group>";
 		};
@@ -250,7 +190,7 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		9126FDB81B1D0E1000642E56 /* QuizletSearch */ = {
+		9126FDB81B1D0E1000642E56 /* Source */ = {
 			isa = PBXGroup;
 			children = (
 				9126FDC41B1D0E1000642E56 /* LaunchScreen.xib */,
@@ -273,32 +213,23 @@
 				917BD94F1DFF93D100C0AB42 /* ClassCell.swift */,
 				917BD9511DFF946500C0AB42 /* StudySetCell.swift */,
 				917BD9551DFF975100C0AB42 /* ResettableBounds.swift */,
-				91B4AB501B683CF40043675A /* Algorithms */,
-				9118D8A21BF4602000C5897C /* Common */,
-				911A0D4F1B41751E00B219D7 /* Model */,
-				911A0D4E1B4174EC00B219D7 /* Session */,
-				9126FDC21B1D0E1000642E56 /* Images.xcassets */,
-				91D4DCCA1B43A83500F545A3 /* Localizable.strings */,
-				9126FDB91B1D0E1000642E56 /* Supporting Files */,
+				9136A6B8229E567000E15F75 /* Algorithms */,
+				9136A6B9229E569A00E15F75 /* Common */,
+				9136A6BF229E57F100E15F75 /* Model2 */,
+				9136A6AF229E55F500E15F75 /* RBBSpringAnimation */,
+				9136A6BC229E573C00E15F75 /* Session */,
+				9136A6BD229E578300E15F75 /* Supporting Files */,
 			);
-			path = QuizletSearch;
+			path = Source;
 			sourceTree = "<group>";
 		};
-		9126FDB91B1D0E1000642E56 /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				9126FDBA1B1D0E1000642E56 /* Info.plist */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		9126FDCE1B1D0E1100642E56 /* QuizletSearchTests */ = {
+		9126FDCE1B1D0E1100642E56 /* Test */ = {
 			isa = PBXGroup;
 			children = (
 				9126FDD11B1D0E1100642E56 /* QuizletSearchTests.swift */,
 				9126FDCF1B1D0E1100642E56 /* Supporting Files */,
 			);
-			path = QuizletSearchTests;
+			path = Test;
 			sourceTree = "<group>";
 		};
 		9126FDCF1B1D0E1100642E56 /* Supporting Files */ = {
@@ -309,43 +240,98 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		9187F47E1B69FECC00FA528F /* Resources */ = {
+		9136A6AF229E55F500E15F75 /* RBBSpringAnimation */ = {
 			isa = PBXGroup;
 			children = (
-				9187F47F1B69FECC00FA528F /* SampleQuizletData.json */,
-			);
-			path = Resources;
-			sourceTree = "<group>";
-		};
-		918C96A61C1D2FE100AA80DE /* EasyAnimation */ = {
-			isa = PBXGroup;
-			children = (
-				918C96A71C1D2FE100AA80DE /* EAAnimationFuture.swift */,
-				918C96A81C1D2FE100AA80DE /* EasyAnimation.swift */,
-				918C96A91C1D2FE100AA80DE /* RBBSpringAnimation */,
-			);
-			path = EasyAnimation;
-			sourceTree = "<group>";
-		};
-		918C96A91C1D2FE100AA80DE /* RBBSpringAnimation */ = {
-			isa = PBXGroup;
-			children = (
-				918C96AA1C1D2FE100AA80DE /* LICENSE */,
-				918C96AB1C1D2FE100AA80DE /* RBBBlockBasedArray.swift */,
-				918C96AC1C1D2FE100AA80DE /* RBBLinearInterpolation.swift */,
-				918C96AD1C1D2FE100AA80DE /* RBBSpringAnimation.swift */,
+				9136A6B0229E560C00E15F75 /* LICENSE */,
+				9136A6B1229E560C00E15F75 /* RBBBlockBasedArray.swift */,
+				9136A6B3229E560C00E15F75 /* RBBLinearInterpolation.swift */,
+				9136A6B2229E560C00E15F75 /* RBBSpringAnimation.swift */,
 			);
 			path = RBBSpringAnimation;
 			sourceTree = "<group>";
 		};
-		91B4AB501B683CF40043675A /* Algorithms */ = {
+		9136A6B8229E567000E15F75 /* Algorithms */ = {
 			isa = PBXGroup;
 			children = (
 				910722F91B360DC20066DC87 /* Boyer-Moore.swift */,
 				91B4AB511B683D2F0043675A /* LevenshteinDistance.swift */,
 				91B4AB571B6845EB0043675A /* StringScore.swift */,
 			);
-			name = Algorithms;
+			path = Algorithms;
+			sourceTree = "<group>";
+		};
+		9136A6B9229E569A00E15F75 /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				9187F47A1B68AD1500FA528F /* Common.swift */,
+				918C96B41C1D401300AA80DE /* CommonAnimation.swift */,
+				914D0EB61DD1576500FC5985 /* DebugTextView.swift */,
+				911C41061B9FB64F007E0AEE /* DynamicLabel.swift */,
+				918A73E01DCBD371002C0D25 /* ImageLabelButton.swift */,
+				9170E7C11BCC949500C70847 /* InsetTextField.swift */,
+				910BC27A1BC8DD28007F1A9E /* LabelTableViewCell.swift */,
+				9107D56C1DD8F93900DF9F30 /* Pager.swift */,
+				9107D56E1DD8FCF900DF9F30 /* ClassPager.swift */,
+				912DFCF61BBAD106002D67FA /* SetPager.swift */,
+				9107D5761DD99C1B00DF9F30 /* UniversalPager.swift */,
+				916BBEE11BD176F2008A0FB8 /* SetSearch.swift */,
+				910AAEB01BAB612000655131 /* TableViewControllerBase.swift */,
+				91EF24231BCC4C8300CABA3C /* TextInputTableViewCell.swift */,
+				916BEEAD1DD2607F00EAA96F /* TwicketSegmentedControl.swift */,
+				91B03BFB1DEA3E7A00D9A4B5 /* UniversalSearch.swift */,
+			);
+			path = Common;
+			sourceTree = "<group>";
+		};
+		9136A6BC229E573C00E15F75 /* Session */ = {
+			isa = PBXGroup;
+			children = (
+				91EDA1491B3161D300E1152D /* DropboxSession.swift */,
+				91EDA1451B3161A600E1152D /* QuizletSession.swift */,
+				91EDA17E1B334CDF00E1152D /* UserAccount.swift */,
+				9107D5741DD98DD100DF9F30 /* QItem.swift */,
+				910722F51B35FE200066DC87 /* QSet.swift */,
+				9107D5701DD8FD7600DF9F30 /* QClass.swift */,
+				9107D5721DD98A0100DF9F30 /* QUser.swift */,
+				912DFCF81BBAD3BD002D67FA /* QueryResult.swift */,
+				912DFCFA1BBAD5F4002D67FA /* UnexpectedResponse.swift */,
+				9187F47E1B69FECC00FA528F /* Resources */,
+			);
+			path = Session;
+			sourceTree = "<group>";
+		};
+		9136A6BD229E578300E15F75 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				9126FDBA1B1D0E1000642E56 /* Info.plist */,
+				9126FDC21B1D0E1000642E56 /* Images.xcassets */,
+				91D4DCCA1B43A83500F545A3 /* Localizable.strings */,
+			);
+			path = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		9136A6BF229E57F100E15F75 /* Model2 */ = {
+			isa = PBXGroup;
+			children = (
+				911A0D001B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld */,
+				911A0D4A1B3F2AE900B219D7 /* DataModel.swift */,
+				914D0ADD1B6AA4ED0025C585 /* Root.swift */,
+				914D0ADF1B6AA4ED0025C585 /* User.swift */,
+				914D0ADB1B6AA4ED0025C585 /* Query.swift */,
+				914D0ADC1B6AA4ED0025C585 /* QuizletSet.swift */,
+				914D0ADE1B6AA4ED0025C585 /* Term.swift */,
+				911A0D341B3CF69E00B219D7 /* QuizletSearchModel.strings */,
+			);
+			path = Model2;
+			sourceTree = "<group>";
+		};
+		9187F47E1B69FECC00FA528F /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				9187F47F1B69FECC00FA528F /* SampleQuizletData.json */,
+			);
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -439,7 +425,7 @@
 				91D4DCCB1B43A83500F545A3 /* Localizable.strings in Resources */,
 				9187F4801B69FECC00FA528F /* SampleQuizletData.json in Resources */,
 				9126FDC11B1D0E1000642E56 /* Main.storyboard in Resources */,
-				918C96B01C1D2FE100AA80DE /* LICENSE in Resources */,
+				9136A6B4229E560C00E15F75 /* LICENSE in Resources */,
 				9126FDC61B1D0E1000642E56 /* LaunchScreen.xib in Resources */,
 				9126FDC31B1D0E1000642E56 /* Images.xcassets in Resources */,
 				911A0D351B3CF69E00B219D7 /* QuizletSearchModel.strings in Resources */,
@@ -499,27 +485,26 @@
 				912DFCFB1BBAD5F4002D67FA /* UnexpectedResponse.swift in Sources */,
 				9107D5731DD98A0100DF9F30 /* QUser.swift in Sources */,
 				91EDA17F1B334CDF00E1152D /* UserAccount.swift in Sources */,
-				918C96B21C1D2FE100AA80DE /* RBBLinearInterpolation.swift in Sources */,
 				91B4AB521B683D2F0043675A /* LevenshteinDistance.swift in Sources */,
 				914D0EB71DD1576500FC5985 /* DebugTextView.swift in Sources */,
 				911C41091BA10A21007E0AEE /* SearchOperation.swift in Sources */,
-				918C96AE1C1D2FE100AA80DE /* EAAnimationFuture.swift in Sources */,
 				91EF24241BCC4C8300CABA3C /* TextInputTableViewCell.swift in Sources */,
 				911A0D4B1B3F2AE900B219D7 /* DataModel.swift in Sources */,
+				9136A6B7229E560C00E15F75 /* RBBLinearInterpolation.swift in Sources */,
 				913527FA1DC9B2B0004AD7C3 /* SearchUserClassSetController.swift in Sources */,
 				9107D5751DD98DD100DF9F30 /* QItem.swift in Sources */,
 				911C41051B9F7A7C007E0AEE /* SearchTableViewCell.swift in Sources */,
 				914D0AE11B6AA4ED0025C585 /* QuizletSet.swift in Sources */,
+				9136A6B6229E560C00E15F75 /* RBBSpringAnimation.swift in Sources */,
 				911A0D4D1B41264200B219D7 /* LoginViewController.swift in Sources */,
-				918C96AF1C1D2FE100AA80DE /* EasyAnimation.swift in Sources */,
 				9170E7C21BCC949500C70847 /* InsetTextField.swift in Sources */,
 				910722FA1B360DC20066DC87 /* Boyer-Moore.swift in Sources */,
 				911A0D021B3CEDC100B219D7 /* QuizletSearch.xcdatamodeld in Sources */,
 				914D0AE21B6AA4ED0025C585 /* Root.swift in Sources */,
-				918C96B11C1D2FE100AA80DE /* RBBBlockBasedArray.swift in Sources */,
 				9107D5711DD8FD7600DF9F30 /* QClass.swift in Sources */,
 				9126FDBC1B1D0E1000642E56 /* AppDelegate.swift in Sources */,
 				910AAEB31BAB67E100655131 /* QueriesViewController.swift in Sources */,
+				9136A6B5229E560C00E15F75 /* RBBBlockBasedArray.swift in Sources */,
 				917BD9521DFF946500C0AB42 /* StudySetCell.swift in Sources */,
 				918A73E11DCBD371002C0D25 /* ImageLabelButton.swift in Sources */,
 				911C410B1BA121C6007E0AEE /* SearchTableViewHeaderCell.swift in Sources */,
@@ -527,7 +512,6 @@
 				91AEE1421BBEFBDA00AC41D6 /* SetTableViewCell.swift in Sources */,
 				914D0AE41B6AA4ED0025C585 /* User.swift in Sources */,
 				916BEEAE1DD2607F00EAA96F /* TwicketSegmentedControl.swift in Sources */,
-				918C96B31C1D2FE100AA80DE /* RBBSpringAnimation.swift in Sources */,
 				91B03BFC1DEA3E7A00D9A4B5 /* UniversalSearch.swift in Sources */,
 				9107D5771DD99C1B00DF9F30 /* UniversalPager.swift in Sources */,
 				910722F61B35FE200066DC87 /* QSet.swift in Sources */,
@@ -691,7 +675,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = FYX55SR9QC;
-				INFOPLIST_FILE = QuizletSearch/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Source/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.douglas.$(PRODUCT_NAME:rfc1034identifier)";
@@ -712,7 +696,7 @@
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
 				DEVELOPMENT_TEAM = FYX55SR9QC;
-				INFOPLIST_FILE = QuizletSearch/Info.plist;
+				INFOPLIST_FILE = "$(SRCROOT)/Source/Supporting Files/Info.plist";
 				IPHONEOS_DEPLOYMENT_TARGET = 8.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.douglas.$(PRODUCT_NAME:rfc1034identifier)";
@@ -736,7 +720,7 @@
 					"DEBUG=1",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = QuizletSearchTests/Info.plist;
+				INFOPLIST_FILE = Test/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -754,7 +738,7 @@
 					"$(SDKROOT)/Developer/Library/Frameworks",
 					"$(inherited)",
 				);
-				INFOPLIST_FILE = QuizletSearchTests/Info.plist;
+				INFOPLIST_FILE = Test/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				PRODUCT_BUNDLE_IDENTIFIER = "com.example.$(PRODUCT_NAME:rfc1034identifier)";
 				PRODUCT_NAME = "$(TARGET_NAME)";

@@ -33,6 +33,19 @@
 // THE SOFTWARE.
 
 import UIKit
+// @testable import EasyAnimation
+
+public extension UIView.AnimationOptions {
+    //CA Fill modes
+    static let fillModeNone = UIView.AnimationOptions(rawValue: 0)
+    static let fillModeForwards = UIView.AnimationOptions(rawValue: 1024)
+    static let fillModeBackwards = UIView.AnimationOptions(rawValue: 2048)
+    static let fillModeBoth = UIView.AnimationOptions(rawValue: 1024 + 2048)
+    
+    //CA Remove on completion
+    static let isRemovedOnCompletion = UIView.AnimationOptions(rawValue: 0)
+    static let isNotRemovedOnCompletion = UIView.AnimationOptions(rawValue: 16384)
+}
 
 enum WhooshStyle {
     case fadeIn, fadeOut
@@ -115,27 +128,27 @@ class CommonAnimation {
             }, completion: { _ in label.removeFromSuperview() })
         }
         
-        if (false && true) {
-        UIView.animateAndChain(withDuration: 1.0, delay: 0.0, /* usingSpringWithDamping: 0.33, initialSpringVelocity: 0.0, */ options: [ .curveLinear ], animations: {
-
-            let translate = CGAffineTransform(translationX: endPosition.x - startPosition.x, y: endPosition.y - startPosition.y)
-            // let scale = CGAffineTransformMakeScale(0.6, 0.6)
-            // let transform =  CGAffineTransformConcat(translate, scale)
-             let transform = translate.rotated(by: CGFloat(Double.pi + 0.01))
-
-            label.transform = transform
-            
-            // label.layer.cornerRadius = 62.5
-            //label.layer.borderWidth = 2.0
-            //label.layer.borderColor = UIColor.redColor().CGColor
-            }, completion: nil)
-            .animate(withDuration: 1.0, delay: 0.0, options: [ .curveLinear /* .CurveEaseOut, .Repeat */ ], animations: {
-                label.transform = CGAffineTransform.identity
-                // label.layer.cornerRadius = 0.0
-                //label.layer.borderWidth = 0.0
-                //label.layer.borderColor = UIColor.blackColor().CGColor
-                }, completion: {_ in label.removeFromSuperview() })
-        }
+//        if (false && true) {
+//        UIView.animateAndChain(withDuration: 1.0, delay: 0.0, /* usingSpringWithDamping: 0.33, initialSpringVelocity: 0.0, */ options: [ .curveLinear ], animations: {
+//
+//            let translate = CGAffineTransform(translationX: endPosition.x - startPosition.x, y: endPosition.y - startPosition.y)
+//            // let scale = CGAffineTransformMakeScale(0.6, 0.6)
+//            // let transform =  CGAffineTransformConcat(translate, scale)
+//             let transform = translate.rotated(by: CGFloat(Double.pi + 0.01))
+//
+//            label.transform = transform
+//
+//            // label.layer.cornerRadius = 62.5
+//            //label.layer.borderWidth = 2.0
+//            //label.layer.borderColor = UIColor.redColor().CGColor
+//            }, completion: nil)
+//            .animate(withDuration: 1.0, delay: 0.0, options: [ .curveLinear /* .CurveEaseOut, .Repeat */ ], animations: {
+//                label.transform = CGAffineTransform.identity
+//                // label.layer.cornerRadius = 0.0
+//                //label.layer.borderWidth = 0.0
+//                //label.layer.borderColor = UIColor.blackColor().CGColor
+//                }, completion: {_ in label.removeFromSuperview() })
+//        }
         
         
         if (false && true) {
